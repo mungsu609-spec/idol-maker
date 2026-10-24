@@ -1370,6 +1370,13 @@ const LIGHT = {
 };
 // 배경마다 벽과 바닥이 만나는 높이 (화면 높이 비율, 그림을 재서 정함). 뒷줄 발끝이 이 선보다 아래 바닥 위에 오게
 const FLOOR = { stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
+// 뒷줄 자리: 앞줄 고양이 사이사이 틈 중에서 고르게 (앞줄 가운데가 0, 한 칸 = 앞줄 간격)
+function backSlots(nf, nb) {
+  const gaps = Array.from({ length: nf - 1 }, (_, i) => i - (nf - 2) / 2);
+  if (nb >= gaps.length) return gaps.slice(0, nb);
+  if (nb === 1) return [0];
+  return Array.from({ length: nb }, (_, i) => gaps[Math.round(i * (gaps.length - 1) / (nb - 1))]);
+}
 let MOUNT_ID = 0;
 async function mount2d(host, members, kind) {
   const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
@@ -1403,10 +1410,11 @@ async function mount2d(host, members, kind) {
     let idx = 0;
     for (const r of rows) {                                   // 뒷줄 먼저 그려서 앞줄 뒤에 보이게
       const sc = base * r.sc, gap = two ? w * .94 / nf : Math.min(w * .96 / r.k, cw * sc * .82);
+      const slots = backSlots(nf, r.k);
       for (let j = 0; j < r.k; j++, idx++) {
         const m = r === rows[rows.length - 1] && two ? list[j] : two ? list[nf + j] : list[j];
         const c = CAT2.makeCat(PIXI, await CATDATA[catOf(m)], { phase: idx * .37, items: ITEMS2, wear: wearFor(m, kind), shadowAlpha: r.back ? .62 : .5 });
-        c.root.scale.set(sc); c.root.x = w / 2 + (j - (r.k - 1) / 2) * gap; c.root.baseY = r.y; c.root.y = r.y;
+        c.root.scale.set(sc); c.root.x = w / 2 + (r.back ? slots[j] : j - (r.k - 1) / 2) * gap; c.root.baseY = r.y; c.root.y = r.y;
         c.setMode(MODE2[kind] || 'idle'); shadows.addChild(c.shadow); crowd.addChild(c.root); CATS_ON.push(c);
       }
     }
@@ -1769,8 +1777,10 @@ function fillNames(keep) {
 <input type="text" value="${esc(nm)}" maxlength="10" aria-label="이름"><select aria-label="나이">${Array.from({ length: 11 }, (_, a) => a + 14).map(a => `<option value="${a}"${a === ag ? ' selected' : ''}>${a}세</option>`).join('')}</select></div>`; }).join('');
   const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: { ch: SU.chars[i], daily: 'basic', exp: 'normal' }, gender: gg, stats: { visual: 0 }, fatigue: 0, busy: null }));
   const keepS = S; S = { gender: SU.gender, members: [], albums: [], promo: null, ga: 'none' };
-  $('#suScene').innerHTML = `<div class="st3host">${bgHTML('stage')}${(() => { const nf = SU.count === 5 ? 3 : 4, im = i => `<img src="${catImg(CATS[(SU.chars[i] - 1) % CATS.length][0], 'full')}" alt="" style="max-width:${100 / Math.min(SU.count, 4) * 1.35}%;margin:0 -${SU.count > 3 ? 3 : 0}%">`, all = Array.from({ length: SU.count }, (_, i) => i);
-    return SU.count >= 5 ? `<div class="thumbrow back">${all.slice(nf).map(im).join('')}</div><div class="thumbrow two">${all.slice(0, nf).map(im).join('')}</div>` : `<div class="thumbrow">${all.map(im).join('')}</div>`; })()}</div>`; S = keepS;
+  $('#suScene').innerHTML = `<div class="st3host">${bgHTML('stage')}${(() => { const n = SU.count, two = n >= 5, nf = n === 5 ? 3 : two ? 4 : n, sp = two ? (nf === 3 ? 22 : 18) : Math.min(23, 92 / n), all = Array.from({ length: n }, (_, i) => i);
+    const im = (i, slot) => `<img src="${catImg(CATS[(SU.chars[i] - 1) % CATS.length][0], 'full')}" alt="" style="position:absolute;bottom:0;height:100%;left:${50 + slot * sp}%;transform:translateX(-50%)">`;
+    const front = all.slice(0, nf).map((i, j) => im(i, j - (nf - 1) / 2)).join(''), bs = backSlots(nf, n - nf);
+    return two ? `<div class="thumbrow back">${all.slice(nf).map((i, j) => im(i, bs[j])).join('')}</div><div class="thumbrow two">${front}</div>` : `<div class="thumbrow">${front}</div>`; })()}</div>`; S = keepS;
 }
 function memberDetail(id) {
   const m = S.members.find(x => x.id === id); if (!m) return;
