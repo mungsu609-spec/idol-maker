@@ -105,8 +105,8 @@ select.full{width:100%}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(180deg,#fffaf0,#ffefd2);border-top:3px solid var(--gold);box-shadow:0 -4px 14px rgba(170,110,60,.15);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
 nav div{display:flex;width:100%;max-width:640px}
 nav button{flex:1;border:0;background:none;padding:5px 0 7px;font-family:"Jua",sans-serif;font-size:13px;color:#9a7a6a}
-nav .ti{display:block;width:42px;height:36px;margin:0 auto 1px;border-radius:14px;padding:3px 6px;transition:transform .15s}
-nav .ti svg{width:100%;height:100%}
+nav .ti{display:block;width:44px;height:40px;margin:0 auto 1px;border-radius:14px;padding:1px 4px;transition:transform .15s}
+nav .ti svg,nav .ti img{width:100%;height:100%;object-fit:contain;display:block}
 nav button.on{color:var(--pinkd)}
 nav button.on .ti{background:radial-gradient(circle,#fff 35%,#ffd6e6);box-shadow:0 0 0 2px var(--pinkl);transform:translateY(-5px)}
 .talk{position:relative;display:flex;gap:10px;align-items:center;margin-top:12px;padding:10px 14px 12px 10px;border-radius:16px;background:linear-gradient(180deg,#b6c3f8,#909ff0 55%,#7e8de4);border:2.5px solid #fff;box-shadow:0 0 0 2px #6e7bd6,0 4px 0 2px #5a66c0;color:#fff}
@@ -1318,10 +1318,11 @@ let PIXIP = null;
 const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
 const MODE2 = { stage: 'dance', concert: 'dance', festival: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
-// AI로 만든 배경 그림 (8장 무료 FLUX, 7장 제미나이). 숙소는 사는 집 등급에 따라 3가지
-const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'clinic', 'scandal', 'win'];
+// AI로 만든 배경 그림 (8장 무료 FLUX, 나머지 제미나이). 숙소는 6종류마다 다른 그림
+const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'win'];
 const BG_ALIAS = {};
-const dormBg = () => { const d = S && S.dorm ? dormOf() : DORMS[1]; return d.id === 'd1' ? 'dorm_old' : d.isNew ? 'dorm_lux' : 'dorm'; };
+const DORM_BG = { d1: 'dorm_old', d2: 'dorm', d3: 'dorm_two', d6: 'dorm_house', d4: 'dorm_office', d5: 'dorm_lux' };   // 숙소 6종 모두 다른 그림
+const dormBg = () => DORM_BG[(S && S.dorm ? dormOf() : DORMS[1]).id] || 'dorm';
 function bgHTML(kind) {
   if (kind === 'dorm') kind = dormBg();
   const k = BGS.includes(kind) ? kind : BGS.includes(BG_ALIAS[kind]) ? BG_ALIAS[kind] : null;
@@ -1331,11 +1332,11 @@ function bgHTML(kind) {
 const LIGHT = {
   stage: [[1, .9, 1.05], .02, 0xff7ad9], concert: [[1, .88, 1.05], 0, 0xffa0e0], yearend: [[1.05, .95, .88], .02, 0xffd27a], win: [[1.06, .98, .86], .04, 0xffe08a],
   festival: [[1.02, 1, .96], .03, null], practice: [[1.04, .98, .92], .02, null], live: [[1.04, .96, .94], .01, null], fansign: [[1.04, .97, .96], .03, null],
-  prep: [[1.04, .97, .9], 0, null], drama: [[1.05, .98, .9], .02, null], dorm: [[1.06, .96, .84], -.02, null], dorm_old: [[1, .95, .86], -.06, null], dorm_lux: [[1.02, .97, .92], 0, null],
+  prep: [[1.04, .97, .9], 0, null], drama: [[1.05, .98, .9], .02, null], dorm: [[1.06, .96, .84], -.02, null], dorm_old: [[1, .95, .86], -.06, null], dorm_lux: [[1.02, .97, .92], 0, null], dorm_two: [[1.04, .98, .92], .02, null], dorm_house: [[1.04, .99, .9], .03, null], dorm_office: [[1.03, .96, .94], 0, null],
   scandal: [[1.04, .9, .9], -.05, null], clinic: [[1, 1, 1], 0, null],
 };
 // 배경마다 벽과 바닥이 만나는 높이 (화면 높이 비율, 그림을 재서 정함). 뒷줄 발끝이 이 선보다 아래 바닥 위에 오게
-const FLOOR = { stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, scandal: .78 };
+const FLOOR = { stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
 let MOUNT_ID = 0;
 async function mount2d(host, members, kind) {
   const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
@@ -1571,13 +1572,8 @@ const ICON = {
   star: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z" fill="#ffd84a" stroke="#c9902a" stroke-width="2" stroke-linejoin="round"/></svg>`,
   trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="#ffd34d" stroke="#b9822a" stroke-width="2" stroke-linejoin="round"/><path d="M7 5H3c0 4 2 5 4 5M17 5h4c0 4-2 5-4 5" fill="none" stroke="#b9822a" stroke-width="2"/><path d="M10 13h4v4h-4zM7 18h10v3H7z" fill="#e8a92a" stroke="#b9822a" stroke-width="2" stroke-linejoin="round"/></svg>`,
 };
-const TABICON = {
-  plan: `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="7" width="24" height="21" rx="4" fill="#fff" stroke="#8a5a3a" stroke-width="2"/><path d="M4 11a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v3H4z" fill="#ff6f9c" stroke="#8a5a3a" stroke-width="2"/><rect x="9" y="3" width="3" height="7" rx="1.5" fill="#ffd34d" stroke="#8a5a3a" stroke-width="1.5"/><rect x="20" y="3" width="3" height="7" rx="1.5" fill="#ffd34d" stroke="#8a5a3a" stroke-width="1.5"/><path d="M10 19h3M15 19h3M20 19h3M10 24h3M15 24h3" stroke="#d9a8b4" stroke-width="2" stroke-linecap="round"/></svg>`,
-  members: `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="21" cy="11" r="5" fill="#fde6d6" stroke="#8a5a3a" stroke-width="2"/><path d="M15.5 11c0-4 2.5-6.5 5.5-6.5s5.5 2.5 5.5 6.5c-1.2-2-3.2-3-5.5-3s-4.3 1-5.5 3z" fill="#5b3b28"/><path d="M14 28c0-6 3-9 7-9s7 3 7 9z" fill="#9fc2f5" stroke="#8a5a3a" stroke-width="2"/><circle cx="11" cy="13" r="5.5" fill="#fde6d6" stroke="#8a5a3a" stroke-width="2"/><path d="M5 15c-1-6.5 2-10 6-10s7 3.5 6 10c-1-3.5-3-5.5-6-5.5s-5 2-6 5.5z" fill="#e2b878" stroke="#8a5a3a" stroke-width="1.5"/><path d="M3 29c0-6 3-9 8-9s8 3 8 9z" fill="#ff9cc2" stroke="#8a5a3a" stroke-width="2"/></svg>`,
-  act: `<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="11" y="3" width="10" height="15" rx="5" fill="#b9a6f0" stroke="#5a4a8a" stroke-width="2"/><path d="M13 7h6M13 10h6M13 13h6" stroke="#7a6ab8" stroke-width="1.5"/><path d="M7 14c0 6 4 9 9 9s9-3 9-9" fill="none" stroke="#5a4a8a" stroke-width="2"/><path d="M16 23v5M11 29h10" stroke="#5a4a8a" stroke-width="2.5" stroke-linecap="round"/><path d="M26 3l1 2.5 2.5 1-2.5 1L26 10l-1-2.5-2.5-1 2.5-1z" fill="#ffd34d" stroke="#c9902a" stroke-width=".8"/></svg>`,
-  contract: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 5h16v20a3 3 0 0 1-3 3H7" fill="#fff6dc" stroke="#8a5a3a" stroke-width="2"/><rect x="4" y="4" width="6" height="22" rx="3" fill="#f6d88e" stroke="#8a5a3a" stroke-width="2"/><path d="M13 10h8M13 14h8M13 18h5" stroke="#c9a070" stroke-width="2" stroke-linecap="round"/><circle cx="22" cy="23" r="4.5" fill="#e0384f" stroke="#8a2030" stroke-width="1.5"/><path d="M20 23l1.5 1.5L24 21.5" stroke="#fff" stroke-width="1.5" fill="none"/></svg>`,
-  news: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M24 11h4v13a3 3 0 0 1-3 3h-1" fill="#e9e1f7" stroke="#8a5a3a" stroke-width="2"/><rect x="4" y="6" width="20" height="21" rx="2" fill="#fff" stroke="#8a5a3a" stroke-width="2"/><rect x="7" y="9" width="14" height="5" rx="1" fill="#7fa4e8"/><path d="M7 18h6M7 22h6M15 18h6M15 22h6" stroke="#d1b9c0" stroke-width="2" stroke-linecap="round"/></svg>`,
-};
+// 탭 아이콘 (제미나이 그림, art/ui)
+const TABICON = Object.fromEntries([['plan', 'plan'], ['members', 'members'], ['act', 'activity'], ['contract', 'contract'], ['news', 'news']].map(([k, f]) => [k, `<img src="art/ui/tab-${f}.png" alt="" aria-hidden="true">`]));
 const CREST = `<svg class="crest" viewBox="0 0 160 44" aria-hidden="true"><g fill="#fff" stroke="#e3ad4a" stroke-width="2" stroke-linejoin="round"><path d="M70 26C56 8 30 4 6 12C24 14 32 18 38 24C24 22 16 26 10 32C30 26 46 30 58 34C48 34 40 38 36 42C52 36 62 34 70 30Z"/><path d="M90 26C104 8 130 4 154 12C136 14 128 18 122 24C136 22 144 26 150 32C130 26 114 30 102 34C112 34 120 38 124 42C108 36 98 34 90 30Z"/></g><path d="M80 6l5 11 12 1.3-9 8 2.6 11.7L80 32l-10.6 6 2.6-11.7-9-8 12-1.3z" fill="#ffd84a" stroke="#c9902a" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
 const STATC = { vocal: '#ff6fa3', dance: '#ff9a4a', visual: '#b07cf0', camera: '#f2c230', act: '#3fbfae', lang: '#5a9cf0', person: '#5cc06a', health: '#f06060' };
 const EYENAME = { round: '동그란 눈', droopy: '순한 눈', cat: '고양이 눈', smile: '웃는 눈' };
