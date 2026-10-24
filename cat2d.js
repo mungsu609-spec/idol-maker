@@ -1,6 +1,6 @@
 // ===== 2D 고양이 아이돌 (그림을 휘고 늘리는 메시 애니메이션, PixiJS) =====
 // 부위 그림(몸통·팔·꼬리·표정)을 격자 모양 메시로 붙이고, 꼭짓점을 움직여서 이음새 없이 휘게 만듦.
-const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=12';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
+const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=14';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
 const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]; };
 
@@ -56,6 +56,9 @@ export function makeCat(PIXI, data, opt = {}) {
   [tail, body, ...wearO.filter(o => o.layer === 'body'), ...Object.values(faces), ...wearO.filter(o => o.layer === 'head'), armL, armR].forEach(o => o && root.addChild(o.p));
   const zz = [0, 1, 2].map(i => { const z = new PIXI.Text('Z', { fontFamily: 'Jua, sans-serif', fontSize: (70 + i * 22) * U, fill: 0xb9a6ff, stroke: 0xffffff, strokeThickness: 10 * U, fontWeight: '700' }); z.anchor.set(.5); z.alpha = 0; root.addChild(z); return z; });
   root.pivot.set(W / 2, feetY);
+  // 발밑 그림자 (바닥에 붙어 있고, 뛰면 작고 옅어짐)
+  const shadow = new PIXI.Graphics(); shadow.beginFill(0x1a0f2e, 1).drawEllipse(0, 0, W * .34, W * .08).endFill();
+  shadow.filters = [new PIXI.BlurFilter(6)];
 
   const st = { mode: 'idle', t: Math.random() * 10, phase: opt.phase || 0 };
   // 동작마다 각도들
@@ -141,6 +144,8 @@ export function makeCat(PIXI, data, opt = {}) {
       z.alpha = u < .15 ? u / .15 : 1 - (u - .15) / .85; z.scale.set(.6 + u * .6); z.rotation = -.2 + u * .3;
     });
     root.y = (root.baseY || 0) - q.bounce * U * (root.scale.y || 1);
+    const up = Math.min(1, q.bounce / 90), sc = root.scale.x || 1;
+    shadow.x = root.x; shadow.y = (root.baseY || 0) - H * .01 * sc; shadow.scale.set(sc * (1 - up * .35)); shadow.alpha = (opt.shadowAlpha || .5) * (1 - up * .5);
   }
-  return { root, update, setMode(m) { st.mode = m; }, get mode() { return st.mode; }, W, H };
+  return { root, shadow, update, setMode(m) { st.mode = m; }, get mode() { return st.mode; }, W, H };
 }

@@ -232,6 +232,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .avbox img.a3{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
 .avbox.full img.a3{object-fit:contain;object-position:50% 100%}
 .avbox img.a3{background:transparent}
+.st3host .vig{position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:11px;pointer-events:none;-webkit-backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);background:radial-gradient(ellipse 75% 70% at 50% 55%,transparent 55%,rgba(20,10,40,.38) 100%)}
 .doll{position:relative;display:block;height:100%;aspect-ratio:448/600;margin:0 auto}
 .doll img.a3{object-fit:fill}
 .doll .witem{position:absolute;display:block;pointer-events:none}
@@ -1273,7 +1274,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=12';
+const CATV = '?v=14';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['headset', '헤드셋 마이크'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1322,8 +1323,15 @@ const dormBg = () => { const d = S && S.dorm ? dormOf() : DORMS[1]; return d.id 
 function bgHTML(kind) {
   if (kind === 'dorm') kind = dormBg();
   const k = BGS.includes(kind) ? kind : BGS.includes(BG_ALIAS[kind]) ? BG_ALIAS[kind] : null;
-  return k ? `<img class="bgimg" src="art/bg/${k}.webp?v=2" alt="">${kind === 'win' ? '<div class="winfx"></div>' : ''}` : scene(kind, [], kind !== 'clinic');
+  return k ? `<img class="bgimg" src="art/bg/${k}.webp?v=2" alt=""><div class="vig"></div>${kind === 'win' ? '<div class="winfx"></div>' : ''}` : scene(kind, [], kind !== 'clinic');
 }
+// 장면별 조명: 고양이 색을 배경 빛에 맞추기 [빨강·초록·파랑 곱하기, 밝기 더하기], 무대는 바닥 조명(스포트라이트)
+const LIGHT = {
+  stage: [[1, .9, 1.05], .02, 0xff7ad9], concert: [[1, .88, 1.05], 0, 0xffa0e0], yearend: [[1.05, .95, .88], .02, 0xffd27a], win: [[1.06, .98, .86], .04, 0xffe08a],
+  festival: [[1.02, 1, .96], .03, null], practice: [[1.04, .98, .92], .02, null], live: [[1.04, .96, .94], .01, null], fansign: [[1.04, .97, .96], .03, null],
+  prep: [[1.04, .97, .9], 0, null], drama: [[1.05, .98, .9], .02, null], dorm: [[1.06, .96, .84], -.02, null], dorm_old: [[1, .95, .86], -.06, null], dorm_lux: [[1.02, .97, .92], 0, null],
+  scandal: [[1.04, .9, .9], -.05, null], clinic: [[1, 1, 1], 0, null],
+};
 let MOUNT_ID = 0;
 async function mount2d(host, members, kind) {
   const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
@@ -1338,12 +1346,17 @@ async function mount2d(host, members, kind) {
     else CATAPP.renderer.resize(w, h);
     CATAPP.stage.removeChildren().forEach(o => o.destroy({ children: true, texture: false, baseTexture: false })); CATS_ON = [];   // 지난주 무대는 지워서 메모리가 쌓이지 않게
     const list = members.slice(0, 7), n = list.length;
+    const L = LIGHT[kind === 'dorm' ? dormBg() : kind] || LIGHT.practice, crowd = new PIXI.Container(), shadows = new PIXI.Container();
+    const cm = new PIXI.ColorMatrixFilter(), [lr, lg, lb] = L[0], la = L[1];
+    cm.matrix = [lr, 0, 0, 0, la, 0, lg, 0, 0, la, 0, 0, lb, 0, la, 0, 0, 0, 1, 0]; crowd.filters = [cm];
+    if (L[2] != null) { const spot = new PIXI.Graphics(); spot.beginFill(L[2], .28).drawEllipse(w / 2, h * .93, w * .46, h * .1).endFill(); spot.filters = [new PIXI.BlurFilter(18)]; CATAPP.stage.addChild(spot); }
+    CATAPP.stage.addChild(shadows, crowd);
     await Promise.all(list.map(m => { const k = catOf(m); return CATDATA[k] || (CATDATA[k] = CAT2.loadCat(PIXI, k)); }));   // 한꺼번에 불러오기
     const ITEMS2 = await CAT2.loadItems(PIXI).catch(() => null);
     LG('data'); if (my !== MOUNT_ID) return;        // 그 사이 다음 주로 넘어갔으면 그만
     // 4명까지 한 줄, 5명은 앞 3·뒤 2, 6명부터 앞 4·뒤 나머지. 뒷줄은 작고 위쪽, 앞줄 사이사이에
     const two = n >= 5, nf = n === 5 ? 3 : two ? 4 : n, nb = n - nf;     // 5명은 앞 3·뒤 2, 6명부터 앞 4·뒤 나머지
-    const rows = [{ k: nb, sc: .74, y: h * (nb === nf ? .6 : .66) }, { k: nf, sc: 1, y: h * .99 }].filter(r => r.k);
+    const rows = [{ k: nb, sc: .74, y: h * (nb === nf ? .6 : .66) }, { k: nf, sc: 1, y: h * .93 }].filter(r => r.k);
     const first = await CATDATA[catOf(list[0])], cw = first.info.w, ch = first.info.h;
     const base = Math.min((two ? h * .66 : h * .8) / ch, w * .96 / (nf * cw * .78));     // 앞줄이 화면 안에 다 들어가게
     let idx = 0;
@@ -1353,7 +1366,7 @@ async function mount2d(host, members, kind) {
         const m = r === rows[rows.length - 1] && two ? list[j] : two ? list[nf + j] : list[j];
         const c = CAT2.makeCat(PIXI, await CATDATA[catOf(m)], { phase: idx * .37, items: ITEMS2, wear: wearFor(m, kind) });
         c.root.scale.set(sc); c.root.x = w / 2 + (j - (r.k - 1) / 2) * gap; c.root.baseY = r.y; c.root.y = r.y;
-        c.setMode(MODE2[kind] || 'idle'); CATAPP.stage.addChild(c.root); CATS_ON.push(c);
+        c.setMode(MODE2[kind] || 'idle'); shadows.addChild(c.shadow); crowd.addChild(c.root); CATS_ON.push(c);
       }
     }
     host.classList.add('ready');
