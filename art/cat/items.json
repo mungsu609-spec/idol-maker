@@ -292,5 +292,89 @@
   "w": 199,
   "h": 255,
   "kind": "body"
+ },
+ "ev-yearend1": {
+  "x": 104,
+  "y": 221,
+  "w": 206,
+  "h": 240,
+  "kind": "body"
+ },
+ "ev-yearend2": {
+  "x": 110,
+  "y": 230,
+  "w": 192,
+  "h": 245,
+  "kind": "body"
+ },
+ "ev-yearend3": {
+  "x": 94,
+  "y": 217,
+  "w": 225,
+  "h": 244,
+  "kind": "body"
+ },
+ "ev-festival1": {
+  "x": 96,
+  "y": 223,
+  "w": 221,
+  "h": 274,
+  "kind": "body"
+ },
+ "ev-festival2": {
+  "x": 110,
+  "y": 223,
+  "w": 194,
+  "h": 200,
+  "kind": "body"
+ },
+ "ev-festival3": {
+  "x": 108,
+  "y": 224,
+  "w": 198,
+  "h": 254,
+  "kind": "body"
+ },
+ "ev-campus1": {
+  "x": 102,
+  "y": 220,
+  "w": 208,
+  "h": 232,
+  "kind": "body"
+ },
+ "ev-campus2": {
+  "x": 88,
+  "y": 224,
+  "w": 238,
+  "h": 228,
+  "kind": "body"
+ },
+ "ev-campus3": {
+  "x": 93,
+  "y": 224,
+  "w": 228,
+  "h": 248,
+  "kind": "body"
+ },
+ "ev-concert1": {
+  "x": 40,
+  "y": 224,
+  "w": 337,
+  "h": 286,
+  "kind": "body"
+ },
+ "ev-concert2": {
+  "x": 104,
+  "y": 226,
+  "w": 205,
+  "h": 238,
+  "kind": "body"
+ },
+ "ev-concert3": {
+  "x": 110,
+  "y": 204,
+  "w": 227,
+  "h": 274,
+  "kind": "body"
  }
 }
