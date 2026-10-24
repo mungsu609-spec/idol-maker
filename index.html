@@ -189,9 +189,39 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
 .scene.anim .dancer{transform-box:fill-box;transform-origin:50% 100%}
-.scene.anim.dance .dancer{animation:hop .42s ease-in-out infinite alternate;animation-delay:var(--d,0s)}
-.scene.anim.jump .dancer{animation:jump .7s cubic-bezier(.3,0,.4,1) infinite;animation-delay:var(--d,0s)}
-.scene.anim.sway .dancer{animation:sway 1.5s ease-in-out infinite alternate;animation-delay:var(--d,0s)}
+.scene.anim .dancer .pp{animation-delay:var(--d,0s)!important}
+.scene.anim .pp{transform-box:fill-box}
+.scene.anim.dance .armL{animation:armL .5s ease-in-out infinite alternate;animation-delay:inherit}
+.scene.anim.dance .armR{animation:armR .5s ease-in-out infinite alternate}
+.scene.anim.dance .legL{animation:legL .5s ease-in-out infinite alternate}
+.scene.anim.dance .legR{animation:legR .5s ease-in-out infinite alternate}
+.scene.anim.dance .head{animation:head 1s ease-in-out infinite alternate}
+.scene.anim.jump .armL{animation:armUpL .35s ease-in-out infinite alternate}
+.scene.anim.jump .armR{animation:armUpR .35s ease-in-out infinite alternate}
+.scene.anim.jump .head{animation:head .7s ease-in-out infinite alternate}
+.scene.anim.jump .legL{animation:legL .35s ease-in-out infinite alternate}
+.scene.anim.jump .legR{animation:legR .35s ease-in-out infinite alternate}
+.scene.anim.sway .armL{animation:armSoftL 1.4s ease-in-out infinite alternate}
+.scene.anim.sway .armR{animation:armSoftR 1.4s ease-in-out infinite alternate}
+.scene.anim.sway .head{animation:head 1.8s ease-in-out infinite alternate}
+.scene.anim.rest .head{animation:nod 2.6s ease-in-out infinite}
+.mouth{opacity:0}
+.scene.anim .mouth{animation:talk .42s steps(1) infinite}
+@keyframes talk{0%{opacity:1}50%{opacity:0}}
+@keyframes armL{from{transform:rotate(-3deg)}to{transform:rotate(8deg)}}
+@keyframes armR{from{transform:rotate(-8deg)}to{transform:rotate(3deg)}}
+@keyframes armUpL{from{transform:rotate(1deg)}to{transform:rotate(12deg)}}
+@keyframes armUpR{from{transform:rotate(-12deg)}to{transform:rotate(-1deg)}}
+@keyframes armSoftL{from{transform:rotate(-2deg)}to{transform:rotate(4deg)}}
+@keyframes armSoftR{from{transform:rotate(-4deg)}to{transform:rotate(2deg)}}
+@keyframes legL{from{transform:rotate(-2.5deg)}to{transform:rotate(2deg)}}
+@keyframes legR{from{transform:rotate(2deg)}to{transform:rotate(-2.5deg)}}
+@keyframes head{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+@keyframes nod{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg)}}
+.su-row{display:flex;align-items:center;gap:6px;margin:6px 0}
+.su-row img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#fff}
+.su-row input{flex:1;min-width:0}
+.su-row select{border:2px solid var(--gold);background:#fffdf6;border-radius:12px;padding:8px 4px}
 @keyframes hop{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-8px) rotate(2deg)}}
 @keyframes jump{0%,100%{transform:translateY(0) scaleY(1)}15%{transform:translateY(0) scaleY(.94)}45%{transform:translateY(-22px) scaleY(1.03)}75%{transform:translateY(0) scaleY(1)}}
 @keyframes sway{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}
@@ -229,6 +259,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 </style>
 </head>
 <body>
+<script src="art/v2/hair-list.js"></script>
 <div id="app"></div>
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 <script>
@@ -275,6 +306,7 @@ const CONCEPTS = [
   { id: 'retro', label: '레트로', fav: ['vocal', 'camera'] },
   { id: 'hiphop', label: '힙합', fav: ['dance', 'lang'] },
   { id: 'ballad', label: '감성 발라드', fav: ['vocal', 'act'] },
+  { id: 'sexy', label: '섹시', fav: ['visual', 'camera'], adult: true },
 ];
 const conceptLabel = c => S.gender === 'boy' && c.boy ? c.boy : c.label;
 const TIERS = [{ label: '기본', cost: 2000, bonus: 0 }, { label: '중급', cost: 5000, bonus: 4 }, { label: '고급', cost: 10000, bonus: 8 }];
@@ -294,7 +326,20 @@ const HEAD = {
   '말실수': ['라이브 방송 중 말실수 논란', '라이브 방송 태도 논란', '팬싸인회 태도 논란'],
   '실력': ['음방 라이브 음이탈 논란', '립싱크 의혹', '안무 실수 영상 확산', '"실력 부족" 비판 확산'],
   '외모': ['과도한 성형 논란'],
+  '열애': ['열애설 보도', '비밀 데이트 포착', '커플 아이템 의혹', '심야 데이트 목격담'],
 };
+// 숙소: 평수·청결도·신축/구축 → 휴식 효과, 건강, 스트레스, 수리비, 사생팬 보안
+const DORMS = [
+  { id: 'd1', name: '반지하 원룸', size: 10, clean: 30, isNew: false, cost: 60 },
+  { id: 'd2', name: '오래된 빌라', size: 18, clean: 50, isNew: false, cost: 120 },
+  { id: 'd3', name: '역세권 투룸', size: 22, clean: 65, isNew: false, cost: 200 },
+  { id: 'd6', name: '마당 있는 단독 주택', size: 55, clean: 70, isNew: false, cost: 420 },
+  { id: 'd4', name: '신축 오피스텔', size: 26, clean: 82, isNew: true, cost: 300 },
+  { id: 'd5', name: '고급 아파트', size: 42, clean: 92, isNew: true, cost: 560 },
+];
+const dormOf = () => DORMS.find(d => d.id === (S.dorm && S.dorm.id)) || DORMS[1];
+const dormSpace = () => dormOf().size / Math.max(1, S.members.length);
+const dormComfort = () => { const d = dormOf(); return 0.7 + d.clean / 250 + Math.min(dormSpace(), 8) / 40; };
 const SEV = ['', '경미', '보통', '심각'];
 
 // ===== 저장 =====
@@ -304,21 +349,21 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e
 function load() { try { const t = localStorage.getItem(KEY); if (t) S = JSON.parse(t); } catch (e) { S = null; } }
 
 // ===== 새 게임 =====
-function newMember(name, low = 15, high = 40, gender = S ? S.gender : SU.gender) {
+function newMember(name, low = 15, high = 40, gender = S ? S.gender : SU.gender, age = ri(16, 21)) {
   const st = {};
   for (const [k] of STATS) st[k] = ri(low, high);
   st.person = ri(30, 75); st.health = ri(55, 80);
-  return { id: uid(), name, hue: ri(0, 359), look: makeLook(gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null };
+  return { id: uid(), name, age, hue: ri(0, 359), look: makeLook(gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null };
 }
 function newGame(cfg) {
   S = {
     v: 1, name: cfg.name, gender: cfg.gender, week: 0, money: 50000, fans: 500, fame: 3,
-    trophies: 0, yearTrophies: 0, debutYear: null, members: cfg.names.map(n => newMember(n, 15, 40, cfg.gender)),
-    contracts: { costume: null, makeup: null }, promo: null, albums: [], offers: [], news: [], pending: [],
+    trophies: 0, yearTrophies: 0, debutYear: null, members: cfg.names.map((n, i) => newMember(n, 15, 40, cfg.gender, (cfg.ages || [])[i] || ri(16, 21))),
+    contracts: { costume: null, makeup: null }, dorm: { id: 'd2', since: 0 }, promo: null, albums: [], offers: [], news: [], pending: [],
     ga: 'none', lastConcert: -99, lastPromoEnd: 0, festival: null, awards: [],
     npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null,
   };
-  S.members.forEach((m, i) => { lookOf(m).ch = (i % 7) + 1; });
+  S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; });
   news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
   save(); TAB = 'plan'; render();
 }
@@ -338,7 +383,8 @@ function earn(n, l) { n = Math.round(n); if (!n) return; S.money += n; REP && RE
 function spend(n, l) { n = Math.round(n); if (!n) return; S.money -= n; REP && REP.exp.push([l, n]); }
 function contractBonus() { let b = 0; for (const k in VENDORS) { const c = S.contracts[k]; if (c) b += VENDORS[k].list.find(v => v.id === c.id).bonus; } return b; }
 function contractCost() { let b = 0; for (const k in VENDORS) { const c = S.contracts[k]; if (c) b += VENDORS[k].list.find(v => v.id === c.id).cost; } return b; }
-const fixedCost = () => 300 + S.members.length * 60;
+const staffCost = () => 200 + S.members.length * 40;
+const fixedCost = () => staffCost() + dormOf().cost;
 const perfOf = m => m.stats.vocal * .3 + m.stats.dance * .3 + m.stats.camera * .2 + m.stats.visual * .2;
 
 function stageScore(active, concept, albumBonus, total = S.members.length) {
@@ -421,6 +467,16 @@ function endWeek() {
     if (fsWho.includes(m)) { addFat(m, 8); m.pop += 1.5; }
   }
   if (train) spend(train, '트레이닝·관리');
+  // 숙소 영향
+  { const d = dormOf(), sp = dormSpace();
+    for (const m of S.members) {
+      if (sp < 3) { addFat(m, 4); m.stats.person = clamp(m.stats.person - 0.3, 0, 100); }
+      if (d.clean < 40) m.stats.health = clamp(m.stats.health - 1, 0, 100);
+    }
+    if (sp < 2.5 && S.members.length > 1 && Math.random() < 0.12) { const [a, b] = shuffle(S.members); news('scandal', `🏠 숙소가 너무 좁아 ${a.name}·${b.name} 멤버가 다퉜어요.`); REP.lines.push(`🏠 좁은 숙소 때문에 ${a.name}·${b.name} 다툼 (피로↑)`); addFat(a, 10); addFat(b, 10); }
+    if (d.clean < 40 && Math.random() < 0.04) { const m = pick(S.members.filter(x => !x.busy)) ; if (m) { m.busy = { type: 'sick', left: 2 }; news('scandal', `🦠 숙소 위생 문제로 ${m.name} 멤버가 아파요.`); REP.lines.push(`🦠 비위생적인 숙소 → ${m.name} 2주 쉬어요`); } }
+    if (!d.isNew && Math.random() < 0.06) { const c = ri(3, 8) * 100, what = pick(['누수', '곰팡이', '보일러 고장', '배관 고장', '전기 고장']); spend(c, `숙소 수리비 (${what})`); news('info', `🔧 오래된 숙소에 ${what} 문제가 생겨 수리했어요.`); REP.lines.push(`🔧 구축 숙소 ${what} → 수리비 ${money(c)}`); }
+  }
   for (const m of S.members) {
     if (m.fatigue > 80) m.stats.health = clamp(m.stats.health - 3, 0, 100);
     if (!m.busy && (m.stats.health < 20 || m.fatigue >= 95) && Math.random() < 0.3) {
@@ -503,10 +559,27 @@ function endWeek() {
     let p = (ps < 45 ? (45 - ps) * 0.0015 : 0.002) * (1 + S.fame / 80);
     if (ga === 'live' && ps < 40 && Math.random() < (40 - ps) * 0.004) { addScandal(m, '말실수'); continue; }
     if (Math.random() < p) addScandal(m, '인성');
+    else if (debuted() && Math.random() < 0.0025 * (m.age >= 20 ? 1.6 : 0.5) * (1 + S.fame / 70)) addScandal(m, '열애');
   }
+  // 사생팬 (드물게)
+  if (debuted() && S.fans > 3000 && !S.pending.some(p => p.kind === '사생') && Math.random() < 0.012 * (dormOf().isNew ? 0.5 : 1.4)) {
+    const m = pick(S.members.filter(x => x.stats.visual + x.pop > 20).length ? S.members.filter(x => x.stats.visual + x.pop > 20) : S.members);
+    S.pending.push({ mid: m.id, name: m.name, kind: '사생', sev: 1, truth: true, head: pick(['숙소 앞까지 따라온 사생팬', '이동 차량을 쫓아온 사생팬', '개인 연락처로 연락한 사생팬', '숙소 우편함을 뒤진 사생팬']) });
+    news('scandal', `👁 ${m.name} 멤버에게 사생팬이 나타났어요!`);
+  }
+  // 연습실 장면: 실제로 연습한 멤버만 (휴식·성형·바쁜 멤버 제외)
+  { const trained = S.members.filter(m => !m.busy && !(SCHED[m.sched] === SCHED.rest) && !(P && inPromo(m)) && ga !== 'concert' && ga !== 'festival');
+    REP.crew.practice = trained.map(m => m.id);
+    if (REP.scene === 'practice' && !trained.length) {
+      const surg = S.members.filter(m => m.busy && m.busy.type === 'surgery');
+      const resting = S.members.filter(m => !m.busy && SCHED[m.sched] === SCHED.rest);
+      if (resting.length) { REP.scene = 'dorm'; REP.crew.dorm = resting.map(m => m.id); }
+      else if (surg.length) REP.scene = 'clinic';
+      else REP.scene = 'dorm';
+    } }
 
   // 고정 지출·기본 수입
-  spend(fixedCost(), '숙소·직원 고정비');
+  spend(staffCost(), '직원 인건비'); spend(dormOf().cost, `숙소 (${dormOf().name})`);
   for (const k in VENDORS) { const c = S.contracts[k]; if (c) { const v = VENDORS[k].list.find(x => x.id === c.id); spend(v.cost, v.name); } }
   if (debuted()) earn(S.fans * 0.008, '굿즈·음원 기본 수익');
   if (!S.promo) S.fame = Math.max(0, S.fame - 0.4);
@@ -517,7 +590,7 @@ function endWeek() {
   // 다음 주로
   S.week++;
   const nd = dateOf(S.week);
-  if (S.week % 48 === 0) S.yearTrophies = 0;
+  if (S.week % 48 === 0) { S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`); }
   S.offers = S.offers.filter(o => o.expire > S.week);
   makeOffers();
   if (debuted() && nd.k === 1 && (nd.m === 5 || nd.m === 8) && S.fame >= 15) {
@@ -552,7 +625,7 @@ function doSched(m, s) {
     if (S.fame >= 20 && Math.random() < 0.15) addScandal(m, '외모');
     return;
   }
-  addFat(m, s.fat);
+  addFat(m, s.fat < 0 ? s.fat * dormComfort() : s.fat);
   for (const k in s.gain) gain(m, k, s.gain[k]);
   if (s === SCHED.diet && m.stats.health < 30 && Math.random() < 0.4) {
     m.busy = { type: 'sick', left: 2 };
@@ -647,8 +720,9 @@ function addScandal(m, kind) {
   let sev;
   if (kind === '실력') { const a = (m.stats.vocal + m.stats.dance) / 2; sev = a < 25 ? (r < .5 ? 2 : 3) : (r < .6 ? 1 : 2); }
   else if (kind === '외모' || kind === '말실수') sev = r < .7 ? 1 : 2;
+  else if (kind === '열애') sev = S.fame > 50 ? (r < .4 ? 2 : 3) : (r < .5 ? 1 : 2);
   else sev = ps < 30 ? (r < .3 ? 1 : r < .7 ? 2 : 3) : ps < 60 ? (r < .55 ? 1 : r < .9 ? 2 : 3) : (r < .75 ? 1 : r < .97 ? 2 : 3);
-  const truth = kind === '인성' ? Math.random() < clamp(0.15 + (60 - ps) / 80, 0.1, 0.9) : kind === '실력' ? Math.random() < 0.85 : true;
+  const truth = kind === '열애' ? Math.random() < 0.55 : kind === '인성' ? Math.random() < clamp(0.15 + (60 - ps) / 80, 0.1, 0.9) : kind === '실력' ? Math.random() < 0.85 : true;
   const head = pick(HEAD[kind]);
   S.pending.push({ mid: m.id, name: m.name, kind, sev, truth, head });
   news('scandal', `[논란] ${S.name} ${m.name}, ${head}`);
@@ -659,7 +733,21 @@ function resolveScandal(choice) {
   const out = [];
   if (!m) { S.pending.shift(); save(); nextPopup(); return; }
   let sev = sc.sev, fall = false;
-  if (choice === 'deny') {
+  if (sc.kind === '사생') {
+    if (choice === 'guard') { S.money -= 500; out.push('경호를 강화했어요 (비용 500만). 멤버가 안전하게 지낼 수 있어요.'); m.stats.health = clamp(m.stats.health + 2, 0, 100); }
+    else if (choice === 'police') { S.fame = clamp(S.fame + 1, 0, 100); out.push('경찰에 신고하고 공식 입장을 냈어요. 팬들이 응원해 줬어요.'); news('info', `${S.name} 소속사, 사생팬에 법적 대응 예고`); addFat(m, 8); }
+    else { addFat(m, 20); m.stats.health = clamp(m.stats.health - 5, 0, 100); out.push(`대응하지 않았어요. ${m.name} 멤버가 불안해해요 (피로 +20, 건강 -5).`);
+      if (Math.random() < 0.3) { m.busy = { type: 'sick', left: 2 }; out.push(`사생팬이 숙소까지 들어왔어요! ${m.name} 멤버가 충격으로 2주 쉬어요. 보안이 좋은 신축 숙소로 이사하는 걸 생각해 보세요.`); news('scandal', `👁 사생팬 숙소 침입… ${m.name} 2주간 휴식`); } }
+    S.pending.shift(); save(); render();
+    $('#dlgBody').innerHTML = `<h2>대처 결과</h2>${out.map(t => `<p>${esc(t)}</p>`).join('')}<button class="btn" data-act="next-popup" style="width:100%">확인</button>`;
+    return;
+  }
+  if (choice === 'admit') {
+    fall = sev >= 2;
+    S.fans = Math.round(S.fans * (1 - 0.03 * sev)); m.pop = Math.max(0, m.pop - sev * 2); m.stats.person = clamp(m.stats.person + 3, 0, 100);
+    out.push(`열애를 인정했어요. 일부 팬은 떠났지만 솔직한 모습에 응원하는 팬도 있어요.`);
+    news('info', `${m.name}, 열애 인정 "예쁘게 지켜봐 주세요"`);
+  } else if (choice === 'deny') {
     if (!sc.truth) { S.fans = Math.round(S.fans * 1.005); out.push('해명이 받아들여졌어요. 오해가 풀리면서 오히려 응원이 늘었어요.'); }
     else if (Math.random() < 0.3) { S.fans = Math.round(S.fans * 0.99); out.push('해명 뒤 논란이 잠잠해졌어요. 다행히 더 퍼지지 않았어요.'); }
     else {
@@ -723,6 +811,10 @@ function startComeback() {
   }
   const weeks = +document.querySelector('[name=cbWeeks]:checked').value, tier = +document.querySelector('[name=cbTier]:checked').value;
   if (S.promo) return;
+  if (CONCEPTS.find(c => c.id === concept).adult) {
+    const who = mids ? S.members.filter(m => mids.includes(m.id)) : S.members, young = who.filter(m => (m.age || 18) < 19);
+    if (young.length) return alert(`섹시 콘셉트는 성인(만 19세 이상) 멤버만 할 수 있어요.\n미성년자: ${young.map(m => `${m.name}(만 ${m.age}세)`).join(', ')}`);
+  }
   if (S.money < TIERS[tier].cost && !confirm('자금이 모자라요. 빚을 내서라도 진행할까요?')) return;
   S.money -= TIERS[tier].cost;
   const debut = S.albums.length === 0;
@@ -732,6 +824,15 @@ function startComeback() {
   news('promo', `${kind !== 'group' ? S.promo.who + ' ' + promoKindLabel(S.promo) : ''}「${title}」 ${S.promo.debut ? '데뷔' : '컴백'} 준비 시작! (${conceptLabel(CONCEPTS.find(c => c.id === concept))} 콘셉트 · 활동 ${weeks}주)`);
   CB = { kind: 'group', solo: null, unit: new Set() };
   save(); TAB = 'plan'; render();
+}
+function dormPenalty() { const d = dormOf(); return d.cost * Math.max(0, MIN_CONTRACT - (S.week - (S.dorm ? S.dorm.since : 0))); }
+function moveDorm(id) {
+  const to = DORMS.find(d => d.id === id); if (!to || to.id === dormOf().id) return;
+  const pen = dormPenalty(), move = 500;
+  if (!confirm(`${to.name}(으)로 이사할까요?\n이사 비용 ${money(move)}${pen ? ` + 지금 숙소 위약금 ${money(pen)}` : ''}`)) return;
+  S.money -= move + pen; S.dorm = { id: to.id, since: S.week };
+  news('info', `🏠 ${to.name}(으)로 이사했어요!`);
+  save(); render();
 }
 function signVendor(kind, id) {
   const cur = S.contracts[kind];
@@ -754,15 +855,40 @@ function terminate(kind, silent) {
   if (!silent) { save(); render(); }
   return true;
 }
+let RC = null;
+const RC_BONUS = [[1000, '1,000만'], [2000, '2,000만'], [4000, '4,000만']];
 function recruit() {
   if (S.members.length >= 7) return;
-  if (S.money < 2000 && !confirm('자금이 모자라요. 그래도 영입할까요?')) return;
   const pool = (S.gender === 'girl' ? GIRL : BOY).filter(n => !S.members.some(m => m.name === n));
-  const m = newMember(pick(pool.length ? pool : ['새멤버']), 15, 35);
-  { const used = S.members.map(x => lookOf(x).ch), free = [1, 2, 3, 4, 5, 6, 7].filter(c => !used.includes(c)); lookOf(m).ch = free.length ? free[0] : ri(1, 7); }
-  S.members.push(m); S.money -= 2000;
-  news('info', `새 멤버 ${m.name} 합류! 이제 ${S.members.length}인조예요.`);
-  save(); render();
+  const m = newMember(pick(pool.length ? pool : ['새멤버']), 15, 38, S.gender, ri(15, 20));
+  const used = S.members.map(x => lookOf(x).ch), free = [1, 2, 3, 4, 5, 6, 7].filter(c => !used.includes(c));
+  lookOf(m).ch = free.length ? pick(free) : ri(1, 7);
+  RC = { m, bonus: 1 };
+  recruitDlg();
+}
+function recruitChance(b) { return clamp(0.25 + S.fame / 120 + [0, 0.15, 0.3][b] + (dormOf().clean - 50) / 300 + (S.trophies > 0 ? 0.1 : 0), 0.1, 0.95); }
+function recruitDlg(msg) {
+  const m = RC.m;
+  openDlg(`<h2>연습생 영입</h2><div class="pcard"><div class="pcard-art">${avatar(m, 140, true)}${gradeBadge(gradeOf(m))}</div>
+<div class="pcard-name"><b>${esc(m.name)}</b><small>만 ${m.age}세 · 무대 실력 ${Math.round(perfOf(m))}</small></div></div>
+${statBars(m)}
+<label class="f">계약금 제안</label><div class="chips">${RC_BONUS.map(([v, l], i) => `<button class="chip${RC.bonus === i ? ' on' : ''}" data-rcb="${i}">${l}</button>`).join('')}</div>
+<p class="muted">영입 제안을 받아들일 가능성: 약 ${Math.round(recruitChance(RC.bonus) * 100)}% (인지도·계약금·숙소·1위 경험에 따라 달라져요)</p>
+${msg ? `<p class="neg"><b>${esc(msg)}</b></p>` : ''}
+<button class="btn" data-act="rc-offer" style="width:100%">💌 영입 제안하기</button>
+<div class="row" style="margin-top:8px"><button class="btn sub" data-act="rc-next" style="flex:1">다른 연습생 보기</button><button class="btn sub" data-act="close" style="flex:1">닫기</button></div>`);
+}
+function recruitOffer() {
+  const m = RC.m, [cost] = RC_BONUS[RC.bonus];
+  if (S.money < cost && !confirm('자금이 모자라요. 그래도 제안할까요?')) return;
+  if (Math.random() < recruitChance(RC.bonus)) {
+    S.money -= cost; S.members.push(m); RC = null;
+    news('info', `새 멤버 ${m.name}(만 ${m.age}세) 합류! 이제 ${S.members.length}인조예요.`);
+    save(); render();
+    openDlg(`<h2>🎉 영입 성공!</h2><div class="pcard"><div class="pcard-art">${avatar(m, 140, true)}</div><div class="pcard-name"><b>${esc(m.name)}</b><small>"열심히 하겠습니다!"</small></div></div><button class="btn" data-act="close" style="width:100%">확인</button>`);
+  } else {
+    recruitDlg(pick([`${m.name}: "조금 더 생각해 볼게요…" (거절)`, `${m.name}: "다른 회사 제안도 받아서요." (거절)`, `${m.name}: "죄송해요, 아직 준비가 안 됐어요." (거절)`]));
+  }
 }
 
 // ===== 화면 =====
@@ -820,18 +946,39 @@ const V2_OUT = {
   frill: { name: '프릴 원피스', boy: '파스텔 카디건', type: 'stage', concept: 'cute' }, chiffon: { name: '쉬폰 드레스', boy: '시스루 셔츠', type: 'stage', concept: 'dream' },
   polka: { name: '폴카 도트 원피스', boy: '레트로 셔츠', type: 'stage', concept: 'retro' }, jersey: { name: '오버핏 저지', type: 'stage', concept: 'hiphop' },
   white: { name: '화이트 드레스', boy: '화이트 수트', type: 'stage', concept: 'ballad' }, gala: { name: '시상식 드레스', boy: '턱시도', type: 'stage', concept: 'all' },
+  fresh2: { name: '민트 테니스 원피스', boy: '폴로 셔츠 룩', type: 'stage', concept: 'fresh' }, crush2: { name: '코르셋 + 카고', boy: '블랙 후드 + 체인', type: 'stage', concept: 'crush' },
+  cute2: { name: '옐로 오버롤 스커트', boy: '옐로 오버롤', type: 'stage', concept: 'cute' }, dream2: { name: '요정 튤 드레스', boy: '실버 조끼 룩', type: 'stage', concept: 'dream' },
+  retro2: { name: '80s 데님 룩', type: 'stage', concept: 'retro' }, hiphop2: { name: '그래피티 후드', type: 'stage', concept: 'hiphop' },
+  ballad2: { name: '크림 카디건 롱스커트', boy: '크림 니트 + 슬랙스', type: 'stage', concept: 'ballad' },
+  sexy1: { name: '레드 새틴 드레스', boy: '블랙 실크 셔츠', type: 'stage', concept: 'sexy' }, sexy2: { name: '블랙 오프숄더 드레스', boy: '버건디 벨벳 수트', type: 'stage', concept: 'sexy' },
+  pajama: { name: '잠옷', type: 'home' },
 };
+const LONG_OUT = { g: ['white', 'gala', 'chiffon', 'ballad2', 'dream2'], b: [] };
 const DAILY = Object.keys(V2_OUT).filter(k => V2_OUT[k].type === 'daily');
-const stageOutfits = c => Object.keys(V2_OUT).filter(k => V2_OUT[k].type === 'stage' && (V2_OUT[k].concept === c || V2_OUT[k].concept === 'all'));
+const stageOutfits = c => Object.keys(V2_OUT).filter(k => V2_OUT[k].type === 'stage' && (V2_OUT[k].concept === c || V2_OUT[k].concept === 'all')).sort((a, b) => (V2_OUT[a].concept === 'all') - (V2_OUT[b].concept === 'all'));
 const outfitName = (k, g) => !V2_OUT[k] ? '' : g === 'boy' && V2_OUT[k].boy ? V2_OUT[k].boy : V2_OUT[k].name;
 
-function makeLook(g) { return { ch: ri(1, 7), daily: 'basic', exp: 'normal' }; }
+function makeLook(g) { return { ch: ri(1, 7), daily: 'basic', exp: 'normal', hs: null, hcol: null }; }
+const HAIR_STYLES = { g: [['long', '긴 생머리'], ['bob', '단발'], ['twin', '트윈테일'], ['wavy', '웨이브'], ['pony', '포니테일'], ['short', '숏컷']], b: [['twoblock', '투블럭'], ['comma', '쉼표머리'], ['part', '가르마'], ['dandy', '댄디컷'], ['spiky', '스파이크'], ['tail', '꽁지머리']] };
+const NATIVE_HS = { g: [null, 'long', 'bob', 'twin', 'wavy', 'pony', 'short', 'long'], b: [null, 'twoblock', 'comma', 'dandy', 'part', 'spiky', 'dandy', 'tail'] };
+const HAIR_TINTS = [['black', '흑발', '#2b2328', null], ['brown', '갈색', '#8a5a40', [[45, 28, 22], [120, 78, 55], [196, 150, 112], [235, 205, 175]]], ['blonde', '금발', '#d9b56e', [[105, 75, 38], [205, 165, 95], [240, 215, 150], [255, 248, 220]]],
+  ['pink', '핑크', '#e88ab0', [[105, 40, 70], [222, 110, 150], [250, 170, 200], [255, 230, 240]]], ['silver', '실버', '#b9bccb', [[78, 80, 96], [160, 163, 180], [215, 218, 230], [252, 252, 255]]],
+  ['blue', '블루', '#5f86d6', [[28, 42, 96], [75, 112, 200], [140, 175, 240], [210, 228, 255]]], ['red', '레드', '#b8383f', [[72, 16, 22], [168, 40, 48], [225, 95, 95], [255, 185, 175]]],
+  ['purple', '보라', '#8d63c9', [[50, 30, 88], [128, 86, 190], [185, 150, 235], [230, 215, 255]]], ['orange', '오렌지', '#e08a4a', [[100, 40, 14], [212, 105, 45], [245, 160, 100], [255, 220, 185]]]];
+const hairOK = (g, ch, k) => !!k && (window.HAIR_OK || []).includes(`${g}${ch}-${k}`);
+function hairState(m, g) {
+  const L = lookOf(m);
+  let es = L.hs && hairOK(g, L.ch, L.hs) ? L.hs : null;
+  if (!es && L.hcol && hairOK(g, L.ch, NATIVE_HS[g][L.ch])) es = NATIVE_HS[g][L.ch];
+  return { es, tint: es && L.hcol && L.hcol !== 'black' ? L.hcol : null };
+}
 function lookOf(m) {
   if (!m.look) m.look = makeLook(S ? S.gender : 'girl');
   const L = m.look;
   if (!(L.ch >= 1 && L.ch <= 7)) L.ch = (Math.abs(m.hue || 0) % 7) + 1;
   if (!V2_OUT[L.daily] || V2_OUT[L.daily].type !== 'daily') L.daily = 'basic';
   if (!['normal', 'smile', 'surprise', 'closed'].includes(L.exp)) L.exp = 'normal';
+  if (L.hs === undefined) L.hs = null; if (L.hcol === undefined) L.hcol = null;
   return L;
 }
 function shade(hex, a) { const n = parseInt(hex.slice(1), 16); const f = c => Math.round(clamp(a < 0 ? c * (1 + a) : c + (255 - c) * a, 0, 255)); return '#' + [n >> 16, n >> 8 & 255, n & 255].map(c => f(c).toString(16).padStart(2, '0')).join(''); }
@@ -967,17 +1114,40 @@ function topSVG(kind, B, c, sub, acc, sk, sleeve, dotsFill) {
 const gp = m => (m && m.gender) || (S && S.gender === 'boy' ? 'b' : 'g');
 function v2Parts(m, outfit, exp) {
   const L = lookOf(m), g = gp(m), k = V2_OUT[outfit] ? outfit : L.daily;
-  const ex = exp || L.exp, fx = ex === 'smile' || ex === 'surprise' ? ex : null;
-  return { body: `${V2}${g}${L.ch}-body.webp`, outfit: k && k !== 'basic' ? `${V2}${g}-o-${k}.webp` : null, mask: k && k !== 'basic' ? `${V2}${g}-m-${k}.webp` : null, mid: `mk-${g}-${k}`,
+  const ex = exp || L.exp, fx = ex === 'smile' || ex === 'surprise' ? ex : null, hsx = hairState(m, g);
+  return { g, ch: L.ch, k, es: hsx.es, tint: hsx.tint, hmask: hsx.es ? `${V2}${g}${L.ch}-h-${hsx.es}-hair.webp` : null, hid: hsx.es ? `hm-${g}${L.ch}-${hsx.es}` : null, smile: `${V2}${g}${L.ch}-smile.webp`,
+    body: hsx.es ? `${V2}${g}${L.ch}-h-${hsx.es}-body.webp` : `${V2}${g}${L.ch}-body.webp`, outfit: k && k !== 'basic' ? `${V2}${g}-o-${k}.webp` : null, mask: k && k !== 'basic' ? `${V2}${g}-m-${k}.webp` : null, mid: `mk-${g}-${k}`,
     blink: `${V2}${g}${L.ch}-blink.webp`, face: fx ? `${V2}${g}${L.ch}-face-${fx}.webp` : `${V2}${g}${L.ch}-face.webp`, faceblink: `${V2}${g}${L.ch}-faceblink.webp`,
     exp: fx ? `${V2}${g}${L.ch}-${fx}.webp` : null, shut: ex === 'closed' };
 }
+// 한 멤버의 그림 레이어 (원본 384×688 좌표): 몸 → 머리 색 → 옷 → 표정·눈 → 머리(앞머리) 다시
+const AT = 'x="0" y="0" width="384" height="688"', MREG = 'maskUnits="userSpaceOnUse" x="-100" y="-100" width="600" height="900" style="mask-type:alpha"';
+function layers(m, o = {}) {
+  const v = v2Parts(m, o.outfit, o.exp);
+  let d = '';
+  if (v.mask) d += `<mask id="${v.mid}" ${MREG}><image href="${v.mask}" ${AT}/></mask>`;
+  if (v.hmask) d += `<mask id="${v.hid}" ${MREG}><image href="${v.hmask}" ${AT}/></mask>`;
+  const hairImg = v.hmask ? `<image href="${v.body}" ${AT} mask="url(#${v.hid})"${v.tint ? ` filter="url(#hf-${v.tint})"` : ''}/>` : '';
+  let out = `<defs>${d}</defs><image href="${v.body}" ${AT}${v.mask ? ` mask="url(#${v.mid})"` : ''}/>`;
+  if (v.tint) out += hairImg;
+  if (v.outfit) out += `<image href="${v.outfit}" ${AT}/>`;
+  out += v.exp ? `<image href="${v.exp}" ${AT}/>` : `<image class="blink${v.shut ? ' shut' : ''}" style="${blinkDelay(m)}" href="${v.blink}" ${AT}/>`;
+  if (o.talk && !v.exp && !v.shut) out += `<image class="mouth" style="animation-delay:${-((m.hue || 0) % 7) / 10}s" href="${v.smile}" ${AT}/>`;
+  if (v.hmask) out += `<g clip-path="url(#hh-${v.g})">${hairImg}</g>`;
+  return out;
+}
+// 장면용: 팔·다리·고개가 따로 움직이는 인형
+function puppet(m, o, g) {
+  const X = layers(m, o), v = v2Parts(m, o.outfit), legs = !LONG_OUT[g].includes(v.k), P = PIVOT[g];
+  const part = (cls, clip, [px, py]) => `<g class="pp ${cls}" style="transform-origin:${(px / 3.84).toFixed(2)}% ${(py / 6.88).toFixed(2)}%"><g clip-path="url(#pp-${g}-${clip})">${X}</g></g>`;
+  return `<g clip-path="url(#pp-${g}-rest${legs ? '' : 'n'})">${X}</g>`
+    + (legs ? part('legL', 'legL', P.legL) + part('legR', 'legR', P.legR) : '')
+    + part('armL', 'armL', P.armL) + part('armR', 'armR', P.armR) + part('head', 'head', P.head);
+}
 function charSVG(m, o) {
   if (m === MANAGER) return `<image href="${V2}manager-face.webp" x="40" y="30" width="120" height="120"/>`;
-  { const v = v2Parts(m, o && o.outfit, o && o.exp), Hh = 290, Ww = Hh * V2_RATIO, at = `x="${100 - Ww / 2}" y="${284 - Hh}" width="${Ww}" height="${Hh}"`;
-    const mk = v.mask ? `<defs><mask id="${v.mid}" maskUnits="userSpaceOnUse" x="-500" y="-500" width="1200" height="1300" style="mask-type:alpha"><image href="${v.mask}" ${at}/></mask></defs>` : '';
-    return mk + `<image href="${v.body}" ${at}${v.mask ? ` mask="url(#${v.mid})"` : ''}/>` + (v.outfit ? `<image href="${v.outfit}" ${at}/>` : '')
-      + (v.exp ? `<image href="${v.exp}" ${at}/>` : `<image class="blink${v.shut ? ' shut' : ''}" style="${blinkDelay(m)}" href="${v.blink}" ${at}/>`); }
+  { const g = gp(m), Hh = 290, k = Hh / 688;
+    return `<g transform="translate(${100 - 384 * k / 2} ${284 - Hh}) scale(${k})">${o && o.anim ? puppet(m, o, g) : layers(m, o || {})}</g>`; }
   const a = artOf(m);
   if (a) {
     const H = 300, W = H * DRAFTS[m.look.art].ratio, at = `x="${100 - W / 2}" y="${284 - H}" width="${W}" height="${H}"`;
@@ -1050,14 +1220,40 @@ function artOf(m) {
 }
 const artLayers = (a, face) => face ? [D1 + `face-${a.hair}.png`] : [D1 + `body-${a.hair}.png`, a.top && D1 + a.top + '.png', a.bot && D1 + a.bot + '.png', a.shoe && D1 + a.shoe + '.png'].filter(Boolean);
 const blinkSrc = (a, face) => D1 + `${face ? 'faceblink' : 'bodyblink'}-${a.hair}.png`;
+const FACE_VB = '117 8 150 150';
+// 팔·다리·고개 자르는 선 (원본 384×688 좌표)
+const PIVOT = {
+  g: { armL: [150, 172], armR: [260, 172], legL: [182, 470], legR: [228, 470], head: [205, 150] },
+  b: { armL: [140, 165], armR: [274, 165], legL: [182, 470], legR: [232, 470], head: [207, 150] },
+};
+const ARMPOLY = { g: [[156, 162], [136, 160], [116, 180], [106, 300], [110, 458], [141, 458], [142, 320], [150, 300], [157, 250]], b: [[152, 158], [124, 158], [104, 176], [96, 300], [102, 458], [136, 458], [137, 320], [146, 300], [151, 250]] };
+function puppetDefs() {
+  let d = '';
+  for (const g of ['g', 'b']) {
+    const cx = g === 'g' ? 205 : 207, L = ARMPOLY[g], R = L.map(([x, y]) => [2 * cx - x, y]);
+    const poly = pts => 'M' + pts.map(p => p.join(' ')).join('L') + 'Z';
+    const grow = pts => { const mx = pts.reduce((a, p) => a + p[0], 0) / pts.length, my = pts.reduce((a, p) => a + p[1], 0) / pts.length; return pts.map(([x, y]) => [mx + (x - mx) * 1.05, my + (y - my) * 1.02]); };
+    const legL = `M0 466H${cx}V700H0Z`, legR = `M${cx} 466H400V700H${cx}Z`, outer = 'M-50 -50H450V750H-50Z';
+    d += `<clipPath id="pp-${g}-rest" clip-rule="evenodd"><path clip-rule="evenodd" d="${outer}${poly(L)}${poly(R)}M-50 472H450V750H-50Z"/></clipPath>`;
+    d += `<clipPath id="pp-${g}-restn"><path clip-rule="evenodd" d="${outer}${poly(L)}${poly(R)}"/></clipPath>`;
+    d += `<clipPath id="pp-${g}-armL"><path d="${poly(grow(L))}"/></clipPath><clipPath id="pp-${g}-armR"><path d="${poly(grow(R))}"/></clipPath>`;
+    d += `<clipPath id="pp-${g}-legL"><path d="${legL}"/></clipPath><clipPath id="pp-${g}-legR"><path d="${legR}"/></clipPath>`;
+    d += `<clipPath id="pp-${g}-head"><path d="M90 -20H320V150H90Z"/></clipPath><clipPath id="hh-${g}"><path d="M60 -20H340V142H60Z"/></clipPath>`;
+  }
+  // 머리 색 바꾸기: 밝기 → 색 그라데이션
+  for (const [id, , , ramp] of HAIR_TINTS) if (ramp) {
+    const ch = i => [0, 1, 2, 2, 3, 3].map(j => (ramp[j][i] / 255).toFixed(3)).join(' ');
+    d += `<filter id="hf-${id}" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".33 .5 .17 0 0 .33 .5 .17 0 0 .33 .5 .17 0 0 0 0 0 1 0"/><feComponentTransfer><feFuncR type="table" tableValues="${ch(0)}"/><feFuncG type="table" tableValues="${ch(1)}"/><feFuncB type="table" tableValues="${ch(2)}"/></feComponentTransfer></filter>`;
+  }
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>${d}</defs></svg>`;
+}
+document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 function avatar(m, size = 44, full, outfit) {
   {
-    const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick', v = v2Parts(m, outfit || charOpts(m).outfit);
-    const mstyle = v.mask ? ` style="-webkit-mask-image:url(${v.mask});mask-image:url(${v.mask});-webkit-mask-size:100% 100%;mask-size:100% 100%"` : '';
-    const imgs = full ? `<img src="${v.body}" alt=""${mstyle}>${v.outfit ? `<img src="${v.outfit}" alt="">` : ''}${v.exp ? `<img src="${v.exp}" alt="">` : `<img class="blink${v.shut ? ' shut' : ''}" style="${blinkDelay(m)}" src="${v.blink}" alt="">`}`
-      : `<img src="${v.face}" alt="">${v.exp ? '' : `<img class="blink${v.shut ? ' shut' : ''}" style="${blinkDelay(m)}" src="${v.faceblink}" alt="">`}`;
-    return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.75) : size}px;--h:${m.hue || 0}"><span class="stack ${full ? 'body v2' : 'face'}">${imgs}</span></span>`;
+    const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
+    const svg = `<svg viewBox="${full ? '0 0 384 688' : FACE_VB}" width="100%" height="100%" preserveAspectRatio="xMidYMid ${full ? 'meet' : 'slice'}" aria-hidden="true">${layers(m, { outfit: outfit || charOpts(m).outfit })}</svg>`;
+    return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.75) : size}px;--h:${m.hue || 0}">${svg}</span>`;
   }
   const a = artOf(m);
   if (a) {
@@ -1079,17 +1275,18 @@ function managerHTML(text, btn) {
 // --- 장면 (320×180) ---
 let SCN = 0;
 // 장면마다 그라데이션 이름이 겹치지 않게 고유 이름을 붙임
-function uniq(svg) { const u = 's' + (++SCN) + '_'; return svg.replace(/id="(bg|fl|sun|gold|sky|gr|cur|wall|glow|beam|tb)"/g, `id="${u}$1"`).replace(/url\(#(bg|fl|sun|gold|sky|gr|cur|wall|glow|beam|tb)\)/g, `url(#${u}$1)`); }
+function uniq(svg) { const u = 's' + (++SCN) + '_'; return svg.replace(/id="(bg|fl|sun|gold|sky|gr|cur|wall|glow|beam|tb|bd)"/g, `id="${u}$1"`).replace(/url\(#(bg|fl|sun|gold|sky|gr|cur|wall|glow|beam|tb|bd)\)/g, `url(#${u}$1)`); }
 function scene(kind, members, anim) {
-  const ms = members || (S ? S.members : []), g = S ? S.gender : 'girl';
+  const ms = members || (S ? S.members.filter(m => !m.busy) : []), g = S ? S.gender : 'girl';
   const stage = ['stage', 'win', 'concert', 'festival', 'yearend'].includes(kind);
   const sceneExp = { win: 'smile', concert: 'smile', festival: 'smile', yearend: 'smile', fansign: 'smile', live: 'smile' }[kind];
   const crew = (y, x0 = 30, x1 = 290, s = .42, outfit) => {
     const n = ms.length; if (!n) return '';
     const sp = Math.min(48, (x1 - x0) / Math.max(1, n - 1 || 1)), mid = (x0 + x1) / 2;
-    return ms.map((m, i) => { const x = n === 1 ? mid : mid + (i - (n - 1) / 2) * sp; return `<g transform="translate(${x - 100 * s} ${y - 280 * s}) scale(${s})"><g class="dancer" style="--d:${(i * .13).toFixed(2)}s">${charSVG(m, { ...charOpts(m, stage, outfit), gender: m === MANAGER ? 'boy' : g, exp: sceneExp })}</g></g>`; }).join('');
+    const talk = ['stage', 'win', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep'].includes(kind);
+    return ms.map((m, i) => { const x = n === 1 ? mid : mid + (i - (n - 1) / 2) * sp; return `<g transform="translate(${x - 100 * s} ${y - 280 * s}) scale(${s})"><g class="dancer" style="--d:${(-i * .23).toFixed(2)}s">${charSVG(m, { ...charOpts(m, stage, kind === 'dorm' ? 'pajama' : outfit), gender: m === MANAGER ? 'boy' : g, exp: anim && talk ? null : sceneExp, anim: !!anim, talk: anim && talk })}</g></g>`; }).join('');
   };
-  const mood = { fansign: 'sway', practice: 'dance', stage: 'dance', win: 'jump', concert: 'dance', festival: 'dance', yearend: 'dance', prep: 'sway', drama: 'sway', live: 'sway' }[kind] || 'sway';
+  const mood = { dorm: 'rest', fansign: 'sway', practice: 'dance', stage: 'dance', win: 'jump', concert: 'dance', festival: 'dance', yearend: 'dance', prep: 'sway', drama: 'sway', live: 'sway' }[kind] || 'sway';
   const W = (defs, body) => uniq(`<svg viewBox="0 0 320 180" class="scene${anim ? ' anim ' + mood : ''}" aria-hidden="true"><defs>${defs}
 <radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
 <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>${body}</svg>`);
@@ -1131,9 +1328,9 @@ ${star(160, 30, 18, '#ffd54a', 'a-twinkle')}<text x="160" y="64" font-size="12" 
       `<rect width="320" height="180" fill="#fde6e6"/>${Array.from({ length: 14 }, (_, i) => `<path d="M${i * 30 - 40} 180L${i * 30 + 40} 0" stroke="#f8d4d4" stroke-width="8"/>`).join('')}
 <g transform="rotate(-3 160 90)"><g class="a-shake"><rect x="80" y="18" width="160" height="140" rx="4" fill="#fff" stroke="#d9c3c3" stroke-width="2"/><rect x="92" y="30" width="70" height="20" fill="#d64545"/><text x="127" y="45" font-size="13" font-weight="900" fill="#fff" text-anchor="middle">속보</text>
 ${[60, 72, 84, 96, 108, 120, 132, 144].map((y, i) => `<rect x="92" y="${y}" width="${i % 2 ? 60 : 72}" height="5" rx="2" fill="#e8dada"/>`).join('')}<rect x="172" y="30" width="56" height="62" fill="#efe3e3" stroke="#d9c3c3"/>
-${m ? `<image href="${v2Parts(m, null, 'surprise').face}" x="172" y="30" width="56" height="62" preserveAspectRatio="xMidYMid slice"/>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g></g>
+${m ? `<svg x="172" y="30" width="56" height="62" viewBox="${FACE_VB}" preserveAspectRatio="xMidYMid slice">${layers(m, { exp: kind === 'scandal' && S.pending[0] && S.pending[0].kind === '사생' ? 'surprise' : 'surprise' })}</svg>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g></g>
 ${[[34, 40], [290, 50], [40, 140], [286, 140]].map(([x, y], i) => `<circle class="a-flash" style="animation-delay:${i * .33}s" cx="${x}" cy="${y - 6}" r="38" fill="#fff"/>${star(x, y - 16, 14, '#fff', 'a-flash')}<rect x="${x - 16}" y="${y}" width="32" height="22" rx="4" fill="#333"/><rect x="${x - 7}" y="${y - 5}" width="12" height="6" rx="2" fill="#333"/><circle cx="${x}" cy="${y + 11}" r="7" fill="#666" stroke="#222" stroke-width="2"/>`).join('')}`); }
-    case 'live': { const m = ms[0]; return W(lg('bg', '#ffd1e6', '#ffeef6'),
+    case 'live': { const m = ms.find(x => !x.busy) || ms[0]; return W(lg('bg', '#ffd1e6', '#ffeef6'),
       `<rect width="320" height="180" fill="url(#bg)"/><rect x="112" y="6" width="96" height="168" rx="16" fill="#2b2230"/><rect x="118" y="18" width="84" height="146" rx="6" fill="#fff0f7"/>
 ${m ? `<svg x="118" y="26" width="84" height="138" viewBox="20 20 160 264">${charSVG(m, { ...charOpts(m), exp: 'smile' })}</svg>` : ''}<rect x="122" y="22" width="30" height="13" rx="4" fill="#e23b5a"/><text x="137" y="32" font-size="9" font-weight="800" fill="#fff" text-anchor="middle" font-family="Arial">LIVE</text>
 ${[[60, 60, 1], [40, 120, .8], [262, 50, .9], [280, 120, 1.1], [240, 150, .7], [80, 160, .7], [100, 140, .6], [226, 100, .8]].map(([x, y, s], i) => `<g transform="translate(${x} ${y}) scale(${s})"><g class="a-float" style="animation-delay:${-i * .37}s"><path d="M0 10C-18 -2 -10 -16 0 -6C10 -16 18 -2 0 10Z" fill="${i % 2 ? '#f06aa3' : '#ff9cc2'}" stroke="#fff" stroke-width="1.5"/></g></g>`).join('')}
@@ -1150,6 +1347,20 @@ ${crew(168, 40, 280, .4)}
 ${[40, 88, 136, 184, 232, 280].map((x, i) => `<g transform="translate(${x - 12} 128)"><rect width="24" height="24" rx="2" fill="${['#b9a6f0', '#ff9cc2', '#7fd3e8'][i % 3]}" stroke="#fff"/><circle cx="12" cy="12" r="5" fill="#fff" opacity=".8"/></g><path d="M${x + 14} 140l10 -8" stroke="#333" stroke-width="2.5" stroke-linecap="round"/>`).join('')}
 ${[[30, 176], [80, 180], [240, 178], [292, 176]].map(([x, y], i) => `<circle class="a-crowd" style="animation-delay:${-i * .1}s" cx="${x}" cy="${y}" r="13" fill="#3b2a3a" opacity=".85"/>`).join('')}
 ${[[20, 90, .8], [300, 80, .9], [150, 60, .7], [60, 50, .6], [260, 44, .7]].map(([x, y, s2], i) => `<g transform="translate(${x} ${y}) scale(${s2})"><g class="a-float" style="animation-delay:${-i * .5}s"><path d="M0 10C-18 -2 -10 -16 0 -6C10 -16 18 -2 0 10Z" fill="${i % 2 ? '#f06aa3' : '#ff9cc2'}" stroke="#fff" stroke-width="1.5"/></g></g>`).join('')}`);
+    case 'dorm': { const d = S && S.dorm ? dormOf() : DORMS[1], nice = d.isNew, wall = nice ? ['#fff6ec', '#f3e3d0'] : d.clean < 40 ? ['#d9d2c0', '#bdb39a'] : ['#f1e9dc', '#ddd0bc'];
+      return W(lg('wall', wall[0], wall[1]) + lg('fl', nice ? '#d9b48a' : '#a88f72', nice ? '#b98f62' : '#80694f'),
+      `<rect width="320" height="180" fill="url(#wall)"/>${nice ? `<rect x="210" y="16" width="90" height="70" rx="4" fill="#9fd3f5" stroke="#fff" stroke-width="4"/><path d="M255 16V86M210 51H300" stroke="#fff" stroke-width="3"/><circle cx="280" cy="34" r="8" fill="#ffe680"/>` : `<rect x="220" y="20" width="70" height="40" rx="2" fill="#7c8a9a" stroke="#9a8f7a" stroke-width="3"/><path d="M225 25l20 30M260 22l25 35" stroke="#5a6470" stroke-width="1.5"/>`}
+${d.clean < 40 ? `<ellipse cx="60" cy="40" rx="18" ry="10" fill="#8a9a7a" opacity=".35"/><ellipse cx="40" cy="70" rx="10" ry="16" fill="#8a9a7a" opacity=".3"/>` : ''}
+<rect y="128" width="320" height="52" fill="url(#fl)"/><rect x="18" y="104" width="120" height="30" rx="10" fill="${nice ? '#f7b6cf' : '#c9a7b0'}" stroke="#8a5a6a" stroke-width="2"/><rect x="24" y="96" width="34" height="14" rx="6" fill="#fff" stroke="#8a5a6a" stroke-width="1.5"/>
+${crew(172, 70, 260, .4)}
+${[[120, 60], [140, 45], [160, 30]].map(([x, y], i) => `<text class="a-float" style="animation-delay:${-i * .8}s" x="${x}" y="${y}" font-size="${12 + i * 3}" font-weight="800" fill="#8f7cd6">Z</text>`).join('')}
+<text x="8" y="172" font-size="9" fill="#6a5a4a">${d.name} · ${d.size}평</text>`); }
+    case 'clinic': return W(lg('sky', '#bfe3f7', '#eaf6fd') + lg('bd', '#ffffff', '#e6eef5'),
+      `<rect width="320" height="180" fill="url(#sky)"/><rect x="60" y="30" width="200" height="130" fill="url(#bd)" stroke="#9fb3c4" stroke-width="2"/>
+${[0, 1, 2].map(r2 => [0, 1, 2, 3].map(c2 => `<rect x="${78 + c2 * 44}" y="${48 + r2 * 28}" width="30" height="18" rx="2" fill="#a9d4ee" stroke="#7fa8c4"/>`).join('')).join('')}
+<rect x="100" y="12" width="120" height="26" rx="6" fill="#ff8fb3" stroke="#fff" stroke-width="2"/><text x="160" y="30" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">✚ 뷰티 성형외과</text>
+<rect x="140" y="128" width="40" height="32" fill="#cfe6f5" stroke="#7fa8c4" stroke-width="2"/><path d="M160 128V160" stroke="#7fa8c4" stroke-width="2"/>
+<rect y="160" width="320" height="20" fill="#c9d3dc"/><circle cx="30" cy="150" r="14" fill="#7ac47a"/><rect x="27" y="150" width="6" height="12" fill="#8a6a4a"/><circle cx="290" cy="150" r="14" fill="#7ac47a"/><rect x="287" y="150" width="6" height="12" fill="#8a6a4a"/>`);
     case 'drama': return W(lg('bg', '#fbf4e6', '#efe0c4'),
       `<rect width="320" height="180" fill="url(#bg)"/><path d="M0 0L90 0L50 180L0 180Z" fill="#fff" opacity=".4"/><g transform="translate(20 60)" stroke="#111" stroke-width="2.5" stroke-linejoin="round"><rect x="0" y="22" width="90" height="62" fill="#2b2230"/><g class="a-clap"><path d="M0 20L86 2L90 16L4 34Z" fill="#2b2230"/>${[0, 1, 2, 3].map(i => `<path d="M${10 + i * 20} ${18 - i * 4}L${20 + i * 20} ${16 - i * 4}L${26 + i * 20} ${28 - i * 4}L${16 + i * 20} ${30 - i * 4}Z" fill="#fff" stroke="none"/>`).join('')}</g><text x="45" y="62" font-size="12" fill="#fff" stroke="none" text-anchor="middle" font-family="Arial">SCENE 1</text></g>${crew(176, 150, 300, .4)}`);
     default: return W(lg('wall', '#f6efff', '#e6dcf6') + lg('fl', '#e8c79c', '#c99d6c'),
@@ -1229,7 +1440,7 @@ function planHTML() {
 <h2>그룹 일정</h2><div class="chips">${opts.map(o => `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}"${o.ok === false ? ' disabled' : ''}>${o.label}</button>`).join('')}</div>
 <p class="muted">${esc(cur.desc)}${opts.find(o => o.id === 'concert' && o.ok === false) ? ` · 콘서트: ${concertWhy()}` : ''}</p>
 <h2>멤버별 스케줄</h2><div class="card">${rows}</div>
-<p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소·직원 ${money(fixedCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
+<p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고, 80을 넘으면 건강이 깎여요.</p>`;
 }
 function membersHTML() {
@@ -1237,10 +1448,10 @@ function membersHTML() {
   return `<h2>멤버 ${S.members.length}인조</h2><p class="muted center">그룹 무대 실력 ${Math.round(perf)} · 멤버를 누르면 자세히 보고 꾸밀 수 있어요</p>
 ${S.members.map(m => `<div class="card"><div class="mcard who" data-member="${m.id}">${avatar(m, 64, true)}<div class="minfo">
 <div><span class="name">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</div>
-<div class="muted">인기 ${Math.round(m.pop)} · 피로 ${Math.round(m.fatigue)} · 무대 실력 ${Math.round(perfOf(m))}</div>
+<div class="muted">만 ${m.age || 18}세 · 인기 ${Math.round(m.pop)} · 피로 ${Math.round(m.fatigue)} · 실력 ${Math.round(perfOf(m))}</div>
 ${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음 (논란 시 위약금 ${money(m.ad.fee * 2)})</div>` : ''}
 ${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role} · 주당 ${money(m.drama.feeW)}</div>` : ''}</div></div>${statBars(m, true)}</div>`).join('')}
-<div class="card"><b class="name">연습생 영입</b><p class="muted">새 멤버를 데려와요. 비용 2,000만 · 최대 7명</p><button class="btn small" data-act="recruit"${S.members.length >= 7 ? ' disabled' : ''}>영입하기</button></div>`;
+<div class="card"><b class="name">연습생 영입</b><p class="muted">연습생을 만나 보고 영입을 제안해요. 거절할 수도 있어요 · 최대 7명</p><button class="btn small" data-act="recruit"${S.members.length >= 7 ? ' disabled' : ''}>영입하기</button></div>`;
 }
 const outfitOptions = c => stageOutfits(c).map(k => `<option value="${k}">${outfitName(k, S.gender)}</option>`).join('');
 let CB = { kind: 'group', solo: null, unit: new Set() };
@@ -1284,8 +1495,19 @@ function actHTML() {
   h += `<p class="muted">💡 12월 4주에는 연말 무대가 있어요 (인지도 25 이상). 5월·8월엔 페스티벌 제의가 와요.</p>`;
   return h;
 }
+function dormHTML() {
+  const cur = dormOf(), n = S.members.length;
+  return `<h2>숙소</h2><p class="muted center">지금 숙소: <b>${cur.name}</b> · 1인당 ${(cur.size / n).toFixed(1)}평 · ${dormSpace() < 3 ? '<span class="neg">좁아요!</span>' : '괜찮아요'}</p>
+${DORMS.map(d => { const on = d.id === cur.id, per = d.size / n, warn = [];
+  if (per < 3) warn.push('좁음: 피로↑ 인성↓ 다툼'); if (d.clean < 40) warn.push('비위생: 건강↓ 병'); if (!d.isNew) warn.push('구축: 가끔 수리비·보안 약함'); else warn.push('신축: 보안 좋음');
+  return `<div class="card offer"><span class="vicon">${d.isNew ? '🏢' : '🏚'}<i>${d.size}평</i></span><div class="info"><b class="name">${d.name}</b>${on ? '<span class="tag">거주 중</span>' : ''}
+<div class="muted">주당 ${money(d.cost)} · ${d.size}평(1인당 ${per.toFixed(1)}평) · 청결도 ${d.clean} · ${d.isNew ? '신축' : '구축'}</div><div class="muted" style="font-size:12px">${warn.join(' · ')}</div>
+${on ? `<div class="muted">입주 ${S.week - (S.dorm ? S.dorm.since : 0)}주째${dormPenalty() ? ` · 지금 나가면 위약금 ${money(dormPenalty())}` : ''}</div>` : ''}</div>
+${on ? '' : `<button class="btn small" data-dorm="${d.id}">이사</button>`}</div>`; }).join('')}
+<p class="muted">💡 넓고 깨끗한 숙소일수록 휴식 효과가 좋아지고, 영입 제안도 잘 받아들여요. 이사 비용 500만.</p>`;
+}
 function contractHTML() {
-  return Object.entries(VENDORS).map(([kind, V]) => {
+  return dormHTML() + Object.entries(VENDORS).map(([kind, V]) => {
     const c = S.contracts[kind];
     return `<h2>${V.label}</h2>${V.list.map((v, i) => {
       const on = c && c.id === v.id;
@@ -1303,7 +1525,8 @@ function setupHTML() {
 <div class="card"><label class="f">그룹 이름</label><input type="text" id="suName" value="LUMIÈRE" maxlength="20">
 <label class="f">그룹 종류</label><div class="chips"><button class="chip on" data-gender="girl">걸그룹</button><button class="chip" data-gender="boy">보이그룹</button></div>
 <label class="f">멤버 수</label><div class="chips">${[4, 5, 6, 7].map(n => `<button class="chip${n === 5 ? ' on' : ''}" data-count="${n}">${n}명</button>`).join('')}</div>
-<label class="f">멤버 이름 <button class="btn sub small" data-act="rand-names">🎲 다시 뽑기</button></label><div class="names" id="suNames"></div>
+<label class="f">멤버 (캐릭터·이름·나이) <button class="btn sub small" data-act="rand-names">🎲 이름 다시 뽑기</button></label><div id="suNames"></div>
+<p class="muted">캐릭터는 지금 한 번만 고를 수 있어요. 헤어스타일과 머리색은 게임 중에도 바꿀 수 있어요.</p>
 <button class="btn" data-act="start" style="width:100%;margin-top:14px">시작하기</button></div></div>`;
 }
 function overHTML() {
@@ -1311,14 +1534,17 @@ function overHTML() {
 <div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div></div>
 <button class="btn" data-act="reset">새 게임</button></div>`;
 }
-let SU = { gender: 'girl', count: 5 };
-function fillNames() {
+let SU = { gender: 'girl', count: 5, chars: [1, 2, 3, 4, 5, 6, 7] };
+function fillNames(keep) {
   const box = $('#suNames'); if (!box) return;
-  const pool = shuffle(SU.gender === 'girl' ? GIRL : BOY);
-  box.innerHTML = Array.from({ length: SU.count }, (_, i) => `<input type="text" value="${pool[i]}" maxlength="10">`).join('');
-  const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: { ch: (i % 7) + 1, daily: 'basic', exp: 'normal' }, gender: SU.gender === 'boy' ? 'b' : 'g', stats: { visual: 0 }, fatigue: 0, busy: null }));
-  const keep = S; S = { gender: SU.gender, members: demo, albums: [], promo: null, ga: 'none' };
-  $('#suScene').innerHTML = scene('stage', demo); S = keep;
+  const old = [...box.querySelectorAll('.su-row')].map(r2 => [r2.querySelector('input').value, r2.querySelector('select').value]);
+  const pool = shuffle(SU.gender === 'girl' ? GIRL : BOY), gg = SU.gender === 'boy' ? 'b' : 'g';
+  box.innerHTML = Array.from({ length: SU.count }, (_, i) => { const nm = keep && old[i] ? old[i][0] : pool[i], ag = keep && old[i] ? +old[i][1] : ri(16, 21);
+    return `<div class="su-row"><img src="${V2}${gg}${SU.chars[i]}-face.webp" alt=""><button class="arrow" data-such="${i}:-1" aria-label="이전 캐릭터">◀</button><button class="arrow" data-such="${i}:1" aria-label="다음 캐릭터">▶</button>
+<input type="text" value="${esc(nm)}" maxlength="10" aria-label="이름"><select aria-label="나이">${Array.from({ length: 11 }, (_, a) => a + 14).map(a => `<option value="${a}"${a === ag ? ' selected' : ''}>${a}세</option>`).join('')}</select></div>`; }).join('');
+  const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: { ch: SU.chars[i], daily: 'basic', exp: 'normal' }, gender: gg, stats: { visual: 0 }, fatigue: 0, busy: null }));
+  const keepS = S; S = { gender: SU.gender, members: demo, albums: [], promo: null, ga: 'none' };
+  $('#suScene').innerHTML = scene('stage', demo); S = keepS;
 }
 function memberDetail(id) {
   const m = S.members.find(x => x.id === id); if (!m) return;
@@ -1336,7 +1562,7 @@ function memberDetail(id) {
   const sw = (f, list, cur) => `<div class="sw">${list.map((c, i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:${f}:${i}" aria-label="색 ${i + 1}"></button>`).join('')}</div>`;
   openDlg(`<div class="pcard"><div class="pcard-art">${avatar(m, 170, true)}${gradeBadge(gradeOf(m))}</div>
 <div class="pcard-name"><b>${esc(m.name)}</b><small>무대 실력 ${Math.round(perfOf(m))} · 그룹 ${rank}등 · 인기 ${Math.round(m.pop)}</small></div></div>
-<p class="muted center">이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
+<p class="muted center">만 ${m.age || 18}세 · 이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
 <h3>능력치</h3>${statBars(m)}
 <div class="stat"><span>피로</span><div class="bar"><i style="width:${m.fatigue}%;--c:#f0a04b"></i></div><b>${Math.round(m.fatigue)}</b></div>
 <h3>한눈에</h3>
@@ -1346,7 +1572,9 @@ function memberDetail(id) {
 ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>꾸미기</h3>
-<div class="cust"><span>캐릭터</span>${arrows('ch', V2_CHARS[S.gender === 'boy' ? 'boy' : 'girl'][L.ch - 1])}</div>
+<div class="cust"><span>헤어</span>${arrows('hs', (() => { const gg = gp(m); return L.hs && hairOK(gg, L.ch, L.hs) ? HAIR_STYLES[gg].find(x => x[0] === L.hs)[1] : '원래 머리'; })())}</div>
+<div class="cust"><span>머리색</span><div class="sw"><button class="swatch${!L.hcol ? ' on' : ''}" style="background:conic-gradient(#e88ab0,#d9b56e,#5f86d6,#e88ab0)" data-cust="${m.id}:hcol:-1" aria-label="원래 색"></button>${HAIR_TINTS.map(([id, nm, c], i) => `<button class="swatch${L.hcol === id ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:hcol:${i}" aria-label="${nm}"></button>`).join('')}</div></div>
+${(window.HAIR_OK || []).some(x => x.startsWith(gp(m) + L.ch + '-')) ? '' : '<p class="muted">이 멤버의 헤어 그림은 아직 준비 중이에요.</p>'}
 <div class="cust"><span>연습복</span>${arrows('daily', outfitName(L.daily, S.gender))}</div>
 <div class="cust"><span>표정</span>${arrows('exp', { normal: '기본 (가끔 깜빡임)', smile: '웃음', surprise: '놀람', closed: '눈 감음' }[L.exp] || '기본')}</div>
 <p class="muted">무대 의상은 데뷔·컴백할 때 콘셉트에 맞춰 골라요.</p>
@@ -1355,7 +1583,8 @@ ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br
 function customize(spec) {
   const [id, f, v] = spec.split(':'), m = S.members.find(x => x.id === id); if (!m) return;
   const L = lookOf(m), cyc = (arr, cur) => arr[(arr.indexOf(cur) + +v + arr.length) % arr.length];
-  if (f === 'ch') L.ch = ((L.ch - 1 + +v + 7) % 7) + 1;
+  if (f === 'hs') { const gg = gp(m), ids = [null, ...HAIR_STYLES[gg].map(x => x[0]).filter(k => hairOK(gg, L.ch, k))]; L.hs = ids[(ids.indexOf(L.hs) + +v + ids.length) % ids.length]; }
+  else if (f === 'hcol') L.hcol = +v < 0 ? null : HAIR_TINTS[+v][0];
   else if (f === 'exp') { const ex = ['normal', 'smile', 'surprise', 'closed']; L.exp = ex[(ex.indexOf(L.exp) + +v + 4) % 4]; }
   else if (f === 'art') L.art = cyc(ART_IDS, L.art || null);
   else if (ART_PART[f]) { const ids = ART_PART[f].map(x => x[0]); L[f] = cyc(ids, L[f] === undefined ? ids[0] : L[f]); }
@@ -1374,12 +1603,12 @@ const dlg = $('#dlg');
 function openDlg(html) { $('#dlgBody').innerHTML = CREST + html; if (!dlg.open) dlg.showModal(); }
 function closeDlg() { if (dlg.open) dlg.close(); }
 dlg.addEventListener('cancel', e => { if (S && S.pending.length) e.preventDefault(); });
-const CAPTION = { practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
+const CAPTION = { dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
 let REVEAL = null;
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
   const d0 = dateOf(S.week - 1), d1 = dateOf(S.week);
-  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div>${scene(r.scene, (() => { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; return ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : null; })(), true)}<p class="caption">${CAPTION[r.scene] || ''}</p>
+  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div>${scene(r.scene, (() => { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; return ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : null; })(), r.scene !== 'clinic')}<p class="caption">${CAPTION[r.scene] || ''}</p>
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
@@ -1409,6 +1638,14 @@ function nextPopup() {
   if (S && S.pending.length) {
     const sc = S.pending[0], m = S.members.find(x => x.id === sc.mid);
     if (!m) { S.pending.shift(); save(); return nextPopup(); }
+    if (sc.kind === '사생') {
+      openDlg(`${scene('scandal', [m], true)}<h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
+<p class="muted">어떻게 할까요?</p>
+<button class="choice" data-sc="guard"><b>🛡 경호 강화</b><small>비용 500만. 가장 안전해요.</small></button>
+<button class="choice" data-sc="police"><b>🚓 경찰 신고·공식 대응</b><small>돈은 안 들어요. 멤버가 조금 지쳐요.</small></button>
+<button class="choice" data-sc="ignore"><b>🙈 무시하기</b><small>멤버가 불안해하고, 숙소 침입이 생길 수 있어요.</small></button>`);
+      return;
+    }
     const extra = [];
     if (m.ad) extra.push(`광고 ${m.ad.brand} 계약 중 (심각하면 위약금 ${money(m.ad.fee * 2)})`);
     if (m.drama) extra.push(`드라마 ${m.drama.title} 촬영 중`);
@@ -1418,6 +1655,7 @@ ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <button class="choice" data-sc="apologize"><b>📝 사과문 올리기</b><small>팬이 조금 떠나요. 심각도 '보통' 이상이면 광고가 해지돼요.</small></button>
 <button class="choice" data-sc="deny"><b>🙅 사실이 아니라고 해명하기</b><small>사실이 아니면 잘 풀리지만, 사실이면 더 커질 수 있어요.</small></button>
 <button class="choice" data-sc="pause"><b>⏸ 활동 중단</b><small>${3 + sc.sev * 2}주 쉬어요. 팬은 덜 떠나지만 드라마는 하차해요.</small></button>
+${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 인정하기</b><small>팬이 조금 떠나지만 논란이 빨리 끝나요. 심각하면 광고가 해지돼요.</small></button>` : ''}
 <button class="choice" data-sc="leave"><b>🚪 그룹 탈퇴</b><small>멤버가 그룹을 떠나요. 광고 위약금과 드라마 하차가 따라와요.</small></button>`);
     return;
   }
@@ -1437,6 +1675,9 @@ document.addEventListener('click', e => {
   if (d.tab) { closeDlg(); TAB = d.tab; render(); window.scrollTo(0, 0); return; }
   if (d.member) return memberDetail(d.member);
   if (d.cust) return customize(d.cust);
+  if (d.rcb) { RC.bonus = +d.rcb; return recruitDlg(); }
+  if (d.dorm) return moveDorm(d.dorm);
+  if (d.such) { const [i, v] = d.such.split(':').map(Number); SU.chars[i] = ((SU.chars[i] - 1 + v + 7) % 7) + 1; return fillNames(true); }
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
   if (d.cbsolo) { CB.solo = d.cbsolo; $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
@@ -1449,8 +1690,7 @@ document.addEventListener('click', e => {
   if (d.gender) { SU.gender = d.gender; document.querySelectorAll('[data-gender]').forEach(b => b.classList.toggle('on', b === t)); fillNames(); return; }
   if (d.count) {
     SU.count = +d.count; document.querySelectorAll('[data-count]').forEach(b => b.classList.toggle('on', b === t));
-    const old = [...document.querySelectorAll('#suNames input')].map(i => i.value); fillNames();
-    document.querySelectorAll('#suNames input').forEach((inp, i) => { if (old[i]) inp.value = old[i]; });
+    fillNames(true);
     return;
   }
   switch (d.act) {
@@ -1459,12 +1699,15 @@ document.addEventListener('click', e => {
     case 'settings': return settings();
     case 'close': return closeDlg();
     case 'recruit': return recruit();
+    case 'rc-offer': return recruitOffer();
+    case 'rc-next': return recruit();
     case 'comeback': return startComeback();
     case 'rand-title': $('#cbTitle').value = pick(TITLES); return;
     case 'rand-names': return fillNames();
     case 'start': {
-      const names = [...document.querySelectorAll('#suNames input')].map((i, n) => i.value.trim() || `멤버${n + 1}`);
-      return newGame({ name: $('#suName').value.trim() || 'LUMIÈRE', gender: SU.gender, names });
+      const rows = [...document.querySelectorAll('#suNames .su-row')];
+      const names = rows.map((r2, n) => r2.querySelector('input').value.trim() || `멤버${n + 1}`), ages = rows.map(r2 => +r2.querySelector('select').value);
+      return newGame({ name: $('#suName').value.trim() || 'LUMIÈRE', gender: SU.gender, names, ages, chars: SU.chars.slice(0, rows.length) });
     }
     case 'reset':
       if (!confirm('지금 게임을 지우고 처음부터 할까요?')) return;
@@ -1480,6 +1723,7 @@ document.addEventListener('change', e => {
 });
 
 load();
+if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); }); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 render();
 if (!S) fillNames();

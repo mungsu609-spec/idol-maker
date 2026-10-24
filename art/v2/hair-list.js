@@ -1,0 +1,1 @@
+window.HAIR_OK = ["g1-long", "g1-bob", "g1-twin", "g1-wavy", "g1-pony", "g1-short", "g2-long", "g2-bob", "g2-twin", "g2-wavy", "g2-pony", "g2-short", "g3-long", "g3-bob", "g3-twin", "g3-wavy", "g3-pony", "g3-short", "g4-long", "g4-bob", "g4-twin", "g4-wavy", "g4-pony", "g4-short", "g5-long", "g5-bob", "g5-twin", "g5-wavy", "g5-pony", "g5-short", "g6-long"];
