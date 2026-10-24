@@ -1779,7 +1779,6 @@ function setupHTML() {
 function overHTML() {
   return `<div class="over"><div class="logo"><h1>게임 끝</h1></div><p>${esc(S.over)}</p><div class="card" style="text-align:left">
 <div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div></div>
-<a class="btn sub" href="?preview" style="text-decoration:none">🔍 미리보기 (장면·옷 바로 보기)</a>
 <button class="btn" data-act="reset">새 게임</button></div>`;
 }
 let SU = { gender: 'girl', count: 5, chars: [1, 2, 3, 4, 5, 6, 7] };
@@ -1921,6 +1920,7 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
 }
 function settings() {
   openDlg(`<h2>설정</h2><p class="muted">게임은 이 브라우저에 자동으로 저장돼요.</p>
+<a class="btn" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
 <button class="btn sub" data-act="reset" style="width:100%">처음부터 새 게임</button>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
