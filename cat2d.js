@@ -7,7 +7,7 @@ const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); retur
 export async function loadCat(PIXI, name) {
   const info = await (await fetch(ART + name + '.json')).json();
   const tex = {};
-  for (const k of ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy']) {
+  for (const k of ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy', 'face-sad']) {
     if (k !== 'body' && !info.parts[k]) continue;
     tex[k] = await PIXI.Assets.load(ART + `${name}-${k}.png`);
   }
@@ -36,9 +36,10 @@ export function makeCat(PIXI, data, opt = {}) {
   const armL = P.armL && plane('armL', 10, 10, P.armL.x, P.armL.y, 'armL');
   const armR = P.armR && plane('armR', 10, 10, P.armR.x, P.armR.y, 'armR');
   const faces = {};
-  for (const k of ['face-blink', 'face-sing', 'face-joy']) if (P[k]) { faces[k] = plane(k, 8, 6, P[k].x, P[k].y, 'face'); faces[k].p.alpha = 0; }
+  for (const k of ['face-blink', 'face-sing', 'face-joy', 'face-sad']) if (P[k]) { faces[k] = plane(k, 8, 6, P[k].x, P[k].y, 'face'); faces[k].p.alpha = 0; }
   // 그리는 순서: 꼬리 → 몸 → 표정 → 팔
   [tail, body, ...Object.values(faces), armL, armR].forEach(o => o && root.addChild(o.p));
+  const zz = [0, 1, 2].map(i => { const z = new PIXI.Text('Z', { fontFamily: 'Jua, sans-serif', fontSize: 70 + i * 22, fill: 0xb9a6ff, stroke: 0xffffff, strokeThickness: 10, fontWeight: '700' }); z.anchor.set(.5); z.alpha = 0; root.addChild(z); return z; });
   root.pivot.set(W / 2, feetY);
 
   const st = { mode: 'idle', t: Math.random() * 10, phase: opt.phase || 0 };
@@ -63,7 +64,8 @@ export function makeCat(PIXI, data, opt = {}) {
     } else if (m === 'sleep') {
       q.head = .12 + s(t * 1.1) * .05; q.breathe = s(t * 1.1) * .03; q.armL = -.4; q.armR = .4; q.tail = -.15; q.tailSpeed = .6; q.tailWave = .04; q.face = 'face-blink';
     } else if (m === 'sad') {
-      q.head = .16; q.armL = -.45; q.armR = .45; q.tail = -.4; q.tailSpeed = .7; q.tailWave = .03; q.squash = .02;
+      q.head = .14 + s(t * .6) * .02; q.armL = -.45; q.armR = .45; q.tail = -.5; q.tailSpeed = .5; q.tailWave = .03; q.squash = .02;
+      q.earL = -.55 + s(t * .8) * .03; q.earR = .55 - s(t * .8) * .03; q.droop = 1; q.face = 'face-sad';
     } else {
       q.armL = s(t * 1.3) * .05; q.armR = -s(t * 1.3) * .05; q.tail = s(t * .9) * .12;
     }
@@ -76,10 +78,11 @@ export function makeCat(PIXI, data, opt = {}) {
     const sq = q.squash + q.breathe;
     x = W / 2 + (x - W / 2) * (1 + sq * .6); y = feetY + (y - feetY) * (1 - sq);
     // 귀 쫑긋 (머리 윗부분 좌우)
-    if (y < H * .2) {
-      const wl = sstep(W * .42, W * .25, x) * sstep(H * .2, H * .06, y), wr = sstep(W * .52, W * .7, x) * sstep(H * .2, H * .06, y);
-      if (wl) [x, y] = rot(x, y, W * .3, H * .2, q.earL * wl);
-      if (wr) [x, y] = rot(x, y, W * .65, H * .2, q.earR * wr);
+    if (y < H * .24) {
+      const top = sstep(H * .22, H * .07, y);
+      const wl = sstep(W * .44, W * .27, x) * top, wr = sstep(W * .5, W * .67, x) * top;
+      if (wl) [x, y] = rot(x, y, W * .33, H * .2, q.earL * wl);
+      if (wr) [x, y] = rot(x, y, W * .62, H * .2, q.earR * wr);
     }
     // 머리: 목 위만 부드럽게 기울어짐
     const hw = sstep(neckY + 70, neckY - 50, y);
@@ -116,6 +119,12 @@ export function makeCat(PIXI, data, opt = {}) {
       o.buf.update();
     }
     for (const k in faces) faces[k].p.alpha = q.face === k ? 1 : 0;
+    zz.forEach((z, i) => {
+      if (st.mode !== 'sleep') { z.alpha = 0; return; }
+      const u = ((st.t * .45) + i / 3) % 1;              // 머리 오른쪽에서 위로 둥실
+      z.x = W * .74 + u * W * .18 + Math.sin(u * 6) * 18; z.y = H * .2 - u * H * .2;
+      z.alpha = u < .15 ? u / .15 : 1 - (u - .15) / .85; z.scale.set(.6 + u * .6); z.rotation = -.2 + u * .3;
+    });
     root.y = (root.baseY || 0) - q.bounce * (root.scale.y || 1);
   }
   return { root, update, setMode(m) { st.mode = m; }, get mode() { return st.mode; }, W, H };
