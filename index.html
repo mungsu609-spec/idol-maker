@@ -225,8 +225,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .winfx{position:absolute;inset:3px;border-radius:12px;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,230,140,.35) 0 8deg,transparent 8deg 22deg);mix-blend-mode:screen;animation:winspin 12s linear infinite}
 @keyframes winspin{to{transform:rotate(0)}}
 .st3host canvas.st3d{z-index:2;position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
-.thumbrow{position:absolute;left:2%;right:2%;bottom:4%;display:flex;justify-content:center;height:62%}
-.thumbrow.back{bottom:30%;height:46%;left:12%;right:12%}
+.thumbrow{z-index:2;position:absolute;left:2%;right:2%;bottom:3%;display:flex;justify-content:center;height:62%}
+.thumbrow.back{bottom:22%;height:50%;left:12%;right:12%}
 .thumbrow img{height:100%;min-width:0;flex:0 1 auto;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
 .thumbrow.two{height:54%}
 .avbox img.a3{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
@@ -1332,6 +1332,8 @@ const LIGHT = {
   prep: [[1.04, .97, .9], 0, null], drama: [[1.05, .98, .9], .02, null], dorm: [[1.06, .96, .84], -.02, null], dorm_old: [[1, .95, .86], -.06, null], dorm_lux: [[1.02, .97, .92], 0, null],
   scandal: [[1.04, .9, .9], -.05, null], clinic: [[1, 1, 1], 0, null],
 };
+// 배경마다 벽과 바닥이 만나는 높이 (화면 높이 비율, 그림을 재서 정함). 뒷줄 발끝이 이 선보다 아래 바닥 위에 오게
+const FLOOR = { stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, scandal: .78 };
 let MOUNT_ID = 0;
 async function mount2d(host, members, kind) {
   const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
@@ -1356,7 +1358,10 @@ async function mount2d(host, members, kind) {
     LG('data'); if (my !== MOUNT_ID) return;        // 그 사이 다음 주로 넘어갔으면 그만
     // 4명까지 한 줄, 5명은 앞 3·뒤 2, 6명부터 앞 4·뒤 나머지. 뒷줄은 작고 위쪽, 앞줄 사이사이에
     const two = n >= 5, nf = n === 5 ? 3 : two ? 4 : n, nb = n - nf;     // 5명은 앞 3·뒤 2, 6명부터 앞 4·뒤 나머지
-    const rows = [{ k: nb, sc: .74, y: h * (nb === nf ? .6 : .66) }, { k: nf, sc: 1, y: h * .93 }].filter(r => r.k);
+    const fl = FLOOR[kind === 'dorm' ? dormBg() : kind] || .72;
+    const backY = Math.min(.88, Math.max(.7, fl + .06)), frontY = Math.min(.98, Math.max(.93, backY + .12));   // 바닥이 좁으면 두 줄 간격을 좁힘
+    const backSc = Math.min(.88, .74 + (backY - .7) * .8);                                                      // 앞줄과 가까울수록 덜 작게
+    const rows = [{ k: nb, sc: backSc, y: h * backY, back: true }, { k: nf, sc: 1, y: h * frontY }].filter(r => r.k);
     const first = await CATDATA[catOf(list[0])], cw = first.info.w, ch = first.info.h;
     const base = Math.min((two ? h * .66 : h * .8) / ch, w * .96 / (nf * cw * .78));     // 앞줄이 화면 안에 다 들어가게
     let idx = 0;
@@ -1364,7 +1369,7 @@ async function mount2d(host, members, kind) {
       const sc = base * r.sc, gap = two ? w * .94 / nf : Math.min(w * .96 / r.k, cw * sc * .82);
       for (let j = 0; j < r.k; j++, idx++) {
         const m = r === rows[rows.length - 1] && two ? list[j] : two ? list[nf + j] : list[j];
-        const c = CAT2.makeCat(PIXI, await CATDATA[catOf(m)], { phase: idx * .37, items: ITEMS2, wear: wearFor(m, kind) });
+        const c = CAT2.makeCat(PIXI, await CATDATA[catOf(m)], { phase: idx * .37, items: ITEMS2, wear: wearFor(m, kind), shadowAlpha: r.back ? .62 : .5 });
         c.root.scale.set(sc); c.root.x = w / 2 + (j - (r.k - 1) / 2) * gap; c.root.baseY = r.y; c.root.y = r.y;
         c.setMode(MODE2[kind] || 'idle'); shadows.addChild(c.shadow); crowd.addChild(c.root); CATS_ON.push(c);
       }
