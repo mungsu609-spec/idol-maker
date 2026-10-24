@@ -975,7 +975,7 @@ function v2Parts(m, outfit, exp) {
 function charSVG(m, o) {
   if (m === MANAGER) return `<image href="${V2}manager-face.webp" x="40" y="30" width="120" height="120"/>`;
   { const v = v2Parts(m, o && o.outfit, o && o.exp), Hh = 290, Ww = Hh * V2_RATIO, at = `x="${100 - Ww / 2}" y="${284 - Hh}" width="${Ww}" height="${Hh}"`;
-    const mk = v.mask ? `<defs><mask id="${v.mid}" maskUnits="userSpaceOnUse" style="mask-type:alpha"><image href="${v.mask}" ${at}/></mask></defs>` : '';
+    const mk = v.mask ? `<defs><mask id="${v.mid}" maskUnits="userSpaceOnUse" x="-500" y="-500" width="1200" height="1300" style="mask-type:alpha"><image href="${v.mask}" ${at}/></mask></defs>` : '';
     return mk + `<image href="${v.body}" ${at}${v.mask ? ` mask="url(#${v.mid})"` : ''}/>` + (v.outfit ? `<image href="${v.outfit}" ${at}/>` : '')
       + (v.exp ? `<image href="${v.exp}" ${at}/>` : `<image class="blink${v.shut ? ' shut' : ''}" style="${blinkDelay(m)}" href="${v.blink}" ${at}/>`); }
   const a = artOf(m);
