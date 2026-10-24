@@ -1,6 +1,6 @@
 // ===== 2D 고양이 아이돌 (그림을 휘고 늘리는 메시 애니메이션, PixiJS) =====
 // 부위 그림(몸통·팔·꼬리·표정)을 격자 모양 메시로 붙이고, 꼭짓점을 움직여서 이음새 없이 휘게 만듦.
-const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=17';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
+const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=18';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
 const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]; };
 

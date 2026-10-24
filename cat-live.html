@@ -25,7 +25,7 @@ p{color:#8a6f7a;font-size:13px;line-height:1.5}
 <p>그림 AI로 그린 고양이를 몸통·팔·꼬리·표정으로 나누고, 그림을 <b>휘고 늘리는</b> 방식(Live2D·Spine과 같은 원리)으로 움직여요. 팔과 꼬리는 붙은 곳은 고정되고 끝으로 갈수록 휘어서 이음새가 없어요. 머리는 목 부분이 부드럽게 늘어나며 기울고, 숨 쉴 때 몸이 살짝 부풀어요.</p>
 </main>
 <script type="module">
-import { loadCat, makeCat, loadItems } from './cat2d.js?v=17';
+import { loadCat, makeCat, loadItems } from './cat2d.js?v=18';
 const MODES = { idle: '대기', dance: '춤', cheer: '만세(1위)', wave: '손 흔들기', sleep: '졸기', sad: '시무룩' };
 const cv = document.getElementById('st');
 const app = new PIXI.Application({ view: cv, backgroundAlpha: 0, antialias: true, width: cv.clientWidth, height: cv.clientHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true });
