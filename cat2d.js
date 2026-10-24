@@ -1,13 +1,13 @@
 // ===== 2D 고양이 아이돌 (그림을 휘고 늘리는 메시 애니메이션, PixiJS) =====
 // 부위 그림(몸통·팔·꼬리·표정)을 격자 모양 메시로 붙이고, 꼭짓점을 움직여서 이음새 없이 휘게 만듦.
-const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=3';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
+const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=4';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
 const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]; };
 
 export async function loadCat(PIXI, name) {
   const info = await (await fetch(ART + name + '.json' + VER)).json();
   const tex = {};
-  for (const k of ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy', 'face-sad']) {
+  for (const k of ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy', 'face-sad', 'face-sleep']) {
     if (k !== 'body' && !info.parts[k]) continue;
     tex[k] = await PIXI.Assets.load(ART + `${name}-${k}.png` + VER);
   }
@@ -36,7 +36,7 @@ export function makeCat(PIXI, data, opt = {}) {
   const armL = P.armL && plane('armL', 10, 10, P.armL.x, P.armL.y, 'armL');
   const armR = P.armR && plane('armR', 10, 10, P.armR.x, P.armR.y, 'armR');
   const faces = {};
-  for (const k of ['face-blink', 'face-sing', 'face-joy', 'face-sad']) if (P[k]) { faces[k] = plane(k, 8, 6, P[k].x, P[k].y, 'face'); faces[k].p.alpha = 0; }
+  for (const k of ['face-blink', 'face-sing', 'face-joy', 'face-sad', 'face-sleep']) if (P[k]) { faces[k] = plane(k, 8, 6, P[k].x, P[k].y, 'face'); faces[k].p.alpha = 0; }
   // 그리는 순서: 꼬리 → 몸 → 표정 → 팔
   [tail, body, ...Object.values(faces), armL, armR].forEach(o => o && root.addChild(o.p));
   const zz = [0, 1, 2].map(i => { const z = new PIXI.Text('Z', { fontFamily: 'Jua, sans-serif', fontSize: 70 + i * 22, fill: 0xb9a6ff, stroke: 0xffffff, strokeThickness: 10, fontWeight: '700' }); z.anchor.set(.5); z.alpha = 0; root.addChild(z); return z; });
@@ -62,7 +62,7 @@ export function makeCat(PIXI, data, opt = {}) {
       q.armR = -.55 + s(k * 2.2) * .35; q.armL = -.25; q.head = -.07 + s(k * .5) * .03; q.sway = -.02; q.tail = .15; q.tailSpeed = 2.5;
       q.face = s(k * .7) > .3 ? 'face-joy' : null;
     } else if (m === 'sleep') {
-      q.head = .12 + s(t * 1.1) * .05; q.breathe = s(t * 1.1) * .03; q.armL = -.4; q.armR = .4; q.tail = -.15; q.tailSpeed = .6; q.tailWave = .04; q.face = 'face-blink';
+      q.head = .12 + s(t * 1.1) * .05; q.breathe = s(t * 1.1) * .03; q.armL = -.4; q.armR = .4; q.tail = -.15; q.tailSpeed = .6; q.tailWave = .04; q.face = P['face-sleep'] ? 'face-sleep' : 'face-blink';
     } else if (m === 'sad') {
       q.head = .14 + s(t * .6) * .02; q.armL = -.45; q.armR = .45; q.tail = -.5; q.tailSpeed = .5; q.tailWave = .03; q.squash = .02;
       q.earL = -.55 + s(t * .8) * .03; q.earR = .55 - s(t * .8) * .03; q.droop = 1; q.face = 'face-sad';
