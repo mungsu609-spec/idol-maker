@@ -403,7 +403,7 @@ function gain(m, k, base) {
   if (base > 0) d = base * (1 - m.stats[k] / 130) * (m.fatigue > 70 ? 0.5 : 1) * rand(0.7, 1.3);
   m.stats[k] = clamp(m.stats[k] + d, 0, 100);
 }
-const SCENE_ORDER = ['practice', 'live', 'prep', 'drama', 'fansign', 'stage', 'campus', 'festival', 'concert', 'yearend', 'win'];
+const SCENE_ORDER = ['practice', 'live', 'adshoot', 'variety', 'prep', 'drama', 'fansign', 'stage', 'campus', 'festival', 'concert', 'yearend', 'win'];
 function setScene(k) { if (REP && SCENE_ORDER.indexOf(k) > SCENE_ORDER.indexOf(REP.scene)) REP.scene = k; }
 const addFat = (m, v) => { m.fatigue = clamp(m.fatigue + v, 0, 100); };
 function earn(n, l) { n = Math.round(n); if (!n) return; S.money += n; REP && REP.inc.push([l, n]); }
@@ -664,8 +664,8 @@ function doSched(m, s) {
 function tickBusy(m) {
   const t = m.busy.type;
   if (t === 'drama') { gain(m, 'act', 2.5); gain(m, 'camera', 1); addFat(m, 10); earn(m.drama.feeW, `${m.name} 드라마 출연료`); S.fame = clamp(S.fame + 0.3, 0, 100); }
-  else if (t === 'adshoot') { gain(m, 'camera', 1); addFat(m, 6); }
-  else if (t === 'variety') { gain(m, 'camera', 1.5); gain(m, 'person', .5); addFat(m, 8); earn(m.busy.fee || 0, `${m.name} 예능 게스트 출연료`); varietyAir(m, m.busy.title, true); }
+  else if (t === 'adshoot') { gain(m, 'camera', 1); addFat(m, 6); setScene('adshoot'); (REP.crew.adshoot = REP.crew.adshoot || []).push(m.id); }
+  else if (t === 'variety') { gain(m, 'camera', 1.5); gain(m, 'person', .5); addFat(m, 8); earn(m.busy.fee || 0, `${m.name} 예능 게스트 출연료`); setScene('variety'); (REP.crew.variety = REP.crew.variety || []).push(m.id); varietyAir(m, m.busy.title, true); }
   else if (t === 'surgery') addFat(m, -10);
   else if (t === 'pause') { addFat(m, -25); gain(m, 'person', 1); }
   else if (t === 'sick') { addFat(m, -30); gain(m, 'health', 6); }
@@ -1311,7 +1311,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=19';
+const CATV = '?v=20';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['headset', '헤드셋 마이크'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1326,7 +1326,8 @@ const STAGE_WEAR = {
   ballad: [['st-ballad1', '네이비 벨벳 드레스'], ['st-ballad2', '베이지 니트 원피스'], ['st-ballad3', '진주 실크 드레스']],
   sexy: [['st-sexy1', '블랙 시퀸 드레스'], ['st-sexy2', '와인 벨벳 드레스'], ['st-sexy3', '실버 메탈릭 드레스']],
 };
-const stageWearName = k => { for (const e in EVENT_WEAR) { const f = EVENT_WEAR[e][1].find(x => x[0] === k); if (f) return f[1]; } for (const c in STAGE_WEAR) { const f = STAGE_WEAR[c].find(x => x[0] === k); if (f) return f[1]; } const w = WEAR_CLOTH.find(x => x[0] === k); return w ? w[1] : ''; };
+const stageWearName = k => boyName(k, stageWearName0(k));
+const stageWearName0 = k => { for (const e in EVENT_WEAR) { const f = EVENT_WEAR[e][1].find(x => x[0] === k); if (f) return f[1]; } for (const c in STAGE_WEAR) { const f = STAGE_WEAR[c].find(x => x[0] === k); if (f) return f[1]; } const w = WEAR_CLOTH.find(x => x[0] === k); return w ? w[1] : ''; };
 const CONCEPT_WEAR = { fresh: 'sailor', crush: 'leather', cute: 'dress', dream: 'cape', retro: 'polka', hiphop: 'jersey', ballad: 'ballad', sexy: 'reddress' };
 const STAGE_KINDS = ['stage', 'concert', 'festival', 'campus', 'yearend', 'win'];
 // 행사 의상 3벌씩 (활동 탭에서 행사마다 골라 둠, 안 고르면 그때그때 무작위)
@@ -1346,7 +1347,7 @@ const curStageWear = () => {   // 이번 활동 무대 의상 (고른 것 → �
 };
 const curConcept = () => S && S.promo ? S.promo.concept : (S && S.albums && S.albums.length ? S.albums[S.albums.length - 1].concept : null);
 function wearFor(m, kind) {   // 이 장면에서 입을 옷·소품
-  if (window.PV && PV.cloth !== 'auto') return [PV.cloth === 'none' ? null : PV.cloth, PV.acc].filter(k => k && ITEMINFO[k]);   // 미리보기에서 고른 옷
+  if (window.PV && PV.cloth !== 'auto') return [PV.cloth === 'none' ? null : PV.cloth, PV.acc].filter(k => k && ITEMINFO[k]).map(gk);   // 미리보기에서 고른 옷
   const w = wearOf(m), out = [];
   let cloth = w.cloth;
   const ev = kind === 'win' && REP && REP.yearWin ? 'yearend' : kind;   // 연말 시상식 수상 장면은 연말 의상
@@ -1355,17 +1356,24 @@ function wearFor(m, kind) {   // 이 장면에서 입을 옷·소품
   else if (!cloth && kind === 'practice') cloth = 'sport';
   else if (!cloth && kind === 'dorm') cloth = 'hoodie';
   if (cloth) out.push(cloth); if (w.acc) out.push(w.acc);
-  return out.filter(k => ITEMINFO[k]);
+  return out.filter(k => ITEMINFO[k]).map(gk);
 }
-const itemImgs = list => list.map(k => { const it = ITEMINFO[k]; return it ? `<img class="witem" src="art/cat/item-${k}.png${CATV}" style="left:${it.x / 4.48}%;top:${it.y / 6}%;width:${it.w / 4.48}%;height:${it.h / 6}%" alt="">` : ''; }).join('');
+// 보이그룹: 원피스·스커트 등은 남자용(-b) 그림으로 바꿔 입기
+const BOY_NAME = { 'dress-b': '파스텔 니트 조끼', 'polka-b': '물방울 셔츠 + 멜빵', 'ballad-b': '흰 린넨 셔츠', 'reddress-b': '빨간 벨벳 재킷 조끼', 'sailor-b': '세일러 칼라 셔츠', 'cape-b': '별빛 망토 + 셔츠',
+  'st-fresh1-b': '민트 줄무늬 티 + 반바지', 'st-fresh2-b': '데이지 데님 멜빵', 'st-cute1-b': '노랑 토끼 조끼', 'st-cute2-b': '딸기 셔츠 + 멜빵', 'st-cute3-b': '하트 니트 조끼', 'st-dream1-b': '달빛 시폰 셔츠 조끼', 'st-dream2-b': '나비 장식 재킷 조끼', 'st-dream3-b': '은하수 재킷 조끼',
+  'st-retro3-b': '체크 조끼 + 나비넥타이', 'st-hiphop3-b': '네온 바람막이 조끼', 'st-ballad1-b': '네이비 벨벳 정장 조끼', 'st-ballad2-b': '베이지 꽈배기 니트 조끼', 'st-ballad3-b': '진주 실크 셔츠', 'st-sexy1-b': '블랙 시퀸 재킷', 'st-sexy2-b': '와인 벨벳 셔츠', 'st-sexy3-b': '실버 메탈릭 재킷',
+  'ev-yearend1-b': '화이트 골드 턱시도 조끼', 'ev-yearend2-b': '눈꽃 벨벳 재킷 조끼', 'ev-yearend3-b': '퍼 장식 레드 윈터 재킷', 'ev-festival3-b': '네온 메시 민소매', 'ev-campus2-b': '응원단 조끼', 'ev-campus3-b': '니트 조끼 + 체크 바지', 'ev-concert1-b': '크리스탈 재킷 조끼', 'ev-concert3-b': '홀로그램 재킷 조끼' };
+const gk = k => k && S && S.gender === 'boy' && ITEMINFO[k + '-b'] ? k + '-b' : k;
+const boyName = (k, l) => S && S.gender === 'boy' && ITEMINFO[k + '-b'] && BOY_NAME[k + '-b'] ? BOY_NAME[k + '-b'] : l;
+const itemImgs = list => list.map(gk).map(k => { const it = ITEMINFO[k]; return it ? `<img class="witem" src="art/cat/item-${k}.png${CATV}" style="left:${it.x / 4.48}%;top:${it.y / 6}%;width:${it.w / 4.48}%;height:${it.h / 6}%" alt="">` : ''; }).join('');
 const catOf = m => { if (!m.cat || !CATS.some(c => c[0] === m.cat)) { const i = Math.max(0, S ? S.members.indexOf(m) : 0); m.cat = CATS[i % CATS.length][0]; } return m.cat; };
 const catImg = (coat, kind) => `art/cat/${coat}-${kind}.png${CATV}`;
 let PIXIP = null;
 const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
-const MODE2 = { stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
+const MODE2 = { adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
 // AI로 만든 배경 그림 (8장 무료 FLUX, 나머지 제미나이). 숙소는 6종류마다 다른 그림
-const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'win', 'campus'];
+const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'win', 'campus', 'adshoot', 'variety'];
 const BG_ALIAS = {};
 const DORM_BG = { d1: 'dorm_old', d2: 'dorm', d3: 'dorm_two', d6: 'dorm_house', d4: 'dorm_office', d5: 'dorm_lux' };   // 숙소 6종 모두 다른 그림
 const dormBg = () => DORM_BG[(S && S.dorm ? dormOf() : DORMS[1]).id] || 'dorm';
@@ -1377,12 +1385,12 @@ function bgHTML(kind) {
 // 장면별 조명: 고양이 색을 배경 빛에 맞추기 [빨강·초록·파랑 곱하기, 밝기 더하기], 무대는 바닥 조명(스포트라이트)
 const LIGHT = {
   stage: [[1, .9, 1.05], .02, 0xff7ad9], concert: [[1, .88, 1.05], 0, 0xffa0e0], yearend: [[1.05, .95, .88], .02, 0xffd27a], win: [[1.06, .98, .86], .04, 0xffe08a],
-  festival: [[1.02, 1, .96], .03, null], campus: [[1.04, .98, .92], .02, 0xffd28a], practice: [[1.04, .98, .92], .02, null], live: [[1.04, .96, .94], .01, null], fansign: [[1.04, .97, .96], .03, null],
+  festival: [[1.02, 1, .96], .03, null], adshoot: [[1.03, .99, .97], .04, null], variety: [[1.02, .96, 1.02], .02, 0xffb0e0], campus: [[1.04, .98, .92], .02, 0xffd28a], practice: [[1.04, .98, .92], .02, null], live: [[1.04, .96, .94], .01, null], fansign: [[1.04, .97, .96], .03, null],
   prep: [[1.04, .97, .9], 0, null], drama: [[1.05, .98, .9], .02, null], dorm: [[1.06, .96, .84], -.02, null], dorm_old: [[1, .95, .86], -.06, null], dorm_lux: [[1.02, .97, .92], 0, null], dorm_two: [[1.04, .98, .92], .02, null], dorm_house: [[1.04, .99, .9], .03, null], dorm_office: [[1.03, .96, .94], 0, null],
   scandal: [[1.04, .9, .9], -.05, null], clinic: [[1, 1, 1], 0, null],
 };
 // 배경마다 벽과 바닥이 만나는 높이 (화면 높이 비율, 그림을 재서 정함). 뒷줄 발끝이 이 선보다 아래 바닥 위에 오게
-const FLOOR = { campus: .78, stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
+const FLOOR = { adshoot: .74, variety: .72, campus: .78, stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
 // 뒷줄 자리: 앞줄 고양이 사이사이 틈 중에서 고르게 (앞줄 가운데가 0, 한 칸 = 앞줄 간격)
 function backSlots(nf, nb) {
   const gaps = Array.from({ length: nf - 1 }, (_, i) => i - (nf - 2) / 2);
@@ -1729,7 +1737,7 @@ function actHTML() {
 <p class="muted">준비 2주(녹음·안무) 뒤 음악 방송을 해요. 활동이 길수록 팬이 많이 늘지만 피로도 쌓여요.</p>
 <button class="btn" data-act="comeback" style="width:100%">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div>`;
   }
-  h += `<h2>행사 의상</h2><div class="card">${Object.entries(EVENT_WEAR).map(([ev, [lab, l]]) => `<div class="evrow"><b>${lab}</b><select data-evwear="${ev}"><option value="">무작위</option>${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${S.eventWear && S.eventWear[ev] === k ? ' selected' : ''}>${n}</option>`).join('')}</select>${S.members[0] && eventWearNow(ev) ? avatar(S.members[0], 40, true, eventWearNow(ev)) : ''}</div>`).join('')}<p class="muted" style="font-size:12px">무대 의상(컴백 콘셉트)과 따로, 행사 날에는 이 옷을 입어요.</p></div>`;
+  h += `<h2>행사 의상</h2><div class="card">${Object.entries(EVENT_WEAR).map(([ev, [lab, l]]) => `<div class="evrow"><b>${lab}</b><select data-evwear="${ev}"><option value="">무작위</option>${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${S.eventWear && S.eventWear[ev] === k ? ' selected' : ''}>${boyName(k, n)}</option>`).join('')}</select>${S.members[0] && eventWearNow(ev) ? avatar(S.members[0], 40, true, eventWearNow(ev)) : ''}</div>`).join('')}<p class="muted" style="font-size:12px">무대 의상(컴백 콘셉트)과 따로, 행사 날에는 이 옷을 입어요.</p></div>`;
   h += `<h2>들어온 제의</h2>`;
   h += S.offers.length ? S.offers.map(o => {
     const m = S.members.find(x => x.id === o.mid); if (!m) return '';
@@ -1824,8 +1832,8 @@ ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` :
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>꾸미기</h3>
 <p class="muted center">🐾 털 무늬: ${(CATS.find(c => c[0] === catOf(m)) || ['', ''])[1]} (처음 정한 고양이는 바뀌지 않아요)</p>
-<b>👗 평소 옷</b><div class="wearpick">${WEAR_CLOTH.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m).cloth === k ? 'on' : ''}" data-wear="${m.id}:cloth:${k || ''}">${k ? `<img src="art/cat/item-${k}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${l}</button>`).join('')}</div>
-<b>🎀 소품</b><div class="wearpick">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m).acc === k ? 'on' : ''}" data-wear="${m.id}:acc:${k || ''}">${k ? `<img src="art/cat/item-${k}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${l}</button>`).join('')}</div>
+<b>👗 평소 옷</b><div class="wearpick">${WEAR_CLOTH.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m).cloth === k ? 'on' : ''}" data-wear="${m.id}:cloth:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>
+<b>🎀 소품</b><div class="wearpick">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m).acc === k ? 'on' : ''}" data-wear="${m.id}:acc:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>
 <p class="muted" style="font-size:12px">무대(음악방송·콘서트·축제·시상식)에서는 콘셉트 의상으로 자동으로 갈아입어요. 소품은 무대에서도 그대로예요. 평소 옷을 안 고르면 연습 땐 운동복, 숙소에선 후드 조끼를 입어요.</p>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
@@ -1855,7 +1863,7 @@ const dlg = $('#dlg');
 function openDlg(html) { $('#dlgBody').innerHTML = CREST + html; if (!dlg.open) dlg.showModal(); }
 function closeDlg() { if (dlg.open) dlg.close(); }
 dlg.addEventListener('cancel', e => { if (S && S.pending.length) e.preventDefault(); });
-const CAPTION0 = { dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', campus: '대학 축제 무대! 함성이 쏟아져요 🏫', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
+const CAPTION0 = { dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', campus: '대학 축제 무대! 함성이 쏟아져요 🏫', adshoot: '광고 촬영 중! 찰칵찰칵 📸', variety: '예능 촬영 중! 웃음이 빵빵 📺', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
 const CAPTION = new Proxy(CAPTION0, { get: (o, k) => (o[k] || '').replace('연습실에서 구슬땀', '연습실에서 꾹꾹이 대신 구슬땀') });
 let REVEAL = null;
 function showReport(r) {
@@ -1984,7 +1992,7 @@ document.addEventListener('change', e => {
 });
 
 // ===== 미리보기 (?preview): 게임을 진행하지 않고 장면·인원·옷·동작을 바로 골라 보기. 저장은 하지 않음 =====
-const PV_SCENES = [['stage', '🎤 음악 방송'], ['win', '🏆 1위'], ['concert', '🎆 단독 콘서트'], ['festival', '🎪 여름 페스티벌'], ['campus', '🏫 대학 축제'], ['yearend', '🎄 연말 무대'], ['practice', '💃 연습실'], ['prep', '🎧 녹음실'], ['live', '📱 라이브'], ['fansign', '✍️ 팬싸인회'], ['drama', '🎬 드라마'], ['dorm', '🏠 숙소'], ['scandal', '📸 논란'], ['clinic', '🏥 성형외과(고양이 없음)']];
+const PV_SCENES = [['adshoot', '📸 광고 촬영'], ['variety', '📺 예능 촬영'], ['stage', '🎤 음악 방송'], ['win', '🏆 1위'], ['concert', '🎆 단독 콘서트'], ['festival', '🎪 여름 페스티벌'], ['campus', '🏫 대학 축제'], ['yearend', '🎄 연말 무대'], ['practice', '💃 연습실'], ['prep', '🎧 녹음실'], ['live', '📱 라이브'], ['fansign', '✍️ 팬싸인회'], ['drama', '🎬 드라마'], ['dorm', '🏠 숙소'], ['scandal', '📸 논란'], ['clinic', '🏥 성형외과(고양이 없음)']];
 const PV_MODES = [['auto', '장면에 맞게'], ['idle', '대기'], ['dance', '춤'], ['cheer', '만세'], ['wave', '손 흔들기'], ['sleep', '졸기'], ['sad', '시무룩']];
 function pvStart() {
   window.PV = { scene: 'stage', dorm: 'd2', n: 5, cats: CATS.map(c => c[0]), mode: 'auto', cloth: 'auto', acc: '', concept: 'cute', gal: 'cheese' };
@@ -1998,7 +2006,7 @@ function pvMembers() {
 }
 function pvRender() {
   if (!window.PV) return;
-  const all = [['auto', '자동 (장면에 맞는 옷)'], ['none', '없음']], og = (lab, l) => `<optgroup label="${lab}">${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${PV.cloth === k ? ' selected' : ''}>${n}</option>`).join('')}</optgroup>`;
+  const all = [['auto', '자동 (장면에 맞는 옷)'], ['none', '없음']], og = (lab, l) => `<optgroup label="${lab}">${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${PV.cloth === k ? ' selected' : ''}>${boyName(k, n)}</option>`).join('')}</optgroup>`;
   S.dorm.id = PV.dorm; S.albums = [{ title: '미리보기', concept: PV.concept, outfit: catStageOutfits(PV.concept)[0], best: 1, wins: 0, w: 0, weeks: 1, kind: 'group' }];
   S.members = pvMembers();
   const chip = (attr, v, cur, l) => `<button class="chip${String(cur) === String(v) ? ' on' : ''}" data-${attr}="${v}">${l}</button>`;
@@ -2010,6 +2018,7 @@ function pvRender() {
 <div class="card">
 <label class="f">장면</label><select class="full" data-pvsel="scene">${PV_SCENES.map(([k, l]) => `<option value="${k}"${PV.scene === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
 ${PV.scene === 'dorm' ? `<label class="f">숙소 종류</label><select class="full" data-pvsel="dorm">${DORMS.map(d => `<option value="${d.id}"${PV.dorm === d.id ? ' selected' : ''}>${d.name}</option>`).join('')}</select>` : ''}
+<label class="f">그룹 종류</label><div class="chips">${chip('pvg', 'girl', S.gender, '걸그룹')}${chip('pvg', 'boy', S.gender, '보이그룹')}</div>
 <label class="f">인원</label><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => chip('pvn', n, PV.n, n + '명')).join('')}</div>
 <label class="f">고양이 <button class="btn sub small" data-pvshuffle="1">🎲 섞기</button></label><p class="muted">${PV.cats.slice(0, PV.n).map(c => (CATS.find(x => x[0] === c) || ['', ''])[1]).join(' · ')}</p>
 <label class="f">동작</label><div class="chips">${PV_MODES.map(([k, l]) => chip('pvmode', k, PV.mode, l)).join('')}</div>
@@ -2019,11 +2028,11 @@ ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악
 </div>
 <h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['외모', '💄 외모 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
-<div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(n)}</small></div>`).join('')}</div></div>`;
+<div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div></div>`;
   if (PV.scene !== 'clinic' && !dlg.open) mount2d($('#pvstage'), S.members, PV.scene);   // 이벤트 창이 열려 있으면 그 창 무대를 그대로 둠
 }
 document.addEventListener('click', e => {
-  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev]'); if (!t) return;
+  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg]'); if (!t) return;
   const d = t.dataset;
   if (d.pvev) {   // 논란·사생팬 창 띄우기 (게임과 같은 창)
     const m = S.members[0], k = d.pvev; if (!m) return;
@@ -2032,6 +2041,7 @@ document.addEventListener('click', e => {
     S.fans = Math.max(S.fans, 20000); S.money = Math.max(S.money, 50000);
     return nextPopup();
   }
+  if (d.pvg) S.gender = d.pvg;
   if (d.pvn) PV.n = +d.pvn; if (d.pvmode) PV.mode = d.pvmode; if (d.pvgal) PV.gal = d.pvgal;
   if (d.pvshuffle) PV.cats = PV.cats.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
   pvRender();
