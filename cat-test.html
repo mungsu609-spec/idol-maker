@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>고양이 아이돌 시험판</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--gold:#e3ad4a;--goldd:#b9822a;--ink:#4a2f3c;--sub:#8a6f7a;--pink:#ef5c96;--pinkd:#c23c74;--title:#8a3a62}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:linear-gradient(180deg,#e6efff,#fdeef6 45%,#fff5e4);min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-family:Jua,sans-serif;font-weight:400;text-align:center;color:#ff6fa3;font-size:30px;margin:6px 0;text-shadow:2px 0 #fff,-2px 0 #fff,0 2px #fff,0 -2px #fff,0 4px 0 var(--pinkd)}
+p.sub{text-align:center;color:var(--sub);margin:0 0 12px;font-size:14px}
+.card{background:#fffaf0;border:3px solid var(--gold);border-radius:18px;padding:12px;margin-bottom:14px;box-shadow:0 3px 0 var(--goldd)}
+.stage{width:100%;display:block;border-radius:14px;border:3px solid var(--gold);background:#2b1d4a}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.chip{font-family:Jua,sans-serif;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);border-radius:999px;padding:5px 12px;font-size:15px;cursor:pointer;box-shadow:0 2px 0 var(--goldd)}
+.chip.on{background:linear-gradient(#ffa8cb,#ef5c96);border-color:var(--pinkd);color:#fff}
+h2{font-family:Jua,sans-serif;font-weight:400;color:var(--title);font-size:18px;margin:4px 0}
+label{font-family:Jua,sans-serif;color:var(--title);font-size:15px}
+.row{display:flex;gap:12px;align-items:flex-start}
+.big{width:44%;flex:none;background:radial-gradient(circle at 50% 40%,#fff,#ffe3ef);border-radius:16px;border:3px solid var(--gold)}
+.opts{flex:1;min-width:0}
+.sw{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.sw button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px #c9a070;cursor:pointer}
+.sw button.on{box-shadow:0 0 0 3px var(--pink)}
+.muted{color:var(--sub);font-size:13px}
+/* ===== 애니메이션 (부위가 따로 그려져 있어서 이음새 없이 움직임) ===== */
+.cat .pt{transform-box:view-box}
+.cat .arm-l{transform-origin:73px 162px}.cat .arm-r{transform-origin:127px 162px}
+.cat .leg-l{transform-origin:84px 196px}.cat .leg-r{transform-origin:116px 196px}
+.cat .head{transform-origin:100px 140px}.cat .tail{transform-origin:122px 204px}
+.cat .ear-l{transform-origin:64px 60px}.cat .ear-r{transform-origin:136px 60px}
+.cat .eye{transform-origin:center;transform-box:fill-box;animation:blink 4.2s infinite;animation-delay:var(--d)}
+.cat .whole{transform-origin:100px 232px;transform-box:view-box}
+.cat .mopen{opacity:0}
+.cat .tail{animation:tailIdle 2.4s ease-in-out infinite alternate;animation-delay:var(--d)}
+.cat .ear-l{animation:ear 5s infinite;animation-delay:var(--d)}
+.cat .ear-r{animation:ear 6.3s infinite reverse}
+.cat .body-g{transform-origin:100px 230px;transform-box:view-box;animation:breathe 2.6s ease-in-out infinite}
+.dance .arm-l{animation:armL .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance .arm-r{animation:armR .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance .leg-l{animation:legL .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance .leg-r{animation:legR .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance .head{animation:headD 1s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance .tail{animation:tailFast .5s ease-in-out infinite alternate}
+.dance .whole{animation:step .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance .mopen,.cheer .mopen{animation:sing .5s steps(1) infinite;animation-delay:var(--d)}
+.cheer .arm-l{animation:upL .35s ease-in-out infinite alternate}
+.cheer .arm-r{animation:upR .35s ease-in-out infinite alternate}
+.cheer .whole{animation:jump .7s cubic-bezier(.3,0,.4,1) infinite;animation-delay:var(--d)}
+.cheer .tail{animation:tailFast .3s ease-in-out infinite alternate}
+.cheer .head{animation:headD .7s ease-in-out infinite alternate}
+.sleep .eye-open{display:none}.cat .eye-shut{display:none}.sleep .eye-shut{display:inline}
+.sleep .head{animation:nod 3s ease-in-out infinite}
+.sleep .tail{animation:tailIdle 4s ease-in-out infinite alternate}
+.sleep .zz{display:inline}.cat .zz{display:none}
+.zz text{animation:zz 2.4s ease-out infinite}
+@keyframes blink{0%,91%,97%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}
+@keyframes tailIdle{from{transform:rotate(-8deg)}to{transform:rotate(10deg)}}
+@keyframes tailFast{from{transform:rotate(-18deg)}to{transform:rotate(16deg)}}
+@keyframes ear{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-12deg)}94%{transform:rotate(4deg)}}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,.985)}}
+@keyframes armL{from{transform:rotate(10deg)}to{transform:rotate(75deg)}}
+@keyframes armR{from{transform:rotate(-75deg)}to{transform:rotate(-10deg)}}
+@keyframes upL{from{transform:rotate(85deg)}to{transform:rotate(118deg)}}
+@keyframes upR{from{transform:rotate(-118deg)}to{transform:rotate(-85deg)}}
+@keyframes legL{from{transform:rotate(-2deg)}to{transform:rotate(14deg)}}
+@keyframes legR{from{transform:rotate(-14deg)}to{transform:rotate(2deg)}}
+@keyframes headD{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+@keyframes step{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-5px) rotate(3deg)}}
+@keyframes jump{0%,100%{transform:translateY(0) scaleY(1)}15%{transform:translateY(0) scale(1.06,.92)}45%{transform:translateY(-26px) scale(.97,1.04)}75%{transform:translateY(0) scale(1)}}
+@keyframes sing{0%{opacity:1}50%{opacity:0}}
+@keyframes nod{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(9deg) translateY(4px)}}
+@keyframes zz{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(14px,-30px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>🐱 고양이 아이돌 시험판</h1>
+<p class="sub">부위를 따로 그려서 조립한 고양이예요. 무대 위 고양이를 누르면 오른쪽 아래에서 꾸밀 수 있어요.</p>
+<div class="card">
+  <svg id="stage" class="stage" viewBox="0 0 360 230"></svg>
+  <label>움직임</label>
+  <div class="chips" id="modes"></div>
+</div>
+<div class="card">
+  <h2 id="selName"></h2>
+  <div class="row">
+    <svg id="big" class="big" viewBox="0 0 200 250"></svg>
+    <div class="opts">
+      <label>털 무늬</label><div class="chips" id="coat"></div>
+      <label>눈 색</label><div class="sw" id="eyes"></div>
+      <label>옷</label><div class="chips" id="outfit"></div>
+      <label>액세서리</label><div class="chips" id="acc"></div>
+    </div>
+  </div>
+  <p class="muted">💡 모든 부위·옷·액세서리를 코드로 그려서 무료로 얼마든지 늘릴 수 있어요. 옷도 팔·다리와 같이 움직여요.</p>
+</div>
+</main>
+<script>
+// ===== 데이터 =====
+const OL = '#4a3040';                       // 테두리 색
+const COATS = {
+  cheese: { name: '치즈', base: '#f6b26b', dark: '#e08a3c', white: false, stripes: true },
+  white: { name: '하양', base: '#fbf8f4', dark: '#e6ddd4', white: false },
+  black: { name: '까망', base: '#3d3540', dark: '#2a242c', white: false, pinkNose: true },
+  tuxedo: { name: '턱시도', base: '#3d3540', dark: '#2a242c', white: true, pinkNose: true },
+  tabby: { name: '고등어', base: '#a7a2a0', dark: '#6f6866', white: true, stripes: true },
+  calico: { name: '삼색', base: '#fbf8f4', dark: '#e6ddd4', patches: ['#f0a04b', '#3d3540'] },
+  siamese: { name: '샴', base: '#f3e6d4', dark: '#e2cfb6', points: '#6a4a3a' },
+  gray: { name: '러블', base: '#9aa6b8', dark: '#7c889a', white: false },
+};
+const EYES = ['#5fb0e8', '#7ac46a', '#e8b84a', '#c77ad8', '#e8728f', '#9a6a4a'];
+const OUTFITS = {
+  none: { name: '없음' }, hoodie: { name: '후드티' }, sailor: { name: '세일러' }, jacket: { name: '가죽 재킷' }, frill: { name: '프릴 원피스' }, suit: { name: '턱시도' },
+};
+const ACCS = { none: '없음', ribbon: '리본', headset: '헤드셋 마이크', beret: '베레모', crown: '왕관' };
+const MODES = { idle: '대기', dance: '춤', cheer: '환호', sleep: '잠' };
+let cats = [
+  { name: '치즈냥', coat: 'cheese', eye: 0, outfit: 'sailor', acc: 'headset' },
+  { name: '까미', coat: 'tuxedo', eye: 2, outfit: 'jacket', acc: 'headset' },
+  { name: '삼순이', coat: 'calico', eye: 1, outfit: 'frill', acc: 'ribbon' },
+  { name: '구름이', coat: 'siamese', eye: 0, outfit: 'suit', acc: 'crown' },
+];
+let sel = 0, mode = 'dance';
+
+// ===== 고양이 그리기 (200×240 도화지, 부위마다 따로) =====
+function cat(c, uid) {
+  const C = COATS[c.coat], E = EYES[c.eye], o = c.outfit;
+  const st = `stroke="${OL}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"`;
+  const fur = C.base, furD = C.dark, belly = C.white || C.patches || C.points ? '#fffaf4' : null;
+  const pt = C.points; // 샴: 귀·얼굴·발 끝 진하게
+  const id = s => `${s}-${uid}`;
+  const defs = `<defs>
+<radialGradient id="${id('hg')}" cx=".45" cy=".35" r=".75"><stop offset=".55" stop-color="${fur}"/><stop offset="1" stop-color="${furD}"/></radialGradient>
+<radialGradient id="${id('bg')}" cx=".45" cy=".3" r=".8"><stop offset=".5" stop-color="${fur}"/><stop offset="1" stop-color="${furD}"/></radialGradient>
+<linearGradient id="${id('ir')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shade(E, -.55)}"/><stop offset=".55" stop-color="${E}"/><stop offset="1" stop-color="${shade(E, .45)}"/></linearGradient>
+<clipPath id="${id('hc')}"><path d="${HEAD}"/></clipPath><clipPath id="${id('bc')}"><path d="${BODY}"/></clipPath>
+</defs>`;
+  // 꼬리
+  const tailCol = pt || (C.patches ? C.patches[1] : fur);
+  const tail = `<g class="pt tail"><path d="M120 206C150 206 168 186 166 158C165 140 158 128 150 120" fill="none" stroke="${OL}" stroke-width="17" stroke-linecap="round"/><path d="M120 206C150 206 168 186 166 158C165 140 158 128 150 120" fill="none" stroke="${tailCol}" stroke-width="11.5" stroke-linecap="round"/>${C.stripes ? `<path d="M158 184l8 -3M163 166l8 -1M160 146l7 2" stroke="${furD}" stroke-width="3.5" stroke-linecap="round"/>` : ''}</g>`;
+  // 다리
+  const legPaw = pt || (C.white ? '#fffaf4' : fur);
+  const leg = (cls, x) => `<g class="pt ${cls}"><path d="M${x - 11} 192V222C${x - 11} 232 ${x + 11} 232 ${x + 11} 222V192Z" fill="${fur}" ${st}/>${o === 'suit' ? `<path d="M${x - 11} 196V218H${x + 11}V196Z" fill="#2a2a33"/>` : o === 'jacket' ? `<path d="M${x - 11} 196V216H${x + 11}V196Z" fill="#3b3b48"/>` : ''}<ellipse cx="${x}" cy="226" rx="14" ry="8" fill="${o === 'suit' || o === 'jacket' ? '#222' : legPaw}" ${st}/>${o === 'frill' || o === 'sailor' ? `<ellipse cx="${x}" cy="226" rx="14" ry="8" fill="${o === 'frill' ? '#ff8fb8' : '#6b3a2a'}" ${st}/>` : ''}<path d="M${x - 5} 229v-4M${x + 5} 229v-4" stroke="${OL}" stroke-width="1.6" opacity=".6"/></g>`;
+  // 몸
+  let bodyIn = `<path d="${BODY}" fill="url(#${id('bg')})" ${st}/>`;
+  if (belly) bodyIn += `<g clip-path="url(#${id('bc')})"><ellipse cx="100" cy="200" rx="22" ry="30" fill="${belly}"/></g>`;
+  if (C.patches) bodyIn += `<g clip-path="url(#${id('bc')})"><circle cx="72" cy="178" r="16" fill="${C.patches[0]}"/><circle cx="132" cy="200" r="13" fill="${C.patches[1]}"/></g>`;
+  if (C.stripes) bodyIn += `<g clip-path="url(#${id('bc')})" stroke="${furD}" stroke-width="4" stroke-linecap="round"><path d="M68 178h10M66 192h11M124 178h-10M126 192h-11"/></g>`;
+  bodyIn += `<path d="${BODY}" fill="none" ${st}/>`;
+  bodyIn += outfitBody(o, st, id);
+  // 팔
+  const armPaw = pt || (C.white ? '#fffaf4' : fur);
+  const arm = (cls, x, flip) => `<g class="pt ${cls}" style="transform:rotate(${flip ? -12 : 12}deg)"><path d="M${x - 9} 160V196C${x - 9} 210 ${x + 9} 210 ${x + 9} 196V160Z" fill="${fur}" ${st}/>${sleeve(o, x, st)}<ellipse cx="${x}" cy="202" rx="11" ry="10" fill="${armPaw}" ${st}/><path d="M${x - 4} 207v-3M${x} 208v-3M${x + 4} 207v-3" stroke="${OL}" stroke-width="1.4" opacity=".55"/></g>`;
+  // 머리
+  const earIn = pt ? shade(pt, .25) : '#ffb3c6';
+  const earCol = pt || (C.patches ? C.patches[0] : fur);
+  const ear = (cls, m) => { const t = s => m ? `<g transform="translate(200,0) scale(-1,1)">${s}</g>` : s;
+    return `<g class="pt ${cls}">${t(`<path d="M50 78C44 52 46 32 52 22C56 18 60 20 64 24L92 52Z" fill="${m && C.patches ? C.patches[1] : earCol}" ${st}/><path d="M57 66C54 50 55 38 58 31L82 52Z" fill="${earIn}"/>`)}</g>`; };
+  let headIn = `<path d="${HEAD}" fill="url(#${id('hg')})" ${st}/>`;
+  headIn += `<g clip-path="url(#${id('hc')})">`;
+  if (C.white || C.points) headIn += `<path d="M100 98C84 98 70 112 72 130C74 146 126 146 128 130C130 112 116 98 100 98Z" fill="${C.points ? shade(C.points, .1) : '#fffaf4'}" opacity="${C.points ? .55 : 1}"/>`;
+  if (C.white) headIn += `<path d="M100 60L94 98H106Z" fill="#fffaf4"/>`;
+  if (C.patches) headIn += `<path d="M40 60C60 40 92 44 96 70C90 90 60 96 40 90Z" fill="${C.patches[0]}"/><path d="M160 54C142 44 112 46 108 66C114 84 140 88 160 84Z" fill="${C.patches[1]}"/>`;
+  if (C.stripes) headIn += `<g stroke="${furD}" stroke-width="4" stroke-linecap="round"><path d="M92 46L95 62M100 44V60M108 46L105 62"/><path d="M46 96h12M46 108h10M154 96h-12M154 108h-10"/></g>`;
+  headIn += `</g><path d="${HEAD}" fill="none" ${st}/>`;
+  // 얼굴
+  const eye = x => `<g class="eye-open"><g class="eye" style="--d:${-(uid % 7) * .5}s"><ellipse cx="${x}" cy="104" rx="13" ry="15.5" fill="#fff" ${st}/><ellipse cx="${x}" cy="106" rx="10.5" ry="13" fill="url(#${id('ir')})"/><ellipse cx="${x}" cy="107" rx="5" ry="8" fill="${shade(E, -.7)}"/><circle cx="${x - 4}" cy="99" r="4.2" fill="#fff"/><circle cx="${x + 4}" cy="112" r="2" fill="#fff"/><path d="M${x - 14} 98C${x - 9} 86 ${x + 9} 86 ${x + 14} 98" fill="none" stroke="${OL}" stroke-width="3.4"/></g></g>
+<path class="eye-shut" d="M${x - 11} 106Q${x} 114 ${x + 11} 106" fill="none" stroke="${OL}" stroke-width="3"/>`;
+  const face = eye(76) + eye(124)
+    + `<ellipse cx="62" cy="122" rx="9" ry="5" fill="#ff8fa8" opacity=".5"/><ellipse cx="138" cy="122" rx="9" ry="5" fill="#ff8fa8" opacity=".5"/>`
+    + `<path d="M95 118Q100 115 105 118L100 124Z" fill="${C.pinkNose || C.points ? '#ff9db5' : '#f07a95'}" stroke="${OL}" stroke-width="1.6" stroke-linejoin="round"/>`
+    + `<path d="M100 124V127M91 126Q95.5 132 100 127Q104.5 132 109 126" fill="none" stroke="${OL}" stroke-width="2.2" stroke-linecap="round"/>`
+    + `<path class="mopen" d="M92 127Q100 142 108 127Q100 131 92 127Z" fill="#c84a64" stroke="${OL}" stroke-width="2"/>`
+    + `<g stroke="${OL}" stroke-width="1.6" stroke-linecap="round" opacity=".7"><path d="M44 118L24 114M44 124L24 126M156 118L176 114M156 124L176 126"/></g>`;
+  const head = `<g class="pt head">${ear('ear-l', false)}${ear('ear-r', true)}${headIn}${face}${accessory(c.acc, st)}</g>`;
+  const zz = `<g class="zz"><text x="150" y="60" font-family="Jua" font-size="18" fill="#8f7cd6">Z</text><text x="162" y="44" font-family="Jua" font-size="13" fill="#8f7cd6" style="animation-delay:.8s">z</text></g>`;
+  return defs + `<g class="whole pt"><g class="body-g">${tail}${leg('leg-l', 84)}${leg('leg-r', 116)}<g>${bodyIn}</g>${arm('arm-l', 73)}${arm('arm-r', 127, true)}${head}</g></g>${zz}`;
+}
+const HEAD = 'M38 102C36 64 66 46 100 46C134 46 164 64 162 102C162 132 136 148 100 148C64 148 38 132 38 102Z';
+const BODY = 'M70 166C70 146 130 146 130 166L136 206C138 226 62 226 64 206Z';
+function outfitBody(o, st, id) {
+  if (o === 'hoodie') return `<path d="M68 160C70 146 130 146 132 160L137 204C138 216 62 216 63 204Z" fill="#b9d6ff" ${st}/><path d="M80 150C86 162 114 162 120 150" fill="none" stroke="${OL}" stroke-width="2.2"/><path d="M86 186H114L116 202H84Z" fill="#a4c6f5" ${st}/><path d="M94 156V172M106 156V172" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>`;
+  if (o === 'sailor') return `<path d="M68 160C70 146 130 146 132 160L135 196H65Z" fill="#fff" ${st}/><path d="M72 152L100 176L128 152L126 164L100 184L74 164Z" fill="#2c4a8a" ${st}/><path d="M78 158L100 176L122 158" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M100 176L88 168L88 184ZM100 176L112 168L112 184Z" fill="#e0384f" stroke="${OL}" stroke-width="1.8"/><path d="M64 194H136L142 214C120 222 80 222 58 214Z" fill="#2c4a8a" ${st}/><path d="M76 196L72 216M88 196L86 219M100 196V220M112 196L114 219M124 196L128 216" stroke="#1d3366" stroke-width="1.8"/>`;
+  if (o === 'jacket') return `<path d="M66 160C68 146 132 146 134 160L138 208C138 216 62 216 62 208Z" fill="#2c2a33" ${st}/><path d="M86 150L100 178L114 150Z" fill="#fffaf4"/><path d="M84 150L98 182L80 168ZM116 150L102 182L120 168Z" fill="#3c3a46" ${st}/><path d="M100 182V212" stroke="#c9c9d6" stroke-width="2"/><circle cx="76" cy="196" r="2" fill="#c9c9d6"/><circle cx="124" cy="196" r="2" fill="#c9c9d6"/>`;
+  if (o === 'frill') return `<path d="M70 160C72 148 128 148 130 160L132 190H68Z" fill="#ffb3cf" ${st}/><path d="M68 188H132L146 216H54Z" fill="#ffb3cf" ${st}/>${[58, 70, 82, 94, 106, 118, 130, 142].map(x => `<circle cx="${x}" cy="217" r="6.5" fill="#fff" stroke="${OL}" stroke-width="1.8"/>`).join('')}<path d="M100 164L88 157V171ZM100 164L112 157V171Z" fill="#ff5a90" stroke="${OL}" stroke-width="1.8"/><circle cx="100" cy="164" r="3" fill="#ffe08a" stroke="${OL}" stroke-width="1.4"/>`;
+  if (o === 'suit') return `<path d="M66 160C68 146 132 146 134 160L138 210C138 216 62 216 62 210Z" fill="#2a2a33" ${st}/><path d="M88 150L100 186L112 150Z" fill="#fff" stroke="${OL}" stroke-width="1.8"/><path d="M92 153L100 158L108 153L108 162L100 158L92 162Z" fill="#e0384f" stroke="${OL}" stroke-width="1.4"/><path d="M86 150L99 190L78 170ZM114 150L101 190L122 170Z" fill="#3b3b48" ${st}/><circle cx="100" cy="196" r="2" fill="#ffe08a"/>`;
+  return '';
+}
+function sleeve(o, x, st) {
+  const S2 = (f, y2 = 194, extra = '') => `<path d="M${x - 10} 158V${y2}H${x + 10}V158Z" fill="${f}" ${st}/>${extra}`;
+  if (o === 'hoodie') return S2('#b9d6ff', 196, `<path d="M${x - 10} 192H${x + 10}" stroke="${OL}" stroke-width="2"/>`);
+  if (o === 'sailor') return S2('#fff', 176, `<path d="M${x - 10} 170H${x + 10}" stroke="#2c4a8a" stroke-width="3"/>`);
+  if (o === 'jacket') return S2('#2c2a33', 196, `<path d="M${x - 6} 190H${x + 6}" stroke="#c9c9d6" stroke-width="1.6"/>`);
+  if (o === 'frill') return `<ellipse cx="${x}" cy="166" rx="13" ry="10" fill="#ffb3cf" ${st}/>`;
+  if (o === 'suit') return S2('#2a2a33', 196, `<path d="M${x - 10} 194H${x + 10}" stroke="#fff" stroke-width="3"/>`);
+  return '';
+}
+function accessory(a, st) {
+  if (a === 'ribbon') return `<g transform="rotate(-18 128 44)"><path d="M128 44L110 32L112 56Z" fill="#ff5a90" ${st}/><path d="M128 44L146 32L144 56Z" fill="#ff5a90" ${st}/><circle cx="128" cy="44" r="5" fill="#ffd0e0" ${st}/></g>`;
+  if (a === 'headset') return `<path d="M44 96C40 58 70 44 100 44C130 44 160 58 156 96" fill="none" stroke="#3b3b45" stroke-width="4"/><rect x="36" y="90" width="12" height="20" rx="5" fill="#ef5c96" ${st}/><path d="M44 108C46 124 62 132 80 132" fill="none" stroke="#3b3b45" stroke-width="2.4"/><circle cx="82" cy="132" r="3.5" fill="#3b3b45"/>`;
+  if (a === 'beret') return `<path d="M58 56C62 30 140 30 146 54C130 62 74 62 58 56Z" fill="#e0384f" ${st}/><circle cx="102" cy="34" r="4" fill="#e0384f" ${st}/>`;
+  if (a === 'crown') return `<path d="M76 50L80 24L92 40L100 20L108 40L120 24L124 50Z" fill="#ffd34d" ${st}/><circle cx="100" cy="42" r="3.5" fill="#ff5a90"/><circle cx="85" cy="44" r="2.5" fill="#6cc8e6"/><circle cx="115" cy="44" r="2.5" fill="#6cc8e6"/>`;
+  return '';
+}
+function shade(hex, a) { const n = parseInt(hex.slice(1), 16); const f = c => Math.round(Math.max(0, Math.min(255, a < 0 ? c * (1 + a) : c + (255 - c) * a))); return '#' + [n >> 16, n >> 8 & 255, n & 255].map(c => f(c).toString(16).padStart(2, '0')).join(''); }
+
+// ===== 화면 =====
+const $ = s => document.querySelector(s);
+function drawStage() {
+  const spot = [60, 150, 240, 320].map((x, i) => `<path d="M${x - 5} 0H${x + 5}L${x + 50} 175H${x - 50}Z" fill="#fff" opacity=".07"/>`).join('');
+  const lights = Array.from({ length: 9 }, (_, i) => `<rect x="${40 + i * 32}" y="14" width="24" height="44" rx="4" fill="#ab95e6" opacity="${.2 + (i % 3) * .1}"/>`).join('');
+  const n = cats.length, w = 86;
+  const cs = cats.map((c, i) => `<svg x="${180 - (n * w) / 2 + i * w - 4}" y="64" width="${w + 8}" height="146" viewBox="0 0 200 240" class="cat ${mode}" data-i="${i}" style="--d:${-i * .17}s;cursor:pointer">${cat(c, i)}${i === sel ? '<path d="M100 252 l-8 -10h16z" fill="#ffd34d"/>' : ''}</svg>`).join('');
+  $('#stage').innerHTML = `<defs><linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b46a8"/><stop offset="1" stop-color="#2a1850"/></linearGradient></defs>
+<rect width="360" height="230" fill="#2b1d4a"/>${lights}${spot}<rect y="190" width="360" height="40" fill="url(#fl)"/><rect y="190" width="360" height="3" fill="#ff8fb8"/>
+<rect x="10" y="10" width="54" height="18" rx="5" fill="#e23b5a"/><text x="37" y="23" font-size="10" font-weight="800" fill="#fff" text-anchor="middle" font-family="Arial">ON AIR</text>${cs}`;
+  $('#big').innerHTML = `<svg viewBox="0 0 200 240" y="5" class="cat ${mode}" style="--d:0s">${cat(cats[sel], 99)}</svg>`;
+  $('#selName').textContent = `🐾 ${cats[sel].name}`;
+}
+function drawOpts() {
+  const c = cats[sel];
+  $('#modes').innerHTML = Object.entries(MODES).map(([k, l]) => `<button class="chip${mode === k ? ' on' : ''}" data-mode="${k}">${l}</button>`).join('');
+  $('#coat').innerHTML = Object.entries(COATS).map(([k, v]) => `<button class="chip${c.coat === k ? ' on' : ''}" data-coat="${k}">${v.name}</button>`).join('');
+  $('#eyes').innerHTML = EYES.map((e, i) => `<button class="${c.eye === i ? 'on' : ''}" style="background:${e}" data-eye="${i}" aria-label="눈 색 ${i + 1}"></button>`).join('');
+  $('#outfit').innerHTML = Object.entries(OUTFITS).map(([k, v]) => `<button class="chip${c.outfit === k ? ' on' : ''}" data-outfit="${k}">${v.name}</button>`).join('');
+  $('#acc').innerHTML = Object.entries(ACCS).map(([k, v]) => `<button class="chip${c.acc === k ? ' on' : ''}" data-acc="${k}">${v}</button>`).join('');
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-mode],[data-coat],[data-eye],[data-outfit],[data-acc],[data-i]'); if (!t) return;
+  const d = t.dataset, c = cats[sel];
+  if (d.mode) mode = d.mode;
+  else if (d.coat) c.coat = d.coat;
+  else if (d.eye) c.eye = +d.eye;
+  else if (d.outfit) c.outfit = d.outfit;
+  else if (d.acc) c.acc = d.acc;
+  else if (d.i !== undefined) sel = +d.i;
+  drawStage(); drawOpts();
+});
+drawStage(); drawOpts();
+</script>
+</body>
+</html>
