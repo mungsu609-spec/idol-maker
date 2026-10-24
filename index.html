@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.4.4/lib/three-vrm.module.min.js"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 <style>
@@ -218,6 +219,13 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 @keyframes legR{from{transform:rotate(2deg)}to{transform:rotate(-2.5deg)}}
 @keyframes head{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
 @keyframes nod{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg)}}
+.st3host{position:relative;margin-bottom:12px}
+.st3host>svg.scene{margin-bottom:0}
+.st3host canvas.st3d{position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
+.thumbrow{position:absolute;left:0;right:0;bottom:6%;display:flex;justify-content:center;gap:2px;height:62%}
+.thumbrow img{height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.avbox img.a3{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
+.avbox.full img.a3{object-fit:contain;object-position:50% 100%}
 .su-row{display:flex;align-items:center;gap:6px;margin:6px 0}
 .su-row img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#fff}
 .su-row input{flex:1;min-width:0}
@@ -363,7 +371,7 @@ function newGame(cfg) {
     ga: 'none', lastConcert: -99, lastPromoEnd: 0, festival: null, awards: [],
     npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null,
   };
-  S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; });
+  S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; const M = M3D[cfg.gender === 'boy' ? 'boy' : 'girl']; m.l3 = { model: M[(lookOf(m).ch - 1) % M.length][0], hair: null, cloth: null, cat: false }; });
   news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
   save(); TAB = 'plan'; render();
 }
@@ -863,6 +871,7 @@ function recruit() {
   const m = newMember(pick(pool.length ? pool : ['새멤버']), 15, 38, S.gender, ri(15, 20));
   const used = S.members.map(x => lookOf(x).ch), free = [1, 2, 3, 4, 5, 6, 7].filter(c => !used.includes(c));
   lookOf(m).ch = free.length ? pick(free) : ri(1, 7);
+  { const M = models3(), used3 = S.members.map(x => look3(x).model), f3 = M.filter(x => !used3.includes(x[0])); m.l3 = { model: (f3.length ? pick(f3) : pick(M))[0], hair: f3.length ? null : pick(HAIR3.slice(1))[0], cloth: null, cat: false }; }
   RC = { m, bonus: 1 };
   recruitDlg();
 }
@@ -1249,7 +1258,72 @@ function puppetDefs() {
 }
 document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
+// ===== 3D 아이돌 (VRM, VRoid 공식 샘플 CC0) =====
+const M3D = {
+  girl: [['AvatarSample_G', '핑크 아이돌'], ['HairSample_Female', '고양이 귀 소녀'], ['AvatarSample_D', '교복 단발'], ['Sendagaya_Shino', '교복 장발'], ['AvatarSample_F', '사이버 걸'], ['AvatarSample_D_Darkness', '고딕 소녀'], ['AvatarSample_E', '숲속 소녀'], ['Base_Female', '청록 머리']],
+  boy: [['Sakurada_Fumiriya', '갈색 머리'], ['HairSample_Male', '후드티'], ['Base_Male', '청록 머리']],
+};
+const HAIR3 = [[null, '원래 색', 'conic-gradient(#f08ab4,#e2b878,#6a8ee0,#f08ab4)'], ['#2b2328', '흑발'], ['#8a5a40', '갈색'], ['#e2b878', '금발'], ['#f08ab4', '핑크'], ['#c7c9dc', '실버'], ['#6a8ee0', '블루'], ['#c8404a', '레드'], ['#9a72d8', '보라'], ['#f0a050', '오렌지']];
+const CLOTH3 = [[null, '원래 옷', 'conic-gradient(#ff8fb8,#8ad0f0,#f2d24b,#ff8fb8)'], ['#ffffff', '화이트'], ['#2a2a33', '블랙'], ['#ff8fb8', '핑크'], ['#8ad0f0', '스카이'], ['#f2d24b', '옐로'], ['#b49ae8', '라벤더'], ['#e0384f', '레드'], ['#7ac47a', '그린']];
+const CONCEPT_CLOTH = { fresh: '#8ad0f0', crush: '#2a2a33', cute: '#ff8fb8', dream: '#b49ae8', retro: '#f0a050', hiphop: '#f2d24b', ballad: '#ffffff', sexy: '#c8303f' };
+const EXP3 = { normal: null, smile: 'happy', surprise: 'surprised', closed: 'relaxed' };
+const models3 = () => M3D[S && S.gender === 'boy' ? 'boy' : 'girl'];
+function look3(m) {
+  if (!m.l3 || !m.l3.model) { const L = models3(), i = Math.max(0, (S ? S.members.indexOf(m) : 0)); m.l3 = { model: L[i % L.length][0], hair: null, cloth: null, cat: false }; }
+  return m.l3;
+}
+function look3For(m, o = {}) {
+  const l = look3(m), L = lookOf(m);
+  let cloth = l.cloth;
+  if (o.stage && !cloth && S && (S.promo || S.albums.length)) cloth = CONCEPT_CLOTH[(S.promo && S.promo.concept) || S.albums[S.albums.length - 1].concept] || null;
+  return { model: l.model, hair: l.hair, cloth, cat: l.cat, exp: o.exp !== undefined ? o.exp : EXP3[L.exp] || null };
+}
+let I3P = null;
+const idol3d = () => I3P || (I3P = import('./idol3d.js'));
+const SNAP = new Map(), SNAPQ = [];
+let snapBusy = false;
+const thumbOf = (model, kind) => `art/vrm/thumb/${model}-${kind}.webp`;
+function snapSrc(look, kind) {
+  const key = kind + '|' + JSON.stringify(look);
+  if (SNAP.has(key)) return { key, src: SNAP.get(key) };
+  if (!SNAPQ.some(q => q.key === key)) { SNAPQ.push({ key, look, kind }); runSnap(); }
+  return { key, src: thumbOf(look.model, kind) };
+}
+async function runSnap() {
+  if (snapBusy || window.NO3D) return; snapBusy = true;
+  try {
+    const mod = await idol3d();
+    while (SNAPQ.length) {
+      const q = SNAPQ.shift();
+      try { const url = await mod.snapshot(q.look, q.kind, q.kind === 'face' ? 192 : 360); SNAP.set(q.key, url); document.querySelectorAll(`img[data-snap="${CSS.escape(q.key)}"]`).forEach(im => { im.src = url; }); }
+      catch (e) { console.warn('snap', e); SNAP.set(q.key, thumbOf(q.look.model, q.kind)); }
+    }
+  } catch (e) { console.warn('3D 불러오기 실패', e); }
+  snapBusy = false;
+}
+// 결과 창의 3D 무대 (캔버스 하나를 계속 다시 씀)
+let ST3 = null, ST3C = null;
+const MODE3 = { stage: 'dance', concert: 'dance', festival: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
+async function mount3d(host, members, kind) {
+  if (!host || window.NO3D) return;
+  if (!ST3C) { ST3C = document.createElement('canvas'); ST3C.className = 'st3d'; }
+  host.appendChild(ST3C);
+  try {
+    const mod = await idol3d();
+    if (!ST3) ST3 = mod.createStage(ST3C);
+    ST3.resize();
+    const stage = ['stage', 'win', 'concert', 'festival', 'yearend'].includes(kind);
+    await ST3.setMembers(members.slice(0, 7).map(m => look3For(m, { stage, exp: kind === 'win' ? 'happy' : kind === 'scandal' ? 'surprised' : undefined })));
+    ST3.setMode(MODE3[kind] || 'idle'); ST3.resize();
+    host.classList.add('ready');
+  } catch (e) { console.warn('3D 무대 실패', e); }
+}
 function avatar(m, size = 44, full, outfit) {
+  if (m && m.stats && S && !m.gender) {
+    const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick', stage = outfit ? V2_OUT[outfit] && V2_OUT[outfit].type === 'stage' : false;
+    const sn = snapSrc(look3For(m, { stage }), full ? 'full' : 'face');
+    return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.75) : size}px;--h:${m.hue || 0}"><img class="a3" src="${sn.src}" data-snap="${esc(sn.key)}" alt=""></span>`;
+  }
   {
     const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
     const svg = `<svg viewBox="${full ? '0 0 384 688' : FACE_VB}" width="100%" height="100%" preserveAspectRatio="xMidYMid ${full ? 'meet' : 'slice'}" aria-hidden="true">${layers(m, { outfit: outfit || charOpts(m).outfit })}</svg>`;
@@ -1328,7 +1402,7 @@ ${star(160, 30, 18, '#ffd54a', 'a-twinkle')}<text x="160" y="64" font-size="12" 
       `<rect width="320" height="180" fill="#fde6e6"/>${Array.from({ length: 14 }, (_, i) => `<path d="M${i * 30 - 40} 180L${i * 30 + 40} 0" stroke="#f8d4d4" stroke-width="8"/>`).join('')}
 <g transform="rotate(-3 160 90)"><g class="a-shake"><rect x="80" y="18" width="160" height="140" rx="4" fill="#fff" stroke="#d9c3c3" stroke-width="2"/><rect x="92" y="30" width="70" height="20" fill="#d64545"/><text x="127" y="45" font-size="13" font-weight="900" fill="#fff" text-anchor="middle">속보</text>
 ${[60, 72, 84, 96, 108, 120, 132, 144].map((y, i) => `<rect x="92" y="${y}" width="${i % 2 ? 60 : 72}" height="5" rx="2" fill="#e8dada"/>`).join('')}<rect x="172" y="30" width="56" height="62" fill="#efe3e3" stroke="#d9c3c3"/>
-${m ? `<svg x="172" y="30" width="56" height="62" viewBox="${FACE_VB}" preserveAspectRatio="xMidYMid slice">${layers(m, { exp: kind === 'scandal' && S.pending[0] && S.pending[0].kind === '사생' ? 'surprise' : 'surprise' })}</svg>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g></g>
+${m ? `<image href="${snapSrc(look3For(m, { exp: 'surprised' }), 'face').src}" x="172" y="30" width="56" height="62" preserveAspectRatio="xMidYMid slice"/>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g></g>
 ${[[34, 40], [290, 50], [40, 140], [286, 140]].map(([x, y], i) => `<circle class="a-flash" style="animation-delay:${i * .33}s" cx="${x}" cy="${y - 6}" r="38" fill="#fff"/>${star(x, y - 16, 14, '#fff', 'a-flash')}<rect x="${x - 16}" y="${y}" width="32" height="22" rx="4" fill="#333"/><rect x="${x - 7}" y="${y - 5}" width="12" height="6" rx="2" fill="#333"/><circle cx="${x}" cy="${y + 11}" r="7" fill="#666" stroke="#222" stroke-width="2"/>`).join('')}`); }
     case 'live': { const m = ms.find(x => !x.busy) || ms[0]; return W(lg('bg', '#ffd1e6', '#ffeef6'),
       `<rect width="320" height="180" fill="url(#bg)"/><rect x="112" y="6" width="96" height="168" rx="16" fill="#2b2230"/><rect x="118" y="18" width="84" height="146" rx="6" fill="#fff0f7"/>
@@ -1540,11 +1614,13 @@ function fillNames(keep) {
   const old = [...box.querySelectorAll('.su-row')].map(r2 => [r2.querySelector('input').value, r2.querySelector('select').value]);
   const pool = shuffle(SU.gender === 'girl' ? GIRL : BOY), gg = SU.gender === 'boy' ? 'b' : 'g';
   box.innerHTML = Array.from({ length: SU.count }, (_, i) => { const nm = keep && old[i] ? old[i][0] : pool[i], ag = keep && old[i] ? +old[i][1] : ri(16, 21);
-    return `<div class="su-row"><img src="${V2}${gg}${SU.chars[i]}-face.webp" alt=""><button class="arrow" data-such="${i}:-1" aria-label="이전 캐릭터">◀</button><button class="arrow" data-such="${i}:1" aria-label="다음 캐릭터">▶</button>
+    const M = M3D[SU.gender === 'boy' ? 'boy' : 'girl'], mi = (SU.chars[i] - 1) % M.length;
+    return `<div class="su-row"><img src="${thumbOf(M[mi][0], 'face')}" alt="" title="${M[mi][1]}"><button class="arrow" data-such="${i}:-1" aria-label="이전 캐릭터">◀</button><button class="arrow" data-such="${i}:1" aria-label="다음 캐릭터">▶</button>
 <input type="text" value="${esc(nm)}" maxlength="10" aria-label="이름"><select aria-label="나이">${Array.from({ length: 11 }, (_, a) => a + 14).map(a => `<option value="${a}"${a === ag ? ' selected' : ''}>${a}세</option>`).join('')}</select></div>`; }).join('');
   const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: { ch: SU.chars[i], daily: 'basic', exp: 'normal' }, gender: gg, stats: { visual: 0 }, fatigue: 0, busy: null }));
-  const keepS = S; S = { gender: SU.gender, members: demo, albums: [], promo: null, ga: 'none' };
-  $('#suScene').innerHTML = scene('stage', demo); S = keepS;
+  const keepS = S; S = { gender: SU.gender, members: [], albums: [], promo: null, ga: 'none' };
+  const M = M3D[SU.gender === 'boy' ? 'boy' : 'girl'];
+  $('#suScene').innerHTML = `<div class="st3host">${scene('stage', [])}<div class="thumbrow">${Array.from({ length: SU.count }, (_, i) => `<img src="${thumbOf(M[(SU.chars[i] - 1) % M.length][0], 'full')}" alt="">`).join('')}</div></div>`; S = keepS;
 }
 function memberDetail(id) {
   const m = S.members.find(x => x.id === id); if (!m) return;
@@ -1572,18 +1648,22 @@ function memberDetail(id) {
 ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>꾸미기</h3>
-<div class="cust"><span>헤어</span>${arrows('hs', (() => { const gg = gp(m); return L.hs && hairOK(gg, L.ch, L.hs) ? HAIR_STYLES[gg].find(x => x[0] === L.hs)[1] : '원래 머리'; })())}</div>
-<div class="cust"><span>머리색</span><div class="sw"><button class="swatch${!L.hcol ? ' on' : ''}" style="background:conic-gradient(#e88ab0,#d9b56e,#5f86d6,#e88ab0)" data-cust="${m.id}:hcol:-1" aria-label="원래 색"></button>${HAIR_TINTS.map(([id, nm, c], i) => `<button class="swatch${L.hcol === id ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:hcol:${i}" aria-label="${nm}"></button>`).join('')}</div></div>
-${(window.HAIR_OK || []).some(x => x.startsWith(gp(m) + L.ch + '-')) ? '' : '<p class="muted">이 멤버의 헤어 그림은 아직 준비 중이에요.</p>'}
-<div class="cust"><span>연습복</span>${arrows('daily', outfitName(L.daily, S.gender))}</div>
-<div class="cust"><span>표정</span>${arrows('exp', { normal: '기본 (가끔 깜빡임)', smile: '웃음', surprise: '놀람', closed: '눈 감음' }[L.exp] || '기본')}</div>
-<p class="muted">무대 의상은 데뷔·컴백할 때 콘셉트에 맞춰 골라요.</p>
+${(() => { const l = look3(m), sw3 = (f, list, cur) => `<div class="sw">${list.map(([c, nm, bg], i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${bg || c}" data-cust="${m.id}:${f}:${i}" aria-label="${nm}"></button>`).join('')}</div>`;
+  return `<p class="muted center">캐릭터: ${(models3().find(x => x[0] === l.model) || ['', ''])[1]} (처음 정한 캐릭터는 바뀌지 않아요)</p>
+<div class="cust"><span>머리색</span>${sw3('h3', HAIR3, l.hair)}</div>
+<div class="cust"><span>옷 색</span>${sw3('c3', CLOTH3, l.cloth)}</div>
+<div class="cust"><span>고양이</span><button class="chip${!l.cat ? ' on' : ''}" data-cust="${m.id}:cat:0">없음</button><button class="chip${l.cat ? ' on' : ''}" data-cust="${m.id}:cat:1">귀·꼬리 달기 🐱</button></div>`; })()}
+<div class="cust"><span>표정</span>${arrows('exp', { normal: '기본 (가끔 깜빡임)', smile: '웃음', surprise: '놀람', closed: '편안' }[L.exp] || '기본')}</div>
+<p class="muted">무대에서는 콘셉트에 맞는 색 옷으로 바뀌어요 (옷 색을 정하면 그 색으로).</p>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
 function customize(spec) {
   const [id, f, v] = spec.split(':'), m = S.members.find(x => x.id === id); if (!m) return;
   const L = lookOf(m), cyc = (arr, cur) => arr[(arr.indexOf(cur) + +v + arr.length) % arr.length];
-  if (f === 'hs') { const gg = gp(m), ids = [null, ...HAIR_STYLES[gg].map(x => x[0]).filter(k => hairOK(gg, L.ch, k))]; L.hs = ids[(ids.indexOf(L.hs) + +v + ids.length) % ids.length]; }
+  if (f === 'h3') look3(m).hair = HAIR3[+v][0];
+  else if (f === 'c3') look3(m).cloth = CLOTH3[+v][0];
+  else if (f === 'cat') look3(m).cat = v === '1';
+  else if (f === 'hs') { const gg = gp(m), ids = [null, ...HAIR_STYLES[gg].map(x => x[0]).filter(k => hairOK(gg, L.ch, k))]; L.hs = ids[(ids.indexOf(L.hs) + +v + ids.length) % ids.length]; }
   else if (f === 'hcol') L.hcol = +v < 0 ? null : HAIR_TINTS[+v][0];
   else if (f === 'exp') { const ex = ['normal', 'smile', 'surprise', 'closed']; L.exp = ex[(ex.indexOf(L.exp) + +v + 4) % 4]; }
   else if (f === 'art') L.art = cyc(ART_IDS, L.art || null);
@@ -1608,7 +1688,7 @@ let REVEAL = null;
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
   const d0 = dateOf(S.week - 1), d1 = dateOf(S.week);
-  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div>${scene(r.scene, (() => { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; return ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : null; })(), r.scene !== 'clinic')}<p class="caption">${CAPTION[r.scene] || ''}</p>
+  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div>${r.scene === 'clinic' ? scene('clinic', [], false) : `<div class="st3host" id="st3host">${scene(r.scene, [], true)}</div>`}<p class="caption">${CAPTION[r.scene] || ''}</p>
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
@@ -1619,6 +1699,7 @@ function showReport(r) {
   if (S.pending.length) h += `<p class="neg" style="margin-top:12px"><b>⚠️ 논란이 ${S.pending.length}건 생겼어요!</b></p>`;
   h += `<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`;
   openDlg(top + `<div class="rep-body">${h}</div><p class="skip muted">눌러서 바로 보기</p>`);
+  if (r.scene !== 'clinic') { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; mount3d($('#st3host'), ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : S.members.filter(m => !m.busy), r.scene); }
   const body = $('#dlgBody'); body.classList.add('intro');
   [...body.querySelectorAll('.rep-body > *')].forEach((el, i) => el.style.setProperty('--i', i));
   const fmt = { '💗 팬': n => (n >= 0 ? '+' : '') + num(n), '💰 자금': n => (n >= 0 ? '+' : '') + money(n), '⭐ 인지도': n => (n >= 0 ? '+' : '') + n };
@@ -1639,17 +1720,18 @@ function nextPopup() {
     const sc = S.pending[0], m = S.members.find(x => x.id === sc.mid);
     if (!m) { S.pending.shift(); save(); return nextPopup(); }
     if (sc.kind === '사생') {
-      openDlg(`${scene('scandal', [m], true)}<h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
+      openDlg(`<div class="st3host" id="st3host">${scene('scandal', [], true)}</div><h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
 <p class="muted">어떻게 할까요?</p>
 <button class="choice" data-sc="guard"><b>🛡 경호 강화</b><small>비용 500만. 가장 안전해요.</small></button>
 <button class="choice" data-sc="police"><b>🚓 경찰 신고·공식 대응</b><small>돈은 안 들어요. 멤버가 조금 지쳐요.</small></button>
 <button class="choice" data-sc="ignore"><b>🙈 무시하기</b><small>멤버가 불안해하고, 숙소 침입이 생길 수 있어요.</small></button>`);
+      mount3d($('#st3host'), [m], 'scandal');
       return;
     }
     const extra = [];
     if (m.ad) extra.push(`광고 ${m.ad.brand} 계약 중 (심각하면 위약금 ${money(m.ad.fee * 2)})`);
     if (m.drama) extra.push(`드라마 ${m.drama.title} 촬영 중`);
-    openDlg(`${scene('scandal', [m], true)}<h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
+    openDlg(`<div class="st3host" id="st3host">${scene('scandal', [], true)}</div><h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
 ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <p class="muted">어떻게 대처할까요?</p>
 <button class="choice" data-sc="apologize"><b>📝 사과문 올리기</b><small>팬이 조금 떠나요. 심각도 '보통' 이상이면 광고가 해지돼요.</small></button>
@@ -1657,6 +1739,7 @@ ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <button class="choice" data-sc="pause"><b>⏸ 활동 중단</b><small>${3 + sc.sev * 2}주 쉬어요. 팬은 덜 떠나지만 드라마는 하차해요.</small></button>
 ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 인정하기</b><small>팬이 조금 떠나지만 논란이 빨리 끝나요. 심각하면 광고가 해지돼요.</small></button>` : ''}
 <button class="choice" data-sc="leave"><b>🚪 그룹 탈퇴</b><small>멤버가 그룹을 떠나요. 광고 위약금과 드라마 하차가 따라와요.</small></button>`);
+    mount3d($('#st3host'), [m], 'scandal');
     return;
   }
   closeDlg(); render();
@@ -1677,7 +1760,7 @@ document.addEventListener('click', e => {
   if (d.cust) return customize(d.cust);
   if (d.rcb) { RC.bonus = +d.rcb; return recruitDlg(); }
   if (d.dorm) return moveDorm(d.dorm);
-  if (d.such) { const [i, v] = d.such.split(':').map(Number); SU.chars[i] = ((SU.chars[i] - 1 + v + 7) % 7) + 1; return fillNames(true); }
+  if (d.such) { const [i, v] = d.such.split(':').map(Number), n = M3D[SU.gender === 'boy' ? 'boy' : 'girl'].length; SU.chars[i] = ((SU.chars[i] - 1 + v + n) % n) + 1; return fillNames(true); }
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
   if (d.cbsolo) { CB.solo = d.cbsolo; $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
@@ -1723,7 +1806,7 @@ document.addEventListener('change', e => {
 });
 
 load();
-if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); }); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
+if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); look3(m); }); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 render();
 if (!S) fillNames();

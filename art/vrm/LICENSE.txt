@@ -1,0 +1,4 @@
+VRoid 공식 샘플 모델 (VRoid Project / pixiv)
+라이선스: CC0 또는 VRoid Hub 이용 조건 "모두 허용" (상업 이용·수정·재배포 허용, 표기 불필요)
+출처: https://opengameart.org/content/vroid-studio-cc0-models
+게임에서 쓰기 위해 그림(텍스처) 크기만 1024px로 줄였어요.
