@@ -1284,12 +1284,20 @@ async function mount2d(host, members, kind) {
     const list = members.slice(0, 7), n = list.length;
     await Promise.all(list.map(m => { const k = catOf(m); return CATDATA[k] || (CATDATA[k] = CAT2.loadCat(PIXI, k)); }));   // 한꺼번에 불러오기
     LG('data'); if (my !== MOUNT_ID) return;        // 그 사이 다음 주로 넘어갔으면 그만
-    for (const [i, m] of list.entries()) {
-      const coat = catOf(m), data = await CATDATA[coat];
-      const c = CAT2.makeCat(PIXI, data, { phase: i * .37 });
-      const sc = Math.min(h * .78 / c.H, w / (Math.max(n, 2.2) * .95) / c.W);
-      c.root.scale.set(sc); c.root.x = w / 2 + (i - (n - 1) / 2) * Math.min(w / (n + .2), c.W * sc * 1.05); c.root.baseY = h * .97; c.root.y = c.root.baseY;
-      c.setMode(MODE2[kind] || 'idle'); CATAPP.stage.addChild(c.root); CATS_ON.push(c);
+    // 5명까지 한 줄, 6명부터 두 줄 (앞줄이 더 많게: 6명 3+3, 7명 4+3). 뒷줄은 작고 위쪽, 앞줄 사이사이에
+    const two = n >= 6, nf = two ? Math.ceil(n / 2) : n, nb = n - nf;
+    const rows = [{ k: nb, sc: .74, y: h * (nb === nf ? .6 : .66) }, { k: nf, sc: 1, y: h * .99 }].filter(r => r.k);
+    const first = await CATDATA[catOf(list[0])], cw = first.info.w, ch = first.info.h;
+    const base = Math.min((two ? h * .66 : h * .8) / ch, w * .96 / (nf * cw * .78));     // 앞줄이 화면 안에 다 들어가게
+    let idx = 0;
+    for (const r of rows) {                                   // 뒷줄 먼저 그려서 앞줄 뒤에 보이게
+      const sc = base * r.sc, gap = two ? w * .94 / nf : Math.min(w * .96 / r.k, cw * sc * .82);
+      for (let j = 0; j < r.k; j++, idx++) {
+        const m = r === rows[rows.length - 1] && two ? list[j] : two ? list[nf + j] : list[j];
+        const c = CAT2.makeCat(PIXI, await CATDATA[catOf(m)], { phase: idx * .37 });
+        c.root.scale.set(sc); c.root.x = w / 2 + (j - (r.k - 1) / 2) * gap; c.root.baseY = r.y; c.root.y = r.y;
+        c.setMode(MODE2[kind] || 'idle'); CATAPP.stage.addChild(c.root); CATS_ON.push(c);
+      }
     }
     host.classList.add('ready');
   } catch (e) { console.warn('고양이 무대 실패', e); }
