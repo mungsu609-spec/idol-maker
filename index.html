@@ -224,7 +224,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .st3host>img.bgimg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:3px solid var(--gold);box-shadow:0 3px 0 var(--goldd)}
 .winfx{position:absolute;inset:3px;border-radius:12px;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,230,140,.35) 0 8deg,transparent 8deg 22deg);mix-blend-mode:screen;animation:winspin 12s linear infinite}
 @keyframes winspin{to{transform:rotate(0)}}
-.st3host canvas.st3d{position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
+.st3host canvas.st3d{z-index:2;position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
 .thumbrow{position:absolute;left:2%;right:2%;bottom:4%;display:flex;justify-content:center;height:62%}
 .thumbrow.back{bottom:30%;height:46%;left:12%;right:12%}
 .thumbrow img{height:100%;min-width:0;flex:0 1 auto;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
@@ -232,7 +232,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .avbox img.a3{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
 .avbox.full img.a3{object-fit:contain;object-position:50% 100%}
 .avbox img.a3{background:transparent}
-.st3host .vig{position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:11px;pointer-events:none;-webkit-backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);background:radial-gradient(ellipse 75% 70% at 50% 55%,transparent 55%,rgba(20,10,40,.38) 100%)}
+.st3host .vig{z-index:1;position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:11px;pointer-events:none;-webkit-backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);background:radial-gradient(ellipse 75% 70% at 50% 55%,transparent 55%,rgba(20,10,40,.38) 100%)}
 .doll{position:relative;display:block;height:100%;aspect-ratio:448/600;margin:0 auto}
 .doll img.a3{object-fit:fill}
 .doll .witem{position:absolute;display:block;pointer-events:none}
@@ -1348,7 +1348,7 @@ async function mount2d(host, members, kind) {
     const list = members.slice(0, 7), n = list.length;
     const L = LIGHT[kind === 'dorm' ? dormBg() : kind] || LIGHT.practice, crowd = new PIXI.Container(), shadows = new PIXI.Container();
     const cm = new PIXI.ColorMatrixFilter(), [lr, lg, lb] = L[0], la = L[1];
-    cm.matrix = [lr, 0, 0, 0, la, 0, lg, 0, 0, la, 0, 0, lb, 0, la, 0, 0, 0, 1, 0]; crowd.filters = [cm];
+    cm.matrix = [lr, 0, 0, 0, la, 0, lg, 0, 0, la, 0, 0, lb, 0, la, 0, 0, 0, 1, 0]; cm.resolution = CATAPP.renderer.resolution; crowd.filters = [cm];   // 화면 해상도 그대로 (안 맞추면 폰에서 흐릿해짐)
     if (L[2] != null) { const spot = new PIXI.Graphics(); spot.beginFill(L[2], .28).drawEllipse(w / 2, h * .93, w * .46, h * .1).endFill(); spot.filters = [new PIXI.BlurFilter(18)]; CATAPP.stage.addChild(spot); }
     CATAPP.stage.addChild(shadows, crowd);
     await Promise.all(list.map(m => { const k = catOf(m); return CATDATA[k] || (CATDATA[k] = CAT2.loadCat(PIXI, k)); }));   // 한꺼번에 불러오기
