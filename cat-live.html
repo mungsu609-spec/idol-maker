@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2D 고양이 아이돌 시험</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:system-ui,"Malgun Gothic",sans-serif;background:linear-gradient(#e6efff,#fdeef6);color:#4a2f3c}
+main{max-width:760px;margin:0 auto;padding:12px}
+h1{font-family:Jua,sans-serif;font-weight:400;text-align:center;color:#ef5c96;margin:4px 0}
+#st{width:100%;aspect-ratio:16/10;display:block;border-radius:16px;border:3px solid #e3ad4a;background:radial-gradient(ellipse at 50% 15%,#7a52c0,#2a1850 62%,#140b28)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.chip{font-family:Jua,sans-serif;border:2px solid #e3ad4a;background:linear-gradient(#fffdf6,#ffe9b8);border-radius:999px;padding:6px 14px;font-size:16px;cursor:pointer}
+.chip.on{background:linear-gradient(#ffa8cb,#ef5c96);border-color:#c23c74;color:#fff}
+p{color:#8a6f7a;font-size:13px;line-height:1.5}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js"></script>
+</head>
+<body>
+<main>
+<h1>🐱 2D 고양이 아이돌 시험</h1>
+<canvas id="st"></canvas>
+<div class="chips" id="modes"></div>
+<p>그림 AI로 그린 고양이를 몸통·팔·꼬리·표정으로 나누고, 그림을 <b>휘고 늘리는</b> 방식(Live2D·Spine과 같은 원리)으로 움직여요. 팔과 꼬리는 붙은 곳은 고정되고 끝으로 갈수록 휘어서 이음새가 없어요. 머리는 목 부분이 부드럽게 늘어나며 기울고, 숨 쉴 때 몸이 살짝 부풀어요.</p>
+</main>
+<script type="module">
+import { loadCat, makeCat } from './cat2d.js';
+const MODES = { idle: '대기', dance: '춤', cheer: '만세(1위)', wave: '손 흔들기', sleep: '졸기', sad: '시무룩' };
+const cv = document.getElementById('st');
+const app = new PIXI.Application({ view: cv, backgroundAlpha: 0, antialias: true, width: cv.clientWidth, height: cv.clientHeight, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true });
+const data = await loadCat(PIXI, 'cheese');
+const cats = [];
+const N = +(new URLSearchParams(location.search).get('n') || 3);
+for (let i = 0; i < N; i++) { const c = makeCat(PIXI, data, { phase: i * .37 }); app.stage.addChild(c.root); cats.push(c); }
+let LW = 0, LH = 0;
+function layout() {
+  const w = cv.clientWidth, h = cv.clientHeight; if (w === LW && h === LH) return; LW = w; LH = h;
+  app.renderer.resize(w, h);
+  const sc = Math.min(h * .8 / cats[0].H, w / (N * 1.05) / cats[0].W);
+  cats.forEach((c, i) => { c.root.scale.set(sc); c.root.x = w / 2 + (i - (N - 1) / 2) * w / (N + .4); c.root.baseY = h * .93; c.root.y = c.root.baseY; });
+}
+layout(); addEventListener('resize', () => setTimeout(layout, 50));
+let mode = location.hash.slice(1) || 'dance';
+function setMode(m) { mode = m; cats.forEach(c => c.setMode(m)); document.getElementById('modes').innerHTML = Object.entries(MODES).map(([k, v]) => `<button class="chip${k === mode ? ' on' : ''}" data-m="${k}">${v}</button>`).join(''); }
+document.getElementById('modes').onclick = e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.m); };
+setMode(mode);
+app.ticker.add(() => { layout(); const dt = app.ticker.deltaMS / 1000; cats.forEach(c => c.update(dt)); });
+window.READY = 1;
+</script>
+</body>
+</html>
