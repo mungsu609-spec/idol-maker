@@ -75,6 +75,9 @@ select.full{width:100%}
 .avbox{flex:none;display:inline-block;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,hsl(var(--h) 85% 97%),hsl(var(--h) 70% 85%));border:2.5px solid #fff;box-shadow:0 0 0 2px var(--gold),0 2px 0 2px var(--goldd)}
 .avbox.full{border-radius:16px;background:linear-gradient(180deg,hsl(var(--h) 85% 96%),hsl(var(--h) 60% 84%))}
 .avbox svg{display:block}
+.avbox img.art-face{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 15%}
+.avbox img.art-body{display:block;height:96%;margin:2% auto 0}
+.avbox.off img{filter:grayscale(1);opacity:.6}
 .avbox.off svg{filter:grayscale(1);opacity:.6}
 .stat{display:grid;grid-template-columns:46px 1fr 26px;align-items:center;gap:7px;font-size:13px;margin:4px 0}
 .stat span{font-family:"Jua",sans-serif;font-size:14px}
@@ -251,6 +254,7 @@ function newGame(cfg) {
     ga: 'none', lastConcert: -99, lastPromoEnd: 0, festival: null, awards: [],
     npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null,
   };
+  if (cfg.gender === 'girl') { lookOf(S.members[0]).art = 'draft1'; S.artTest = 1; }
   news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
   save(); TAB = 'plan'; render();
 }
@@ -846,6 +850,8 @@ function topSVG(kind, B, c, sub, acc, sk, sleeve, dotsFill) {
   return { torso: torso + det, sleeve: sl };
 }
 function charSVG(m, o) {
+  const A = m.look && DRAFTS[m.look.art];
+  if (A) { const H = 300, W = H * A.ratio; return `<image href="${A.body}" x="${100 - W / 2}" y="${284 - H}" width="${W}" height="${H}"/>`; }
   const L = lookOf(m), g = o.gender || (S ? S.gender : 'girl'), girl = g !== 'boy', B = BODY[girl ? 'girl' : 'boy'];
   const sk = L.skin, ss = shade(sk, -.1), O = OUTFITS[o.outfit] || OUTFITS.hoodie;
   let [c, sub, acc] = O.colors || [hsl2hex(m.hue || 0, 55, 66), O.sub || '#4b4b5e', '#ffffff'];
@@ -896,7 +902,13 @@ function charOpts(m, forceStage, outfit) {
   const b = m.busy && m.busy.type, stage = !!(outfit ? OUTFITS[outfit].type === 'stage' : forceStage || onStage());
   return { outfit: outfit || (stage ? stageOutfitNow() : lookOf(m).daily), stage, sick: b === 'sick', surgery: b === 'surgery', tired: (m.fatigue || 0) >= 70, shine: ((m.stats && m.stats.visual) || 0) >= 70 };
 }
+// cgy가 준 그림 초안 (시험)
+const DRAFTS = { draft1: { name: '초안 1 (긴 생머리)', body: 'art/draft1-body.png', face: 'art/draft1-face.png', ratio: 217 / 1024 } };
+const ART_IDS = [null, ...Object.keys(DRAFTS)];
 function avatar(m, size = 44, full, outfit) {
+  const A = m.look && DRAFTS[m.look.art];
+  if (A) { const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
+    return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.9) : size}px;--h:${m.hue || 0}"><img class="${full ? 'art-body' : 'art-face'}" src="${full ? A.body : A.face}" alt=""></span>`; }
   const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
   const vb = full ? '-4 14 208 272' : '44 30 112 112';
   return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.3) : size}px;--h:${m.hue || 0}"><svg viewBox="${vb}" width="100%" height="100%" aria-hidden="true">${charSVG(m, charOpts(m, false, outfit))}</svg></span>`;
@@ -960,7 +972,7 @@ ${star(160, 30, 18, '#ffd54a')}<text x="160" y="64" font-size="12" font-weight="
       `<rect width="320" height="180" fill="#fde6e6"/>${Array.from({ length: 14 }, (_, i) => `<path d="M${i * 30 - 40} 180L${i * 30 + 40} 0" stroke="#f8d4d4" stroke-width="8"/>`).join('')}
 <g transform="rotate(-3 160 90)"><rect x="80" y="18" width="160" height="140" rx="4" fill="#fff" stroke="#d9c3c3" stroke-width="2"/><rect x="92" y="30" width="70" height="20" fill="#d64545"/><text x="127" y="45" font-size="13" font-weight="900" fill="#fff" text-anchor="middle">속보</text>
 ${[60, 72, 84, 96, 108, 120, 132, 144].map((y, i) => `<rect x="92" y="${y}" width="${i % 2 ? 60 : 72}" height="5" rx="2" fill="#e8dada"/>`).join('')}<rect x="172" y="30" width="56" height="62" fill="#efe3e3" stroke="#d9c3c3"/>
-${m ? `<svg x="172" y="30" width="56" height="62" viewBox="50 40 100 110">${charSVG(m, charOpts(m))}</svg>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g>
+${m ? (m.look && DRAFTS[m.look.art] ? `<image href="${DRAFTS[m.look.art].face}" x="172" y="30" width="56" height="62" preserveAspectRatio="xMidYMin slice"/>` : `<svg x="172" y="30" width="56" height="62" viewBox="50 40 100 110">${charSVG(m, charOpts(m))}</svg>`) : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g>
 ${[[34, 40], [290, 50], [40, 140], [286, 140]].map(([x, y]) => `${star(x, y - 16, 14, '#fff')}<rect x="${x - 16}" y="${y}" width="32" height="22" rx="4" fill="#333"/><rect x="${x - 7}" y="${y - 5}" width="12" height="6" rx="2" fill="#333"/><circle cx="${x}" cy="${y + 11}" r="7" fill="#666" stroke="#222" stroke-width="2"/>`).join('')}`); }
     case 'live': { const m = ms[0]; return W(lg('bg', '#ffd1e6', '#ffeef6'),
       `<rect width="320" height="180" fill="url(#bg)"/><rect x="112" y="6" width="96" height="168" rx="16" fill="#2b2230"/><rect x="118" y="18" width="84" height="146" rx="6" fill="#fff0f7"/>
@@ -1152,6 +1164,7 @@ function memberDetail(id) {
 ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>꾸미기</h3>
+<div class="cust"><span>그림</span>${arrows('art', L.art && DRAFTS[L.art] ? DRAFTS[L.art].name : '기본 그림')}</div>
 <div class="cust"><span>헤어</span>${arrows('hair', HAIRS[L.hair][0])}</div>
 <div class="cust"><span>머리색</span>${sw('hc', HAIR_COLORS, L.hc)}</div>
 <div class="cust"><span>눈 모양</span>${arrows('eye', EYENAME[L.eye])}</div>
@@ -1163,7 +1176,8 @@ ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br
 function customize(spec) {
   const [id, f, v] = spec.split(':'), m = S.members.find(x => x.id === id); if (!m) return;
   const L = lookOf(m), cyc = (arr, cur) => arr[(arr.indexOf(cur) + +v + arr.length) % arr.length];
-  if (f === 'hair') L.hair = cyc(HAIR_IDS, L.hair);
+  if (f === 'art') L.art = cyc(ART_IDS, L.art || null);
+  else if (f === 'hair') L.hair = cyc(HAIR_IDS, L.hair);
   else if (f === 'eye') L.eye = cyc(EYES, L.eye);
   else if (f === 'daily') L.daily = cyc(DAILY, L.daily);
   else if (f === 'hc') L.hc = HAIR_COLORS[+v];
@@ -1260,6 +1274,7 @@ document.addEventListener('change', e => {
 });
 
 load();
+if (S && !S.artTest && S.gender === 'girl' && S.members[0]) { lookOf(S.members[0]).art = 'draft1'; S.artTest = 1; save(); }
 render();
 if (!S) fillNames();
 else if (S.pending.length && !S.over) nextPopup();
