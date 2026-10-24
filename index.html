@@ -1,0 +1,1071 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>아이돌 메이커</title>
+<meta name="theme-color" content="#e2558f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="아이돌 메이커">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#fbf6fa; --card:#ffffff; --line:#eadcea; --text:#2b2230; --sub:#7a6c80;
+  --accent:#e2558f; --accent2:#8a63d2; --soft:#fde9f2; --good:#2e9e6a; --bad:#d64545; --warn:#d98a1c;
+  --bar:#efe3ef;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1b161e; --card:#26202a; --line:#3a3040; --text:#f1e9f3; --sub:#a898ad;
+    --accent:#f06aa3; --accent2:#a685ea; --soft:#3a2632; --good:#4cc38a; --bad:#f06c6c; --warn:#f0a840; --bar:#3a3040; }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;line-height:1.45}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+#app{max-width:640px;margin:0 auto;padding:0 16px calc(150px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0 8px;border-bottom:1px solid var(--line)}
+.top{display:flex;align-items:center;gap:8px}
+.top b{font-size:18px}
+.top .date{color:var(--sub);font-size:13px;margin-left:auto}
+.icon-btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:4px 9px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.kpis div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:5px 8px;min-width:0}
+.kpis small{display:block;color:var(--sub);font-size:11px}
+.kpis b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.neg{color:var(--bad)}
+h2{font-size:16px;margin:18px 0 8px}
+h3{font-size:14px;margin:12px 0 6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.banner{background:var(--soft);border-radius:14px;padding:10px 12px;margin-top:12px;font-size:14px}
+.muted{color:var(--sub);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:14px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip input{display:none}
+.chip:has(input:checked){background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.mrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.mrow:first-child{border-top:0}
+.mrow .info{flex:1;min-width:0}
+.who{display:flex;align-items:center;gap:10px;flex:1;min-width:0;cursor:pointer;border-radius:10px}
+.who:hover .name{color:var(--accent)}
+.mhead{display:flex;align-items:center;gap:12px}
+.mrow .name{font-weight:600}
+.mrow select{max-width:48%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:6px 8px}
+.tag{display:inline-block;font-size:11px;border-radius:6px;padding:1px 6px;background:var(--soft);color:var(--accent);margin-left:4px;vertical-align:1px}
+.tag.blue{background:color-mix(in srgb,var(--accent2) 15%,transparent);color:var(--accent2)}
+.tag.red{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.fbar{height:5px;border-radius:3px;background:var(--bar);overflow:hidden;margin-top:4px;max-width:160px}
+.fbar i{display:block;height:100%;background:var(--warn)}
+.av{flex:none;border-radius:50%}
+.av.off{filter:grayscale(1);opacity:.6}
+.avbox{flex:none;display:inline-flex;justify-content:center;align-items:flex-start;border-radius:12px;overflow:hidden}
+.avbox img{height:120%;image-rendering:pixelated;margin-top:1px}
+.avbox.full{align-items:flex-end}.avbox.full img{height:92%;margin:0 0 4%}
+.avbox.off img{filter:grayscale(1);opacity:.6}
+.scene{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:12px;margin-bottom:12px}
+.stat{display:grid;grid-template-columns:52px 1fr 30px;align-items:center;gap:8px;font-size:13px;margin:3px 0}
+.stat .bar{height:8px;border-radius:4px;background:var(--bar);overflow:hidden}
+.stat .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.stat b{text-align:right;font-weight:600}
+.btn{border:0;border-radius:12px;padding:10px 14px;background:var(--accent);color:#fff;font-weight:600}
+.btn.sub{background:var(--card);color:var(--text);border:1px solid var(--line)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.go{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:6;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
+.go .btn{pointer-events:auto;width:100%;max-width:608px;padding:14px;font-size:16px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -3px 12px rgba(0,0,0,.08);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav div{display:flex;width:100%;max-width:640px}
+nav button{flex:1;border:0;background:none;padding:8px 0 9px;font-size:12px;color:var(--sub)}
+nav button span{display:block;font-size:19px;line-height:1.2}
+nav button.on{color:var(--accent);font-weight:700}
+.news{border-top:1px solid var(--line);padding:8px 0;font-size:14px}
+.news:first-child{border-top:0}
+.news small{color:var(--sub);display:block;font-size:11px}
+.news.scandal{color:var(--bad)}
+.news.win{color:var(--accent)}
+dialog{border:0;border-radius:18px;padding:0;width:min(560px,calc(100% - 32px));background:var(--card);color:var(--text);max-height:86vh}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.dlg{padding:18px;overflow:auto;max-height:86vh}
+.dlg h2{margin-top:0}
+.ctable{width:100%;border-collapse:collapse;font-size:14px}
+.ctable td{padding:4px 6px;border-top:1px solid var(--line)}
+.ctable tr.me td{color:var(--accent);font-weight:700}
+.money-list{font-size:14px}
+.money-list div{display:flex;justify-content:space-between;padding:2px 0}
+.choice{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;margin:6px 0}
+.choice b{display:block}
+.choice small{color:var(--sub)}
+label.f{display:block;margin:10px 0 4px;font-size:13px;color:var(--sub)}
+input[type=text],select.full{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 10px}
+.setup{padding-top:28px}
+.setup h1{font-size:24px;margin:0 0 4px}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.offer{display:flex;gap:10px;align-items:center}
+.offer .info{flex:1;min-width:0}
+.over{text-align:center;padding-top:60px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<script>
+// ===== 기본 도구 =====
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const ri = (a, b) => Math.floor(rand(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function wpick(arr, wf) { const ws = arr.map(wf); let r = Math.random() * ws.reduce((a, b) => a + b, 0); for (let i = 0; i < arr.length; i++) { r -= ws[i]; if (r <= 0) return arr[i]; } return arr[arr.length - 1]; }
+// 돈 단위: 만원
+function money(n) { n = Math.round(n); const s = n < 0 ? '-' : ''; n = Math.abs(n); if (n >= 10000) { const e = Math.floor(n / 10000), m = n % 10000; return s + e + '억' + (m ? ' ' + m.toLocaleString() + '만' : ''); } return s + n.toLocaleString() + '만'; }
+function moneyShort(n) { return Math.abs(n) >= 10000 ? (n / 10000).toFixed(1).replace('.0', '') + '억' : money(n); }
+function num(n) { n = Math.round(n); if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '만'; return n.toLocaleString(); }
+// 1년 = 12달 × 4주 = 48주
+const dateOf = w => ({ y: Math.floor(w / 48) + 1, m: Math.floor(w % 48 / 4) + 1, k: w % 4 + 1 });
+const dateStr = w => { const d = dateOf(w); return `${d.y}년차 ${d.m}월 ${d.k}주`; };
+
+// ===== 게임 데이터 =====
+const STATS = [['vocal', '보컬'], ['dance', '춤'], ['visual', '외모'], ['camera', '표현력'], ['act', '연기'], ['lang', '외국어'], ['person', '인성'], ['health', '건강']];
+const SL = Object.fromEntries(STATS);
+const SCHED = {
+  vocal: { label: '보컬 트레이닝', cost: 20, fat: 12, gain: { vocal: 5 } },
+  dance: { label: '춤 트레이닝', cost: 20, fat: 14, gain: { dance: 5, health: 1 } },
+  camera: { label: '카메라 마사지', cost: 15, fat: 8, gain: { camera: 5, visual: 1 } },
+  act: { label: '연기 레슨', cost: 20, fat: 9, gain: { act: 5, camera: 1 } },
+  lang: { label: '외국어 과외', cost: 15, fat: 7, gain: { lang: 5 } },
+  person: { label: '인성 교육', cost: 10, fat: 4, gain: { person: 5 } },
+  health: { label: '건강 관리', cost: 20, fat: -15, gain: { health: 7 } },
+  diet: { label: '다이어트', cost: 10, fat: 10, gain: { visual: 3, health: -5 } },
+  surgery: { label: '성형 (3주 회복)', cost: 1500, fat: 0, gain: {} },
+  rest: { label: '휴식', cost: 0, fat: -35, gain: { health: 2 } },
+};
+const BUSY = { drama: '드라마 촬영', adshoot: '광고 촬영', surgery: '성형 회복', pause: '활동 중단', sick: '건강 회복' };
+const CONCEPTS = [
+  { id: 'fresh', label: '청량', fav: ['dance', 'camera'] },
+  { id: 'crush', label: '걸크러시', boy: '카리스마', fav: ['dance', 'visual'] },
+  { id: 'cute', label: '큐트', fav: ['camera', 'visual'] },
+  { id: 'dream', label: '몽환', fav: ['vocal', 'visual'] },
+  { id: 'retro', label: '레트로', fav: ['vocal', 'camera'] },
+  { id: 'hiphop', label: '힙합', fav: ['dance', 'lang'] },
+  { id: 'ballad', label: '감성 발라드', fav: ['vocal', 'act'] },
+];
+const conceptLabel = c => S.gender === 'boy' && c.boy ? c.boy : c.label;
+const TIERS = [{ label: '기본', cost: 2000, bonus: 0 }, { label: '중급', cost: 5000, bonus: 4 }, { label: '고급', cost: 10000, bonus: 8 }];
+const VENDORS = {
+  costume: { label: '의상 업체', list: [{ id: 'c1', name: '동네 의상실', cost: 30, bonus: 2 }, { id: 'c2', name: '스타일랩', cost: 80, bonus: 5 }, { id: 'c3', name: '메종 루체', cost: 180, bonus: 9 }] },
+  makeup: { label: '메이크업 업체', list: [{ id: 'm1', name: '뷰티 스튜디오 봄', cost: 25, bonus: 2 }, { id: 'm2', name: '글로우 아틀리에', cost: 70, bonus: 5 }, { id: 'm3', name: '청담 레브', cost: 160, bonus: 9 }] },
+};
+const MIN_CONTRACT = 12;
+const GIRL = ['하린', '유나', '서아', '지우', '채원', '나은', '예린', '소이', '리아', '다인', '윤서', '시아', '하늘', '루나', '세라', '미유'];
+const BOY = ['도윤', '시우', '이안', '하준', '태오', '윤재', '건우', '레오', '주원', '한결', '우진', '서진', '카이', '로한', '지한', '은호'];
+const NPC = ['STELLAR', '루미너스', 'NOVA:X', '블루밍', 'ECLIPSE', '하이틴', 'ARCADIA', '미라클', 'VERTEX', '솔라리스', 'PRISM', 'DAWN'];
+const TITLES = ['Sparkle', '여름 끝에서', 'Butterfly Effect', 'Midnight Run', '고백', 'Neon Heart', 'Starlight', 'Blue Wave', '첫눈', 'Velvet', 'Rush', 'Daydream', '불꽃놀이', 'Gravity', '나의 별'];
+const BRANDS = ['화장품 「루미에」', '음료 「톡팡」', '치킨 「바삭왕」', '스마트폰 「노바폰」', '스포츠웨어 「런업」', '과자 「달콤칩」', '안경 「클리어뷰」', '게임 「드림퀘스트」'];
+const DRAMAS = ['〈봄날의 레시피〉', '〈비밀 계약 연애〉', '〈하이틴 크러시〉', '〈법정의 온도〉', '〈달빛 고등학교〉', '〈청춘 오피스〉', '〈마지막 여름〉'];
+const HEAD = {
+  '인성': ['학창 시절 학교폭력 의혹', '스태프 무시 논란', '팬 비하 발언 논란', '촬영장 지각·갑질 의혹', '과거 SNS 막말 재조명'],
+  '말실수': ['라이브 방송 중 말실수 논란', '라이브 방송 태도 논란'],
+  '실력': ['음방 라이브 음이탈 논란', '립싱크 의혹', '안무 실수 영상 확산', '"실력 부족" 비판 확산'],
+  '외모': ['과도한 성형 논란'],
+};
+const SEV = ['', '경미', '보통', '심각'];
+
+// ===== 저장 =====
+const KEY = 'idol-maker-save-v1';
+let S = null, TAB = 'plan', REP = null;
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
+function load() { try { const t = localStorage.getItem(KEY); if (t) S = JSON.parse(t); } catch (e) { S = null; } }
+
+// ===== 새 게임 =====
+function newMember(name, low = 15, high = 40) {
+  const st = {};
+  for (const [k] of STATS) st[k] = ri(low, high);
+  st.person = ri(30, 75); st.health = ri(55, 80);
+  return { id: uid(), name, hue: ri(0, 359), look: makeLook(S ? S.gender : SU.gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null };
+}
+function newGame(cfg) {
+  S = {
+    v: 1, name: cfg.name, gender: cfg.gender, week: 0, money: 50000, fans: 500, fame: 3,
+    trophies: 0, yearTrophies: 0, debutYear: null, members: cfg.names.map(n => newMember(n)),
+    contracts: { costume: null, makeup: null }, promo: null, albums: [], offers: [], news: [], pending: [],
+    ga: 'none', lastConcert: -99, lastPromoEnd: 0, festival: null, awards: [],
+    npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null,
+  };
+  news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
+  save(); TAB = 'plan'; render();
+}
+function news(type, text) { S.news.unshift({ w: S.week, type, text }); if (S.news.length > 200) S.news.length = 200; }
+const debuted = () => S.albums.length > 0 || (S.promo && S.promo.phase === 'on');
+
+// ===== 능력치 변화 =====
+function gain(m, k, base) {
+  let d = base;
+  if (base > 0) d = base * (1 - m.stats[k] / 130) * (m.fatigue > 70 ? 0.5 : 1) * rand(0.7, 1.3);
+  m.stats[k] = clamp(m.stats[k] + d, 0, 100);
+}
+const SCENE_ORDER = ['practice', 'live', 'prep', 'drama', 'stage', 'festival', 'concert', 'yearend', 'win'];
+function setScene(k) { if (REP && SCENE_ORDER.indexOf(k) > SCENE_ORDER.indexOf(REP.scene)) REP.scene = k; }
+const addFat = (m, v) => { m.fatigue = clamp(m.fatigue + v, 0, 100); };
+function earn(n, l) { n = Math.round(n); if (!n) return; S.money += n; REP && REP.inc.push([l, n]); }
+function spend(n, l) { n = Math.round(n); if (!n) return; S.money -= n; REP && REP.exp.push([l, n]); }
+function contractBonus() { let b = 0; for (const k in VENDORS) { const c = S.contracts[k]; if (c) b += VENDORS[k].list.find(v => v.id === c.id).bonus; } return b; }
+function contractCost() { let b = 0; for (const k in VENDORS) { const c = S.contracts[k]; if (c) b += VENDORS[k].list.find(v => v.id === c.id).cost; } return b; }
+const fixedCost = () => 300 + S.members.length * 60;
+const perfOf = m => m.stats.vocal * .3 + m.stats.dance * .3 + m.stats.camera * .2 + m.stats.visual * .2;
+
+function stageScore(active, concept, albumBonus) {
+  if (!active.length) return 1;
+  const perf = avg(active.map(perfOf));
+  const fav = concept ? avg(active.map(m => (m.stats[concept.fav[0]] + m.stats[concept.fav[1]]) / 2)) : perf;
+  const fat = avg(active.map(m => m.fatigue));
+  const missing = S.members.length - active.length;
+  return Math.max(1, perf * 0.8 + fav * 0.2 + contractBonus() + albumBonus + rand(-5, 5) - fat * 0.08 - missing * 3);
+}
+function chartList(stage, wk) {
+  const mom = [0, 4, 3, 1][Math.min(wk, 3)];
+  const me = stage + Math.log10(S.fans + 1) * 6 + S.fame * 0.3 + mom;
+  const growth = Math.min(S.week * 0.06, 20);
+  const rivals = shuffle(S.npc).slice(0, 6).map(n => ({ name: n.name, score: n.p + growth + rand(-8, 8) }));
+  return [...rivals, { name: S.name, score: me, me: true }].sort((a, b) => b.score - a.score);
+}
+
+// ===== 이번 주 그룹 일정 =====
+function concertWhy() {
+  if (S.promo) return '음악 방송 활동 중';
+  if (S.fans < 20000) return '팬 2만 명 필요';
+  if (S.money < 5000) return '비용 5,000만 필요';
+  if (S.week - S.lastConcert < 12) return `다음 콘서트까지 ${12 - (S.week - S.lastConcert)}주`;
+  return '';
+}
+function gaOptions() {
+  const o = [{ id: 'none', label: '없음', desc: '각자 개인 스케줄을 해요' },
+  { id: 'live', label: '📱 팬 소통 라이브', desc: '팬이 늘어요. 인성이 낮으면 말실수할 수 있어요' }];
+  if (!S.promo) {
+    const why = concertWhy();
+    o.push({ id: 'concert', label: '🎆 단독 콘서트', desc: why || '비용 5,000만 · 큰 수익과 팬 증가 · 모두 피로 +20', ok: !why });
+    if (S.festival && S.week <= S.festival.until) o.push({ id: 'festival', label: '🎪 ' + S.festival.name, desc: `출연료 ${money(S.festival.fee)} · 팬 증가 · 모두 피로 +20` });
+  }
+  return o;
+}
+function forcedLabel(m) {
+  if (m.busy) return `${BUSY[m.busy.type]} (${m.busy.left}주 남음)`;
+  if (S.ga === 'concert') return '단독 콘서트';
+  if (S.ga === 'festival') return '페스티벌';
+  if (S.promo) return S.promo.phase === 'prep' ? '컴백 준비 (녹음·안무)' : '음악 방송';
+  return '';
+}
+
+// ===== 한 주 진행 =====
+function endWeek() {
+  if (S.over || S.pending.length) return;
+  const w = S.week, d = dateOf(w);
+  REP = { title: dateStr(w) + ' 결과', lines: [], chart: null, inc: [], exp: [], deltas: [], scene: 'practice' };
+  const before = new Map(S.members.map(m => [m.id, { ...m.stats, fatigue: m.fatigue }]));
+  let ga = S.ga; if (!gaOptions().some(o => o.id === ga && o.ok !== false)) ga = 'none';
+  const P = S.promo;
+  const avail = S.members.filter(m => !m.busy);
+  let train = 0;
+
+  for (const m of S.members) {
+    if (m.ad) { m.ad.left--; if (m.ad.left <= 0) { news('info', `${m.name}의 광고 ${m.ad.brand} 계약이 끝났어요.`); m.ad = null; } }
+    if (m.busy) { tickBusy(m); continue; }
+    if (ga === 'concert' || ga === 'festival') { addFat(m, 20); gain(m, 'vocal', 1.5); gain(m, 'dance', 1.5); gain(m, 'camera', 1.5); }
+    else if (P && P.phase === 'prep') { addFat(m, 12); gain(m, 'vocal', 2.5); gain(m, 'dance', 2.5); }
+    else if (P && P.phase === 'on') { addFat(m, 15); gain(m, 'camera', 1.5); m.pop += (m.stats.visual + m.stats.camera) / 80; }
+    else { const s = SCHED[m.sched] || SCHED.rest; train += s.cost; doSched(m, s); }
+    if (ga === 'live') addFat(m, 4);
+  }
+  if (train) spend(train, '트레이닝·관리');
+  for (const m of S.members) {
+    if (m.fatigue > 80) m.stats.health = clamp(m.stats.health - 3, 0, 100);
+    if (!m.busy && (m.stats.health < 20 || m.fatigue >= 95) && Math.random() < 0.3) {
+      m.busy = { type: 'sick', left: 3 };
+      news('scandal', `${m.name}, 과로로 쓰러져 3주간 건강 회복에 들어가요.`);
+      REP.lines.push(`🚑 ${m.name} 과로로 쓰러짐 → 3주 쉬어요`);
+    }
+  }
+
+  // 음악 방송
+  if (P) {
+    if (P.phase === 'prep') {
+      P.left--;
+      REP.lines.push(`🎤 「${P.title}」 ${P.debut ? '데뷔' : '컴백'} 준비 중 (녹음·안무 연습)`); setScene('prep');
+      if (P.left <= 0) {
+        P.phase = 'on'; P.left = P.weeks; P.wk = 0;
+        if (P.debut) S.debutYear = dateOf(w + 1).y;
+        news('promo', `${P.debut ? '데뷔' : '컴백'} 확정! 다음 주부터 「${P.title}」 음악 방송 활동을 시작해요.`);
+      }
+    } else {
+      const concept = CONCEPTS.find(c => c.id === P.concept);
+      const st = stageScore(avail, concept, TIERS[P.tier].bonus);
+      const list = chartList(st, P.wk);
+      const rank = list.findIndex(x => x.me) + 1;
+      REP.chart = { list, rank, stage: st }; setScene(rank === 1 ? 'win' : 'stage');
+      const lang = avg(avail.map(m => m.stats.lang));
+      const bonus = [5000, 2500, 1500, 800, 400, 200, 100][rank - 1] || 0;
+      const f = Math.round((st * 12 * (1 + lang / 150) * (1 + S.fame / 60)) + bonus * (1 + S.fame / 100));
+      S.fans += f;
+      earn(S.fans * 0.025 + ([800, 500, 300, 200, 100][rank - 1] || 0), '음원·음반 수익');
+      S.fame = clamp(S.fame + (Math.max(0, 8 - rank) * 0.4 + st / 50) * (1 - S.fame / 105), 0, 100);
+      REP.lines.push(`📺 음악 방송 ${P.wk + 1}주차 · 무대 점수 ${Math.round(st)} · ${rank}위 · 팬 +${num(f)}`);
+      if (rank === 1) { S.trophies++; S.yearTrophies++; P.wins++; news('win', `🏆 「${P.title}」 음악 방송 1위!`); REP.lines.push('🏆 1위를 했어요!'); }
+      P.best = Math.min(P.best, rank); P.wk++; P.left--;
+      for (const m of avail) {
+        const a = (m.stats.vocal + m.stats.dance) / 2;
+        if (a < 40 && Math.random() < (40 - a) * 0.006) addScandal(m, '실력');
+      }
+      if (P.left <= 0) {
+        S.albums.push({ title: P.title, concept: P.concept, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut });
+        news('promo', `「${P.title}」 활동 마무리 · 최고 ${P.best}위${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
+        S.promo = null; S.lastPromoEnd = w;
+      }
+    }
+  }
+
+  // 그룹 일정
+  if (ga === 'live') {
+    const p = avg(S.members.map(m => m.stats.person)), lang = avg(S.members.map(m => m.stats.lang));
+    const f = Math.round((150 + Math.sqrt(S.fans) * 6) * (0.6 + p / 100) * (1 + lang / 200));
+    setScene('live'); S.fans += f; REP.lines.push(`📱 팬 소통 라이브 · 팬 +${num(f)}`);
+  } else if (ga === 'concert') {
+    spend(5000, '콘서트 준비 비용'); setScene('concert');
+    const sold = Math.round(Math.min(S.fans * 0.4, 3000 + S.fame * 300));
+    earn(sold * 1.2, '콘서트 티켓·굿즈');
+    const f = Math.round(sold * 0.1); S.fans += f; S.fame = clamp(S.fame + 3, 0, 100); S.lastConcert = w;
+    news('win', `🎆 단독 콘서트 성공! 관객 ${num(sold)}명`);
+    REP.lines.push(`🎆 단독 콘서트 · 관객 ${num(sold)}명 · 팬 +${num(f)}`);
+  } else if (ga === 'festival') {
+    const st = stageScore(avail, null, 0);
+    earn(S.festival.fee, S.festival.name + ' 출연료'); setScene('festival');
+    const f = Math.round(st * 30); S.fans += f; S.fame = clamp(S.fame + 1, 0, 100);
+    REP.lines.push(`🎪 ${S.festival.name} 무대 · 점수 ${Math.round(st)} · 팬 +${num(f)}`);
+    S.festival = null;
+  }
+
+  // 인성 논란
+  for (const m of S.members) {
+    if (m.busy && (m.busy.type === 'pause' || m.busy.type === 'sick')) continue;
+    const ps = m.stats.person;
+    let p = (ps < 45 ? (45 - ps) * 0.0015 : 0.002) * (1 + S.fame / 80);
+    if (ga === 'live' && ps < 40 && Math.random() < (40 - ps) * 0.004) { addScandal(m, '말실수'); continue; }
+    if (Math.random() < p) addScandal(m, '인성');
+  }
+
+  // 고정 지출·기본 수입
+  spend(fixedCost(), '숙소·직원 고정비');
+  for (const k in VENDORS) { const c = S.contracts[k]; if (c) { const v = VENDORS[k].list.find(x => x.id === c.id); spend(v.cost, v.name); } }
+  if (debuted()) earn(S.fans * 0.008, '굿즈·음원 기본 수익');
+  if (!S.promo) S.fame = Math.max(0, S.fame - 0.4);
+  if (!S.promo && debuted() && w - S.lastPromoEnd > 8) S.fans = Math.round(S.fans * 0.996);
+
+  if (d.m === 12 && d.k === 4) yearEnd(avail);
+
+  // 다음 주로
+  S.week++;
+  const nd = dateOf(S.week);
+  if (S.week % 48 === 0) S.yearTrophies = 0;
+  S.offers = S.offers.filter(o => o.expire > S.week);
+  makeOffers();
+  if (debuted() && nd.k === 1 && (nd.m === 5 || nd.m === 8) && S.fame >= 15) {
+    S.festival = { name: nd.m === 5 ? '대학 축제' : '여름 뮤직 페스티벌', until: S.week + 3, fee: Math.round(500 + S.fame * 30) };
+    news('offer', `${S.festival.name} 출연 제의가 왔어요! 이번 달 안에 그룹 일정에서 고를 수 있어요.`);
+  }
+  S.ga = 'none';
+  for (const m of S.members) {
+    const b = before.get(m.id); if (!b) continue;
+    const parts = [];
+    for (const [k, l] of STATS) { const dd = Math.round(m.stats[k]) - Math.round(b[k]); if (dd) parts.push(`${l} ${dd > 0 ? '+' : ''}${dd}`); }
+    const df = Math.round(m.fatigue) - Math.round(b.fatigue); if (df) parts.push(`피로 ${df > 0 ? '+' : ''}${df}`);
+    if (parts.length) REP.deltas.push([m, parts.join(', ')]);
+  }
+  if (S.money < -10000) S.over = '자금이 -1억 아래로 떨어져 회사가 파산했어요.';
+  else if (!S.members.length) S.over = '멤버가 모두 떠나 그룹이 해체됐어요.';
+  save(); render(); showReport(REP);
+}
+
+function doSched(m, s) {
+  if (s === SCHED.surgery) {
+    m.busy = { type: 'surgery', left: 3 }; m.sched = 'rest';
+    if (Math.random() < 0.12) {
+      m.stats.visual = clamp(m.stats.visual + 3, 0, 100); m.stats.health = clamp(m.stats.health - 10, 0, 100);
+      news('scandal', `${m.name}, 성형 부작용으로 회복이 길어지고 있어요.`);
+      REP.lines.push(`💉 ${m.name} 성형 부작용 (외모 조금만 오름, 건강 -10)`);
+    } else {
+      m.stats.visual = clamp(m.stats.visual + rand(10, 18) * (1 - m.stats.visual / 150), 0, 100);
+      REP.lines.push(`💉 ${m.name} 성형 → 3주 동안 회복해요`);
+    }
+    if (S.fame >= 20 && Math.random() < 0.15) addScandal(m, '외모');
+    return;
+  }
+  addFat(m, s.fat);
+  for (const k in s.gain) gain(m, k, s.gain[k]);
+  if (s === SCHED.diet && m.stats.health < 30 && Math.random() < 0.4) {
+    m.busy = { type: 'sick', left: 2 };
+    news('scandal', `${m.name}, 무리한 다이어트로 쓰러져 2주 쉬어요.`);
+    REP.lines.push(`🚑 ${m.name} 무리한 다이어트로 쓰러짐 → 2주 쉬어요`);
+  }
+}
+function tickBusy(m) {
+  const t = m.busy.type;
+  if (t === 'drama') { gain(m, 'act', 2.5); gain(m, 'camera', 1); addFat(m, 10); earn(m.drama.feeW, `${m.name} 드라마 출연료`); S.fame = clamp(S.fame + 0.3, 0, 100); }
+  else if (t === 'adshoot') { gain(m, 'camera', 1); addFat(m, 6); }
+  else if (t === 'surgery') addFat(m, -10);
+  else if (t === 'pause') { addFat(m, -25); gain(m, 'person', 1); }
+  else if (t === 'sick') { addFat(m, -30); gain(m, 'health', 6); }
+  m.busy.left--;
+  if (m.busy.left <= 0) {
+    if (t === 'drama') dramaEnd(m);
+    else if (t !== 'adshoot') news('info', `${m.name} 복귀! 다시 스케줄을 할 수 있어요.`);
+    m.busy = null;
+  }
+}
+function dramaEnd(m) {
+  const dr = m.drama; if (!dr) return;
+  const rating = clamp(m.stats.act * 0.15 + (dr.role === '주연' ? 3 : 0) + rand(-2, 4) + S.fame * 0.05, 1, 25);
+  const f = Math.round(rating * 300);
+  S.fans += f; m.pop += rating; S.fame = clamp(S.fame + rating * 0.2, 0, 100);
+  news('win', `${m.name} 출연 드라마 ${dr.title} 종영 · 시청률 ${rating.toFixed(1)}% · 팬 +${num(f)}`);
+  setScene('drama'); REP.lines.push(`🎬 ${m.name} 드라마 ${dr.title} 종영 · 시청률 ${rating.toFixed(1)}%`);
+  m.drama = null;
+}
+function yearEnd(avail) {
+  const y = dateOf(S.week).y;
+  if (!debuted()) { news('info', '올해 연말 무대는 데뷔 전이라 서지 못했어요.'); return; }
+  if (S.fame < 25) { news('info', '연말 무대에 초대받지 못했어요. (인지도 25 이상 필요)'); REP.lines.push('🎄 연말 무대 초대 X (인지도 25 필요)'); return; }
+  const st = stageScore(avail, null, 0);
+  let f = Math.round(st * 40 * (1 + S.fame / 100));
+  earn(1500, '연말 무대 출연료'); setScene('yearend');
+  avail.forEach(m => addFat(m, 15));
+  let award = null;
+  if (S.fame >= 80 && S.yearTrophies >= 3) award = '대상';
+  else if (S.fame >= 55) award = '본상';
+  else if (S.debutYear === y && S.fame >= 35) award = '신인상';
+  if (award) { setScene('win'); f = Math.round(f * 1.5); S.fame = clamp(S.fame + 5, 0, 100); S.awards.push({ y, award }); news('win', `🏅 ${y}년차 연말 시상식 ${award} 수상!`); }
+  S.fans += f;
+  news('win', `🎄 연말 무대 출연 · 팬 +${num(f)}`);
+  REP.lines.push(`🎄 연말 무대 · 점수 ${Math.round(st)}${award ? ` · 🏅 ${award} 수상!` : ''} · 팬 +${num(f)}`);
+}
+
+// ===== 제의 (광고·드라마) =====
+function makeOffers() {
+  if (!debuted()) return;
+  if (Math.random() < 0.04 + S.fame / 250) {
+    const c = S.members.filter(m => !m.ad && !(m.busy && m.busy.type === 'pause') && !S.offers.some(o => o.mid === m.id));
+    if (c.length) {
+      const m = wpick(c, m => 5 + m.stats.visual + m.pop);
+      const fee = Math.round((600 + S.fame * 50 + m.stats.visual * 8 + m.pop * 5) / 10) * 10;
+      S.offers.push({ id: uid(), type: 'ad', mid: m.id, brand: pick(BRANDS), fee, expire: S.week + 2 });
+      news('offer', `${m.name}에게 광고 제의가 왔어요!`);
+    }
+  }
+  if (Math.random() < 0.03 + S.fame / 300) {
+    const c = S.members.filter(m => !m.drama && !(m.busy && m.busy.type === 'pause') && !S.offers.some(o => o.mid === m.id));
+    if (c.length) {
+      const m = wpick(c, m => 5 + m.stats.act * 1.5 + m.pop);
+      const lead = m.stats.act >= 60 && S.fame >= 40;
+      S.offers.push({ id: uid(), type: 'drama', mid: m.id, title: pick(DRAMAS), role: lead ? '주연' : '조연', weeks: 8, feeW: Math.round((150 + S.fame * 5) * (lead ? 2 : 1)), expire: S.week + 2 });
+      news('offer', `${m.name}에게 드라마 ${lead ? '주연' : '조연'} 제의가 왔어요!`);
+    }
+  }
+}
+function acceptOffer(id) {
+  const o = S.offers.find(x => x.id === id); if (!o) return;
+  const m = S.members.find(x => x.id === o.mid);
+  if (!m) { S.offers = S.offers.filter(x => x !== o); render(); return; }
+  if (m.busy) { alert(`${m.name}은(는) 지금 ${BUSY[m.busy.type]} 중이라 받을 수 없어요.`); return; }
+  if (o.type === 'ad') {
+    m.ad = { brand: o.brand, fee: o.fee, left: 24 }; m.busy = { type: 'adshoot', left: 1 };
+    S.money += o.fee; m.pop += 3;
+    news('win', `${m.name}, ${o.brand} 광고 모델 계약! 계약금 ${money(o.fee)}`);
+  } else {
+    m.drama = { title: o.title, role: o.role, feeW: o.feeW }; m.busy = { type: 'drama', left: o.weeks };
+    news('win', `${m.name}, 드라마 ${o.title} ${o.role} 캐스팅!`);
+  }
+  S.offers = S.offers.filter(x => x !== o); save(); render();
+}
+function declineOffer(id) { S.offers = S.offers.filter(x => x.id !== id); save(); render(); }
+
+// ===== 논란 =====
+function addScandal(m, kind) {
+  if (S.pending.some(p => p.mid === m.id)) return;
+  const ps = m.stats.person, r = Math.random();
+  let sev;
+  if (kind === '실력') { const a = (m.stats.vocal + m.stats.dance) / 2; sev = a < 25 ? (r < .5 ? 2 : 3) : (r < .6 ? 1 : 2); }
+  else if (kind === '외모' || kind === '말실수') sev = r < .7 ? 1 : 2;
+  else sev = ps < 30 ? (r < .3 ? 1 : r < .7 ? 2 : 3) : ps < 60 ? (r < .55 ? 1 : r < .9 ? 2 : 3) : (r < .75 ? 1 : r < .97 ? 2 : 3);
+  const truth = kind === '인성' ? Math.random() < clamp(0.15 + (60 - ps) / 80, 0.1, 0.9) : kind === '실력' ? Math.random() < 0.85 : true;
+  const head = pick(HEAD[kind]);
+  S.pending.push({ mid: m.id, name: m.name, kind, sev, truth, head });
+  news('scandal', `[논란] ${S.name} ${m.name}, ${head}`);
+}
+function resolveScandal(choice) {
+  const sc = S.pending[0]; if (!sc) return;
+  const m = S.members.find(x => x.id === sc.mid);
+  const out = [];
+  if (!m) { S.pending.shift(); save(); nextPopup(); return; }
+  let sev = sc.sev, fall = false;
+  if (choice === 'deny') {
+    if (!sc.truth) { S.fans = Math.round(S.fans * 1.005); out.push('해명이 받아들여졌어요. 오해가 풀리면서 오히려 응원이 늘었어요.'); }
+    else if (Math.random() < 0.3) { S.fans = Math.round(S.fans * 0.99); out.push('해명 뒤 논란이 잠잠해졌어요. 다행히 더 퍼지지 않았어요.'); }
+    else {
+      sev = Math.min(3, sev + 1); fall = true;
+      S.fans = Math.round(S.fans * (1 - 0.05 * sev)); S.fame = Math.max(0, S.fame - sev * 3); m.pop = Math.max(0, m.pop - sev * 3);
+      out.push(`거짓 해명이 들통나 논란이 더 커졌어요! (심각도: ${SEV[sev]})`);
+      news('scandal', `[2차 논란] ${m.name}, 해명이 거짓으로 드러나 비판 커져`);
+    }
+  } else if (choice === 'apologize') {
+    fall = true;
+    S.fans = Math.round(S.fans * (1 - 0.02 * sev)); S.fame = Math.max(0, S.fame - sev * 2); m.pop = Math.max(0, m.pop - sev * 2);
+    if (sc.truth) m.stats.person = clamp(m.stats.person + 4, 0, 100);
+    out.push('사과문을 올렸어요. 팬 일부가 떠났지만 진심이 전해지길 기다려요.');
+  } else if (choice === 'pause') {
+    fall = true;
+    S.fans = Math.round(S.fans * (1 - 0.012 * sev)); S.fame = Math.max(0, S.fame - sev);
+  } else if (choice === 'leave') fall = true;
+
+  if (fall) {
+    if (m.ad && (sev >= 2 || choice === 'leave')) {
+      const pen = m.ad.fee * 2; S.money -= pen;
+      out.push(`💸 광고 ${m.ad.brand} 계약 해지 → 위약금 ${money(pen)} 발생`);
+      news('scandal', `${m.ad.brand}, ${m.name} 광고 계약 해지 · 위약금 ${money(pen)}`);
+      m.ad = null;
+    }
+    if (m.drama && (sev >= 3 || choice === 'pause' || choice === 'leave')) {
+      out.push(`🎬 드라마 ${m.drama.title}에서 하차했어요.`);
+      news('scandal', `${m.name}, 드라마 ${m.drama.title} 하차`);
+      m.drama = null; if (m.busy && m.busy.type === 'drama') m.busy = null; S.fame = Math.max(0, S.fame - 2);
+    }
+  }
+  if (choice === 'pause') {
+    const wk = 3 + sev * 2; m.busy = { type: 'pause', left: wk };
+    out.push(`${m.name} 멤버는 ${wk}주 동안 활동을 중단해요.`);
+    news('scandal', `${m.name}, ${wk}주간 활동 중단`);
+  }
+  if (choice === 'leave') {
+    S.members = S.members.filter(x => x !== m);
+    S.fans = Math.round(S.fans * 0.96);
+    S.offers = S.offers.filter(o => o.mid !== m.id);
+    S.pending = S.pending.filter(p => p === sc || p.mid !== m.id);
+    out.push(`${m.name} 멤버가 그룹을 탈퇴했어요. 이제 ${S.members.length}인조예요.`);
+    news('scandal', `${m.name}, ${S.name} 탈퇴 · ${S.members.length}인조로 재편`);
+  }
+  S.pending.shift();
+  if (!S.members.length) S.over = '멤버가 모두 떠나 그룹이 해체됐어요.';
+  save(); render();
+  $('#dlgBody').innerHTML = `<h2>대처 결과</h2>${out.map(t => `<p>${esc(t)}</p>`).join('')}<button class="btn" data-act="next-popup" style="width:100%">확인</button>`;
+}
+
+// ===== 컴백·계약·영입 =====
+function startComeback() {
+  const concept = $('#cbConcept').value, title = $('#cbTitle').value.trim() || pick(TITLES);
+  const weeks = +document.querySelector('[name=cbWeeks]:checked').value, tier = +document.querySelector('[name=cbTier]:checked').value;
+  if (S.promo) return;
+  if (S.money < TIERS[tier].cost && !confirm('자금이 모자라요. 빚을 내서라도 진행할까요?')) return;
+  S.money -= TIERS[tier].cost;
+  const debut = S.albums.length === 0;
+  S.promo = { phase: 'prep', left: 2, concept, title, weeks, tier, best: 99, wins: 0, wk: 0, debut };
+  if (S.ga === 'concert' || S.ga === 'festival') S.ga = 'none';
+  news('promo', `「${title}」 ${debut ? '데뷔' : '컴백'} 준비 시작! (${conceptLabel(CONCEPTS.find(c => c.id === concept))} 콘셉트 · 활동 ${weeks}주)`);
+  save(); TAB = 'plan'; render();
+}
+function signVendor(kind, id) {
+  const cur = S.contracts[kind];
+  if (cur) { if (!terminate(kind, true)) return; }
+  S.contracts[kind] = { id, since: S.week };
+  news('info', `${VENDORS[kind].list.find(v => v.id === id).name}와(과) 계약했어요.`);
+  save(); render();
+}
+function penaltyOf(kind) {
+  const c = S.contracts[kind]; if (!c) return 0;
+  const v = VENDORS[kind].list.find(x => x.id === c.id);
+  return v.cost * Math.max(0, MIN_CONTRACT - (S.week - c.since));
+}
+function terminate(kind, silent) {
+  const c = S.contracts[kind]; if (!c) return true;
+  const v = VENDORS[kind].list.find(x => x.id === c.id), pen = penaltyOf(kind);
+  if (pen && !confirm(`${v.name} 계약을 지금 끝내면 위약금 ${money(pen)}을 내야 해요. 해지할까요?`)) return false;
+  S.money -= pen; S.contracts[kind] = null;
+  news('info', `${v.name} 계약 해지${pen ? ` (위약금 ${money(pen)})` : ''}`);
+  if (!silent) { save(); render(); }
+  return true;
+}
+function recruit() {
+  if (S.members.length >= 7) return;
+  if (S.money < 2000 && !confirm('자금이 모자라요. 그래도 영입할까요?')) return;
+  const pool = (S.gender === 'girl' ? GIRL : BOY).filter(n => !S.members.some(m => m.name === n));
+  const m = newMember(pick(pool.length ? pool : ['새멤버']), 15, 35);
+  S.members.push(m); S.money -= 2000;
+  news('info', `새 멤버 ${m.name} 합류! 이제 ${S.members.length}인조예요.`);
+  save(); render();
+}
+
+// ===== 화면 =====
+// ===== 도트 그림 (코드로 그린 픽셀 일러스트) =====
+const HAIR_N = ['#2a1f24', '#3d2a22', '#5b3b28'], HAIR_D = ['#d9b27a', '#e48fb0', '#9c86d6', '#6fa6d6', '#c2483f', '#d8d8e4', '#7a5a9a'];
+const SKIN = ['#fae1cf', '#f5d2b8', '#ecc19f', '#dcaa86'];
+const GH = ['long', 'bob', 'pony', 'twin', 'wavy'], BH = ['short', 'comma', 'part', 'block', 'curly'];
+const STAGE = { fresh: ['#6cc8e6', '#ffffff'], crush: ['#2a2a33', '#e0384f'], cute: ['#f59ac0', '#fff3a8'], dream: ['#ab95e6', '#f2ecff'], retro: ['#f0a04b', '#2f8f8a'], hiphop: ['#3b3b45', '#f2d24b'], ballad: ['#f3ead9', '#c9a46f'] };
+const OUT = '#3a2633';
+function makeLook(g) { return { hair: pick(g === 'boy' ? BH : GH), hc: Math.random() < .55 ? pick(HAIR_N) : pick(HAIR_D), skin: pick(SKIN), eye: pick(['round', 'smile', 'cat']) }; }
+function lookOf(m) { if (!m.look) m.look = makeLook(S ? S.gender : 'girl'); return m.look; }
+function shade(hex, a) { const n = parseInt(hex.slice(1), 16); const f = c => Math.round(clamp(a < 0 ? c * (1 + a) : c + (255 - c) * a, 0, 255)); return '#' + [n >> 16, n >> 8 & 255, n & 255].map(c => f(c).toString(16).padStart(2, '0')).join(''); }
+function hsl2hex(h, s, l) { s /= 100; l /= 100; const a = s * Math.min(l, 1 - l), k = n => (n + h / 30) % 12; const f = n => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))); return '#' + [f(0), f(8), f(4)].map(v => v.toString(16).padStart(2, '0')).join(''); }
+
+// 픽셀 도화지
+function PX(w, h) { this.w = w; this.h = h; this.d = new Array(w * h).fill(null); }
+PX.prototype.set = function (x, y, c) { x = Math.floor(x); y = Math.floor(y); if (c && x >= 0 && y >= 0 && x < this.w && y < this.h) this.d[y * this.w + x] = c; };
+PX.prototype.get = function (x, y) { return x >= 0 && y >= 0 && x < this.w && y < this.h ? this.d[y * this.w + x] : null; };
+PX.prototype.ell = function (cx, cy, rx, ry, f) { for (let y = Math.floor(cy - ry); y <= cy + ry; y++) for (let x = Math.floor(cx - rx); x <= cx + rx; x++) { const dx = (x + .5 - cx) / rx, dy = (y + .5 - cy) / ry; if (dx * dx + dy * dy <= 1) this.set(x, y, typeof f === 'function' ? f(x, y, dx, dy) : f); } };
+PX.prototype.rect = function (x, y, w, h, c) { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) this.set(i, j, typeof c === 'function' ? c(i, j) : c); };
+PX.prototype.poly = function (pts, c) {
+  const ys = pts.map(p => p[1]), xs = pts.map(p => p[0]);
+  for (let y = Math.floor(Math.min(...ys)); y <= Math.max(...ys); y++) for (let x = Math.floor(Math.min(...xs)); x <= Math.max(...xs); x++) {
+    const px = x + .5, py = y + .5; let ins = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) ins = !ins; }
+    if (ins) this.set(x, y, typeof c === 'function' ? c(x, y) : c);
+  }
+};
+PX.prototype.outline = function (c) { const add = []; for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) if (!this.get(x, y) && (this.get(x - 1, y) || this.get(x + 1, y) || this.get(x, y - 1) || this.get(x, y + 1))) add.push([x, y]); add.forEach(([x, y]) => this.set(x, y, c)); return this; };
+PX.prototype.blit = function (o, ox, oy) { for (let y = 0; y < o.h; y++) for (let x = 0; x < o.w; x++) { const c = o.d[y * o.w + x]; if (c) this.set(ox + x, oy + y, c); } };
+PX.prototype.pat = function (rows, ox, oy, c) { rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== '.') this.set(ox + i, oy + j, c); })); };
+PX.prototype.url = function () { const cv = document.createElement('canvas'); cv.width = this.w; cv.height = this.h; const g = cv.getContext('2d'); for (let y = 0; y < this.h; y++) for (let x = 0; x < this.w; x++) { const c = this.d[y * this.w + x]; if (c) { g.fillStyle = c; g.fillRect(x, y, 1, 1); } } return cv.toDataURL(); };
+const HEART = ['.xx.xx.', 'xxxxxxx', 'xxxxxxx', '.xxxxx.', '..xxx..', '...x...'];
+const STAR = ['...x...', '...x...', '..xxx..', 'xxxxxxx', '.xxxxx.', '.xx.xx.', 'x.....x'];
+const TWINK = ['.x.', 'xxx', '.x.'];
+const FONT = { O: ['xxx', 'x.x', 'x.x', 'x.x', 'xxx'], N: ['x.x', 'xxx', 'xxx', 'x.x', 'x.x'], A: ['.x.', 'x.x', 'xxx', 'x.x', 'x.x'], I: ['xxx', '.x.', '.x.', '.x.', 'xxx'], R: ['xx.', 'x.x', 'xx.', 'x.x', 'x.x'], L: ['x..', 'x..', 'x..', 'x..', 'xxx'], V: ['x.x', 'x.x', 'x.x', 'x.x', '.x.'], E: ['xxx', 'x..', 'xx.', 'x..', 'xxx'] };
+PX.prototype.text = function (str, x, y, c) { for (const ch of str) { if (FONT[ch]) this.pat(FONT[ch], x, y, c); x += ch === ' ' ? 2 : 4; } };
+
+// 멤버 옷
+function onStage() { return S && ((S.promo && S.promo.phase === 'on') || S.ga === 'concert' || S.ga === 'festival'); }
+function outfitOf(m, forceStage) {
+  if (forceStage || onStage()) {
+    const c = (S && S.promo && S.promo.concept) || (S && S.albums && S.albums.length && S.albums[S.albums.length - 1].concept) || 'fresh';
+    const [a, b] = STAGE[c]; return { stage: true, top: a, bottom: shade(a, -.35), accent: b };
+  }
+  return { stage: false, top: hsl2hex(m.hue, 55, 64), bottom: '#4b4b5e', accent: '#ffffff' };
+}
+// 2등신 캐릭터 32×40
+function drawChar(L, o) {
+  const p = new PX(32, 40), girl = GH.includes(L.hair), st = L.hair;
+  const hc = L.hc, hs = shade(hc, -.3), hl = shade(hc, .4), sk = L.skin, ss = shade(sk, -.13);
+  const sideHair = x => x > 21 ? hs : hc;
+  // 뒷머리
+  if (st === 'long') { p.rect(6, 12, 20, 19, sideHair); p.ell(16, 30.5, 10, 2.5, hs); }
+  if (st === 'wavy') { p.rect(6, 12, 20, 18, sideHair); [[8, 30], [12.5, 31], [16, 31], [19.5, 31], [24, 30]].forEach(([x, y]) => p.ell(x, y, 2.6, 2.6, hs)); }
+  if (st === 'bob') { p.rect(6, 12, 20, 10, sideHair); p.ell(16, 22, 10, 1.8, hs); }
+  if (st === 'pony') { p.ell(27, 18, 3.4, 8.5, (x, y) => y > 20 ? hs : hc); p.rect(24, 9, 2, 2, '#ff7aa8'); }
+  if (st === 'twin') { p.ell(4.6, 20, 3, 8.5, (x, y) => y > 21 ? hs : hc); p.ell(27.4, 20, 3, 8.5, (x, y) => y > 21 ? hs : hc); p.rect(6, 12, 2, 2, '#ff7aa8'); p.rect(24, 12, 2, 2, '#ff7aa8'); }
+  // 몸
+  const top = o.top, ts = shade(top, -.2), bot = o.bottom, acc = o.accent;
+  if (girl) { p.rect(12, 33, 3, 4, sk); p.rect(17, 33, 3, 4, ss); } else { p.rect(12, 32, 3, 5, bot); p.rect(17, 32, 3, 5, shade(bot, -.15)); }
+  p.rect(11, 37, 4, 2, '#4a3540'); p.rect(17, 37, 4, 2, '#4a3540');
+  p.rect(11, 25, 10, 7, x => x >= 19 ? ts : top);
+  p.rect(9, 26, 2, 5, top); p.rect(21, 26, 2, 5, ts);
+  p.rect(9, 31, 2, 1, sk); p.rect(21, 31, 2, 1, ss);
+  if (girl) p.poly([[10.5, 31], [21.5, 31], [23, 35], [9, 35]], x => x >= 20 ? shade(bot, -.15) : bot);
+  else p.rect(11, 31, 10, 2, bot);
+  if (o.stage) { p.rect(15, 25, 2, 2, sk); p.rect(11, 30, 10, 1, acc); p.set(13, 27, acc); p.set(18, 28, acc); p.set(10, 27, acc); p.set(21, 27, acc); }
+  else { p.set(14, 25, acc); p.set(17, 25, acc); p.rect(14, 28, 4, 1, shade(top, .3)); if (!girl) { p.set(13, 33, acc); p.set(18, 33, acc); } }
+  // 얼굴
+  p.ell(16, 14.5, 10, 9.5, (x, y, dx, dy) => (dx > .6 && dy > -.3) || dy > .82 ? ss : sk);
+  p.set(5, 15, sk); p.set(5, 16, ss); p.set(26, 15, sk); p.set(26, 16, ss);
+  // 앞머리
+  const bang = x => 11 + (x % 3 === 0 ? 1 : 0), swept = x => Math.round(9 + (x - 8) * 0.3);
+  const F = {
+    long: x => x < 9 || x > 22 ? 22 : bang(x), bob: x => x < 9 || x > 22 ? 20 : bang(x), twin: x => x < 9 || x > 22 ? 17 : bang(x),
+    wavy: x => x < 9 || x > 22 ? 22 : swept(x), pony: x => x < 9 || x > 22 ? 16 : swept(x),
+    short: x => x < 8 || x > 23 ? 14 : 10 + (x % 3 === 1 ? 1 : 0),
+    comma: x => x < 8 || x > 23 ? 14 : x < 15 ? 12 - Math.floor((x - 8) / 3) : 9,
+    part: x => x < 8 || x > 23 ? 14 : Math.round(7.5 + Math.abs(x - 15.5) * 0.4),
+    block: x => x < 8 || x > 23 ? 13 : 10,
+    curly: x => x < 8 || x > 23 ? 14 : 10 + (x % 2),
+  }[st];
+  p.ell(16, 13.5, 11, 10.2, (x, y) => y < F(x) ? (y >= F(x) - 1 ? hs : hc) : null);
+  if (st === 'curly') [[7, 8], [10, 5], [14, 3.8], [18, 3.8], [22, 5], [25, 8]].forEach(([x, y]) => p.ell(x, y, 2.6, 2.6, hc));
+  [[10, 6], [11, 6], [12, 5], [13, 5], [21, 7]].forEach(([x, y]) => { if (p.get(x, y) === hc) p.set(x, y, hl); });
+  // 눈·볼·입
+  const ink = '#2b2230', iris = '#5a4580';
+  if (L.eye === 'round') { for (const ex of [11, 19]) { p.rect(ex, 15, 2, 3, ink); p.set(ex + 1, 17, iris); p.set(ex, 15, '#fff'); } if (girl) { p.set(10, 15, ink); p.set(21, 15, ink); } }
+  else if (L.eye === 'smile') [[10, 17], [11, 16], [12, 16], [13, 17], [18, 17], [19, 16], [20, 16], [21, 17]].forEach(([x, y]) => p.set(x, y, ink));
+  else { [[10, 16], [11, 15], [12, 15], [13, 15], [11, 16], [18, 15], [19, 15], [20, 15], [21, 16], [20, 16]].forEach(([x, y]) => p.set(x, y, ink)); p.set(12, 16, iris); p.set(19, 16, iris); if (girl) { p.set(10, 15, ink); p.set(21, 15, ink); } }
+  ['#ffa3b5'].forEach(c => { p.rect(9, 18, 2, 1, c); p.rect(21, 18, 2, 1, c); });
+  p.rect(15, 20, 2, 1, girl ? '#d9506a' : '#a8404f');
+  // 상태
+  if (o.sick) { p.rect(11, 18, 10, 4, '#eef7ff'); p.rect(11, 21, 10, 1, '#cfe6f5'); }
+  if (o.surgery) { p.rect(14, 18, 4, 1, '#fff2e0'); p.set(15, 17, '#fff2e0'); p.set(16, 17, '#fff2e0'); }
+  p.outline(OUT);
+  if (o.tired) { p.set(27, 7, '#bfe6fa'); p.set(27, 8, '#7fc8f0'); p.set(27, 9, '#7fc8f0'); p.set(28, 9, '#7fc8f0'); }
+  if (o.shine) p.pat(TWINK, 28, 1, '#ffd54a');
+  return p;
+}
+function charOpts(m, forceStage) {
+  const o = outfitOf(m, forceStage), b = m.busy && m.busy.type;
+  o.sick = b === 'sick'; o.surgery = b === 'surgery'; o.tired = m.fatigue >= 70; o.shine = m.stats.visual >= 70;
+  return o;
+}
+const SPR = new Map();
+function spriteURL(m, forceStage) {
+  const L = lookOf(m), o = charOpts(m, forceStage), key = JSON.stringify([L, o]);
+  if (!SPR.has(key)) { if (SPR.size > 300) SPR.clear(); SPR.set(key, drawChar(L, o).url()); }
+  return SPR.get(key);
+}
+function avatar(m, size = 44, full) {
+  const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
+  return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? size * 1.25 : size}px;background:hsl(${m.hue} 70% 90%)"><img src="${spriteURL(m)}" alt=""></span>`;
+}
+
+// 장면 160×60
+const BAYER = [[0, .5], [.75, .25]];
+function scene(kind, members) {
+  const W = 160, H = 60, p = new PX(W, H), ms = members || (S ? S.members : []);
+  const grad = (y0, y1, cs) => { for (let y = y0; y < y1; y++) for (let x = 0; x < W; x++) { const t = (y - y0) / (y1 - y0) * (cs.length - 1) + BAYER[y % 2][x % 2] - .375; p.set(x, y, cs[clamp(Math.round(t), 0, cs.length - 1)]); } };
+  const dith = (x, y) => (x + y) % 2 === 0;
+  const crew = (baseY, x0 = 12, x1 = 148, stage) => {
+    const n = ms.length; if (!n) return;
+    const sp = Math.min(27, (x1 - x0) / Math.max(1, n)), start = (x0 + x1) / 2 - sp * (n - 1) / 2;
+    ms.forEach((m, i) => p.blit(drawChar(lookOf(m), charOpts(m, stage)), Math.round(start + i * sp - 16), baseY - 40));
+  };
+  const obj = (w, h, fn, x, y) => { const o = new PX(w, h); fn(o); o.outline(OUT); p.blit(o, x, y); };
+  const conf = ['#f06aa3', '#ffd54a', '#6cc8e6', '#ab95e6', '#7ad1a8'];
+  switch (kind) {
+    case 'stage': {
+      grad(0, 46, ['#1d1236', '#2b1d4a', '#3d2766']);
+      [[30, 10, 50], [80, 50, 110], [130, 110, 150]].forEach(([sx, a, b]) => { p.poly([[sx - 2, 0], [sx + 2, 0], [b, 46], [a, 46]], (x, y) => dith(x, y) ? '#5d4a96' : null); p.rect(sx - 2, 0, 5, 2, '#ffe08a'); });
+      p.rect(0, 46, W, 14, '#4a2f73'); p.rect(0, 46, W, 1, S && S.promo ? STAGE[S.promo.concept][0] : '#f06aa3');
+      for (let x = 0; x < W; x += 12) p.rect(x, 47, 1, 13, '#3d2766');
+      crew(54, 12, 148, true);
+      p.rect(4, 4, 27, 9, '#e23b5a'); p.text('ON AIR', 7, 6, '#fff');
+      break;
+    }
+    case 'win': {
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const a = Math.atan2(y - 26, x - 34) + Math.PI; p.set(x, y, Math.floor(a / (Math.PI / 8)) % 2 ? '#ffe7a8' : '#fff4d8'); }
+      obj(30, 36, o => {
+        const g = '#f2b632', gs = '#d99a1c';
+        o.rect(5, 4, 3, 8, g); o.rect(22, 4, 3, 8, g); o.rect(8, 2, 14, 10, x => x > 18 ? gs : g); o.ell(15, 12, 7, 7, (x, y) => y >= 12 ? (x > 18 ? gs : g) : null);
+        o.rect(13, 18, 4, 6, gs); o.rect(8, 24, 14, 5, gs); o.rect(10, 3, 2, 9, '#ffe08a');
+        o.pat(['xx', '.x', '.x', '.x', 'xxx'], 14, 5, '#fff');
+      }, 19, 8);
+      for (let i = 0; i < 40; i++) p.rect((i * 37) % W, (i * 23) % H, 2, 1, conf[i % 5]);
+      p.pat(TWINK, 12, 8, '#fff'); p.pat(TWINK, 52, 12, '#fff');
+      crew(60, 62, 156, true);
+      break;
+    }
+    case 'concert': {
+      grad(0, 60, ['#0e0920', '#1c1433', '#2a1c4a']);
+      p.ell(80, 20, 70, 18, (x, y) => dith(x, y) ? '#3b2a6a' : null);
+      p.rect(10, 36, 140, 3, '#5a3a86'); p.rect(10, 39, 140, 2, '#2a1c4a');
+      crew(37, 30, 130, true);
+      for (let i = 0; i < 20; i++) {
+        const x = 3 + i * 8, y = 52 + (i % 2) * 3, c = conf[i % 3];
+        p.rect(x + 2, y - 8, 1, 6, '#bbbbbb'); p.rect(x + 1, y - 10, 3, 3, c); p.ell(x + 2, y + 3, 4, 4, '#07040f');
+      }
+      break;
+    }
+    case 'festival': {
+      grad(0, 44, ['#7cc8f5', '#a6dcfa', '#d4effd']);
+      p.ell(142, 10, 6, 6, '#ffd54a'); p.ell(142, 10, 8, 8, (x, y) => dith(x, y) && !p.get(x, y) ? '#ffe9a0' : null);
+      [[30, 8], [44, 6], [110, 12]].forEach(([x, y]) => { p.ell(x, y, 8, 3, '#ffffff'); p.ell(x + 5, y - 2, 5, 3, '#ffffff'); });
+      p.ell(30, 50, 55, 14, '#86cf7e'); p.ell(125, 52, 60, 14, '#73c06b');
+      for (let x = 0; x < W; x++) p.set(x, Math.round(4 + Math.sin(x / W * Math.PI) * 6), '#777');
+      for (let i = 0; i < 13; i++) { const x = 4 + i * 12, y = Math.round(5 + Math.sin(x / W * Math.PI) * 6); p.poly([[x, y], [x + 7, y], [x + 3.5, y + 6]], conf[i % 4]); }
+      p.rect(16, 46, 128, 4, '#8a5a3a'); p.rect(16, 46, 128, 1, '#b07a50');
+      crew(47, 24, 136, true);
+      p.rect(0, 52, W, 8, '#5aa85a'); for (let x = 0; x < W; x += 3) p.rect(x, 51 + (x % 2), 1, 2, '#4a944a');
+      break;
+    }
+    case 'yearend': {
+      grad(0, 48, ['#0b1228', '#14213d', '#1f3058']);
+      for (let i = 0; i < 40; i++) p.set((i * 53) % W, (i * 31) % 40, i % 3 ? '#ffffff' : '#ffe08a');
+      p.pat(STAR, 77, 3, '#ffd54a');
+      p.rect(0, 48, W, 12, '#2d3a63'); p.rect(0, 48, W, 1, '#ffd54a');
+      crew(54, 22, 138, true);
+      [0, 146].forEach(cx => { p.rect(cx, 0, 14, H, '#a3203a'); for (let x = cx + 3; x < cx + 14; x += 4) p.rect(x, 0, 1, H, '#7c1529'); });
+      p.rect(0, 0, W, 4, '#7c1529');
+      break;
+    }
+    case 'scandal': {
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) p.set(x, y, (x + y) % 8 < 4 ? '#fde3e3' : '#f9d6d6');
+      obj(64, 48, o => {
+        o.rect(0, 0, 64, 48, '#ffffff'); o.rect(4, 4, 26, 7, '#d64545');
+        o.rect(7, 6, 20, 1, '#fff'); o.rect(7, 8, 14, 1, '#fff');
+        [15, 20, 25, 30, 35, 40].forEach((y, i) => o.rect(4, y, i % 2 ? 26 : 34, 2, '#e3d6d6'));
+        o.rect(40, 4, 20, 16, '#efe3e3'); o.ell(50, 12, 4, 4, '#cdb9b9'); o.rect(40, 24, 20, 2, '#e3d6d6'); o.rect(40, 29, 16, 2, '#e3d6d6');
+      }, 48, 6);
+      [[18, 14, 1], [140, 18, 1], [24, 46, 0], [136, 46, 0]].forEach(([x, y, big]) => {
+        p.pat(big ? STAR : TWINK, x - (big ? 3 : 1), y - (big ? 3 : 1), '#ffffff');
+        obj(14, 10, o => { o.rect(0, 2, 14, 8, '#333'); o.rect(3, 0, 5, 2, '#333'); o.ell(7, 6, 3, 3, '#777'); o.set(6, 5, '#ccc'); }, x - 7, y + 4);
+      });
+      break;
+    }
+    case 'live': {
+      grad(0, 60, ['#ffd1e6', '#ffe0ee', '#ffeef5']);
+      obj(40, 58, o => { o.rect(0, 0, 40, 58, '#2b2230'); o.rect(3, 5, 34, 48, '#fff0f6'); o.rect(16, 2, 8, 1, '#555'); }, 60, 1);
+      if (ms[0]) p.blit(drawChar(lookOf(ms[0]), charOpts(ms[0])), 64, 14);
+      p.rect(65, 8, 19, 9, '#e23b5a'); p.text('LIVE', 67, 10, '#fff');
+      [[30, 30], [20, 10], [120, 22], [134, 44], [108, 6], [40, 48]].forEach(([x, y], i) => p.pat(HEART, x, y, i % 2 ? '#f06aa3' : '#ff8fb8'));
+      break;
+    }
+    case 'prep': {
+      for (let y = 0; y < 50; y++) for (let x = 0; x < W; x++) p.set(x, y, (Math.floor(x / 6) + Math.floor(y / 6)) % 2 ? '#e2dcf7' : '#d6cef2');
+      p.rect(0, 50, W, 10, '#b9addf');
+      obj(18, 40, o => { o.ell(9, 7, 5, 6, '#8f7cd6'); for (let y = 3; y < 12; y += 2) for (let x = 6; x < 13; x += 2) o.set(x, y, '#6b5aa8'); o.rect(8, 13, 2, 23, '#666'); o.rect(3, 36, 12, 2, '#555'); }, 10, 10);
+      p.pat(['..xx', '..x.', 'xxx.', 'xx..'], 34, 8, '#8f7cd6'); p.pat(['.xxx', '.x.x', 'xx.x', 'x.xx'], 40, 20, '#f06aa3');
+      crew(56, 52, 156);
+      break;
+    }
+    case 'drama': {
+      grad(0, 60, ['#f7f1e6', '#efe5d4']);
+      obj(36, 34, o => { o.rect(0, 10, 36, 24, '#2b2230'); o.poly([[0, 9], [34, 1], [36, 7], [2, 15]], '#2b2230'); for (let i = 0; i < 4; i++) o.poly([[4 + i * 8, 8 - i * 2], [8 + i * 8, 7 - i * 2], [11 + i * 8, 12 - i * 2], [7 + i * 8, 13 - i * 2]], '#fff'); o.rect(4, 20, 28, 1, '#777'); o.rect(4, 26, 20, 1, '#777'); }, 10, 14);
+      crew(58, 56, 156);
+      break;
+    }
+    default: {
+      grad(0, 40, ['#f3ecfa', '#e9def4']);
+      p.rect(8, 5, 144, 1, '#b8a5cf'); p.rect(8, 6, 144, 27, '#d4e6f3'); p.rect(8, 33, 144, 1, '#b8a5cf');
+      for (let x = 8; x < 152; x += 36) p.rect(x, 6, 1, 27, '#b8c9da');
+      [16, 52, 88, 124].forEach(sx => { for (let k = 0; k < 12; k++) p.set(sx + k, 31 - k * 2, '#eef7fc'); });
+      p.rect(0, 29, W, 1, '#a07850');
+      p.rect(0, 40, W, 20, '#d8b48a');
+      [46, 53].forEach(y => p.rect(0, y, W, 1, '#c49c70'));
+      for (let x = 10; x < W; x += 24) { p.rect(x, 40, 1, 6, '#c49c70'); p.rect(x + 12, 47, 1, 6, '#c49c70'); }
+      crew(56);
+    }
+  }
+  return `<img class="scene" src="${p.url()}" alt="">`;
+}
+function render() {
+  const app = $('#app');
+  if (!S) { app.innerHTML = setupHTML(); return; }
+  if (S.over) { app.innerHTML = overHTML(); return; }
+  const tabs = [['plan', '📅', '일정'], ['members', '👥', '멤버'], ['act', '🎤', '활동'], ['contract', '🤝', '계약'], ['news', '📰', '소식']];
+  const body = { plan: planHTML, members: membersHTML, act: actHTML, contract: contractHTML, news: newsHTML }[TAB]();
+  app.innerHTML = `<header>
+<div class="top"><b>${esc(S.name)}</b><span class="date">${dateStr(S.week)}</span><button class="icon-btn" data-act="settings" aria-label="설정">⚙</button></div>
+<div class="kpis"><div><small>자금</small><b class="${S.money < 0 ? 'neg' : ''}">${moneyShort(S.money)}</b></div><div><small>팬</small><b>${num(S.fans)}</b></div><div><small>인지도</small><b>${Math.round(S.fame)}</b></div><div><small>음방 1위</small><b>${S.trophies}번</b></div></div>
+</header>${body}
+<div class="go"><button class="btn" data-act="end-week">한 주 진행 ▶</button></div>
+<nav><div>${tabs.map(([id, ic, l]) => `<button class="${TAB === id ? 'on' : ''}" data-tab="${id}"><span>${ic}</span>${l}</button>`).join('')}</div></nav>`;
+}
+function promoBanner() {
+  const P = S.promo;
+  if (!P) return `<div class="banner">${debuted() ? '지금은 공백기예요. 컴백을 준비할 수 있어요.' : '아직 데뷔 전이에요. 데뷔를 준비해 볼까요?'}${TAB !== 'act' ? ` <button class="btn small" data-tab="act" style="margin-left:6px">🎤 ${debuted() ? '컴백' : '데뷔'} 준비하러 가기</button>` : ''}</div>`;
+  const c = CONCEPTS.find(x => x.id === P.concept);
+  return `<div class="banner">🎤 「${esc(P.title)}」 · ${conceptLabel(c)} · ${P.phase === 'prep' ? `${P.debut ? '데뷔' : '컴백'} 준비 ${P.left}주 남음` : `음악 방송 ${P.wk + 1}/${P.weeks}주차`}</div>`;
+}
+function planHTML() {
+  const opts = gaOptions(); if (!opts.some(o => o.id === S.ga && o.ok !== false)) S.ga = 'none';
+  const cur = opts.find(o => o.id === S.ga);
+  let train = 0;
+  const rows = S.members.map(m => {
+    const fl = forcedLabel(m);
+    if (!fl) train += (SCHED[m.sched] || SCHED.rest).cost;
+    const sel = fl ? `<select disabled><option>${fl}</option></select>`
+      : `<select data-sched="${m.id}">${Object.entries(SCHED).map(([k, s]) => `<option value="${k}"${m.sched === k ? ' selected' : ''}>${s.label}${s.cost ? ` · ${money(s.cost)}` : ''}</option>`).join('')}</select>`;
+    return `<div class="mrow"><div class="who" data-member="${m.id}" title="눌러서 능력치 보기">${avatar(m)}<div class="info"><div class="name">${esc(m.name)}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}</div>
+<div class="fbar" title="피로"><i style="width:${m.fatigue}%"></i></div><div class="muted">피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)}</div></div></div>${sel}</div>`;
+  }).join('');
+  const total = train + fixedCost() + contractCost() + (S.ga === 'concert' ? 5000 : 0);
+  return `${promoBanner()}
+<h2>그룹 일정</h2><div class="chips">${opts.map(o => `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}"${o.ok === false ? ' disabled' : ''}>${o.label}</button>`).join('')}</div>
+<p class="muted">${esc(cur.desc)}${opts.find(o => o.id === 'concert' && o.ok === false) ? ` · 콘서트: ${concertWhy()}` : ''}</p>
+<h2>멤버별 스케줄</h2><div class="card">${rows}</div>
+<p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소·직원 ${money(fixedCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
+<p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고, 80을 넘으면 건강이 깎여요.</p>`;
+}
+function membersHTML() {
+  const perf = avg(S.members.map(perfOf));
+  return `<h2>멤버 (${S.members.length}인조) <span class="muted">· 그룹 무대 실력 ${Math.round(perf)}</span></h2>
+${S.members.map(m => `<div class="card"><div class="row who" data-member="${m.id}">${avatar(m, 52)}<div><b class="name">${esc(m.name)}</b>${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}
+<div class="muted">인기 ${Math.round(m.pop)} · 피로 ${Math.round(m.fatigue)}</div></div></div>
+<div style="margin-top:8px">${STATS.map(([k, l]) => `<div class="stat"><span>${l}</span><div class="bar"><i style="width:${m.stats[k]}%"></i></div><b>${Math.round(m.stats[k])}</b></div>`).join('')}</div>
+${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음 (논란 시 위약금 ${money(m.ad.fee * 2)})</div>` : ''}
+${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role} · 주당 ${money(m.drama.feeW)}</div>` : ''}
+</div>`).join('')}
+<div class="card"><b>연습생 영입</b><p class="muted">새 멤버를 데려와요. 비용 2,000만 · 최대 7명</p><button class="btn small" data-act="recruit"${S.members.length >= 7 ? ' disabled' : ''}>영입하기</button></div>`;
+}
+function actHTML() {
+  let h = promoBanner();
+  if (!S.promo) {
+    const debut = S.albums.length === 0;
+    h += `<h2>${debut ? '데뷔' : '컴백'} 준비</h2><div class="card">
+<label class="f">곡 제목</label><div class="row"><input type="text" id="cbTitle" placeholder="비워 두면 자동으로 정해요" maxlength="30" style="flex:1"><button class="btn sub small" data-act="rand-title">🎲</button></div>
+<label class="f">콘셉트 (잘 맞는 능력치)</label><select class="full" id="cbConcept">${CONCEPTS.map(c => `<option value="${c.id}">${conceptLabel(c)} — ${c.fav.map(k => SL[k]).join('·')}</option>`).join('')}</select>
+<label class="f">음악 방송 활동 기간</label><div class="chips">${[1, 2, 3, 4].map(n => `<label class="chip"><input type="radio" name="cbWeeks" value="${n}"${n === 2 ? ' checked' : ''}> ${n}주</label>`).join('')}</div>
+<label class="f">앨범 제작비</label><div class="chips">${TIERS.map((t, i) => `<label class="chip"><input type="radio" name="cbTier" value="${i}"${i === 1 ? ' checked' : ''}> ${t.label} ${money(t.cost)}</label>`).join('')}</div>
+<p class="muted">준비 2주(녹음·안무) 뒤 음악 방송을 해요. 활동이 길수록 팬이 많이 늘지만 피로도 쌓여요.</p>
+<button class="btn" data-act="comeback" style="width:100%">${debut ? '데뷔' : '컴백'} 준비 시작</button></div>`;
+  }
+  h += `<h2>들어온 제의</h2>`;
+  h += S.offers.length ? S.offers.map(o => {
+    const m = S.members.find(x => x.id === o.mid); if (!m) return '';
+    const what = o.type === 'ad' ? `📢 ${esc(o.brand)} 광고 · 계약금 ${money(o.fee)} · 24주 계약 (1주 촬영)` : `🎬 드라마 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 주당 ${money(o.feeW)}`;
+    return `<div class="card offer">${avatar(m, 40)}<div class="info"><b>${esc(m.name)}</b><div class="muted">${what}</div><div class="muted">${o.expire - S.week}주 안에 답해야 해요</div></div>
+<div class="row" style="flex-direction:column"><button class="btn small" data-accept="${o.id}">수락</button><button class="btn sub small" data-decline="${o.id}">거절</button></div></div>`;
+  }).join('') : `<p class="muted">${debuted() ? '아직 없어요. 인지도가 높을수록 제의가 자주 와요.' : '데뷔하면 광고·드라마 제의가 들어와요.'}</p>`;
+  h += `<h2>앨범 기록</h2>` + (S.albums.length ? `<div class="card">${S.albums.slice().reverse().map(a => `<div class="news"><small>${dateStr(a.w)}</small>「${esc(a.title)}」 ${a.debut ? '<span class="tag">데뷔곡</span>' : ''} · ${conceptLabel(CONCEPTS.find(c => c.id === a.concept))} · 최고 ${a.best}위${a.wins ? ` · 🏆${a.wins}` : ''}</div>`).join('')}</div>` : '<p class="muted">아직 없어요.</p>');
+  if (S.awards.length) h += `<h2>수상</h2><div class="card">${S.awards.map(a => `<div>🏅 ${a.y}년차 ${a.award}</div>`).join('')}</div>`;
+  h += `<p class="muted">💡 12월 4주에는 연말 무대가 있어요 (인지도 25 이상). 5월·8월엔 페스티벌 제의가 와요.</p>`;
+  return h;
+}
+function contractHTML() {
+  return Object.entries(VENDORS).map(([kind, V]) => {
+    const c = S.contracts[kind];
+    return `<h2>${V.label}</h2>${V.list.map(v => {
+      const on = c && c.id === v.id;
+      return `<div class="card offer"><div class="info"><b>${v.name}</b>${on ? '<span class="tag">계약 중</span>' : ''}<div class="muted">주당 ${money(v.cost)} · 무대 점수 +${v.bonus}</div>
+${on ? `<div class="muted">계약 ${S.week - c.since}주째 · ${penaltyOf(kind) ? `지금 해지하면 위약금 ${money(penaltyOf(kind))}` : '위약금 없이 해지 가능'}</div>` : ''}</div>
+${on ? `<button class="btn sub small" data-term="${kind}">해지</button>` : `<button class="btn small" data-sign="${kind}:${v.id}">${c ? '바꾸기' : '계약'}</button>`}</div>`;
+    }).join('')}`;
+  }).join('') + `<p class="muted">💡 최소 계약 기간은 ${MIN_CONTRACT}주예요. 그 전에 해지하면 남은 주만큼 위약금을 내요.</p>`;
+}
+function newsHTML() {
+  return `<h2>소식</h2><div class="card">${S.news.map(n => `<div class="news ${n.type}"><small>${dateStr(n.w)}</small>${esc(n.text)}</div>`).join('') || '<p class="muted">아직 없어요.</p>'}</div>`;
+}
+function setupHTML() {
+  return `<div class="setup"><div id="suScene"></div><h1>🎤 아이돌 메이커</h1><p class="muted">나만의 아이돌 그룹을 키워 보세요.</p>
+<div class="card"><label class="f">그룹 이름</label><input type="text" id="suName" value="LUMIÈRE" maxlength="20">
+<label class="f">그룹 종류</label><div class="chips"><button class="chip on" data-gender="girl">걸그룹</button><button class="chip" data-gender="boy">보이그룹</button></div>
+<label class="f">멤버 수</label><div class="chips">${[4, 5, 6, 7].map(n => `<button class="chip${n === 5 ? ' on' : ''}" data-count="${n}">${n}명</button>`).join('')}</div>
+<label class="f">멤버 이름 <button class="btn sub small" data-act="rand-names">🎲 다시 뽑기</button></label><div class="names" id="suNames"></div>
+<button class="btn" data-act="start" style="width:100%;margin-top:14px">시작하기</button></div></div>`;
+}
+function overHTML() {
+  return `<div class="over"><h1>게임 끝</h1><p>${esc(S.over)}</p><div class="card" style="text-align:left">
+<div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div></div>
+<button class="btn" data-act="reset">새 게임</button></div>`;
+}
+let SU = { gender: 'girl', count: 5 };
+function fillNames() {
+  const box = $('#suNames'); if (!box) return;
+  const pool = shuffle(SU.gender === 'girl' ? GIRL : BOY);
+  box.innerHTML = Array.from({ length: SU.count }, (_, i) => `<input type="text" value="${pool[i]}" maxlength="10">`).join('');
+  const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: makeLook(SU.gender), stats: { visual: 0 }, fatigue: 0, busy: null }));
+  $('#suScene').innerHTML = scene('stage', demo);
+}
+
+// ===== 팝업 =====
+const dlg = $('#dlg');
+function openDlg(html) { $('#dlgBody').innerHTML = html; if (!dlg.open) dlg.showModal(); }
+function closeDlg() { if (dlg.open) dlg.close(); }
+dlg.addEventListener('cancel', e => { if (S && S.pending.length) e.preventDefault(); });
+function showReport(r) {
+  const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
+  let h = scene(r.scene) + `<h2>${r.title}</h2>`;
+  if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
+  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
+  if (r.deltas.length) h += `<h3>멤버 변화</h3>${r.deltas.map(([m, t]) => `<div class="muted"><b>${esc(m.name)}</b> ${esc(t)}</div>`).join('')}`;
+  h += `<h3>돈</h3><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
+<div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>합계</b><b class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)}</b></div></div>`;
+  if (S.pending.length) h += `<p class="neg" style="margin-top:12px"><b>⚠️ 논란이 ${S.pending.length}건 생겼어요!</b></p>`;
+  h += `<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`;
+  openDlg(h);
+}
+function nextPopup() {
+  if (S && S.pending.length) {
+    const sc = S.pending[0], m = S.members.find(x => x.id === sc.mid);
+    if (!m) { S.pending.shift(); save(); return nextPopup(); }
+    const extra = [];
+    if (m.ad) extra.push(`광고 ${m.ad.brand} 계약 중 (심각하면 위약금 ${money(m.ad.fee * 2)})`);
+    if (m.drama) extra.push(`드라마 ${m.drama.title} 촬영 중`);
+    openDlg(`${scene('scandal')}<h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
+${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
+<p class="muted">어떻게 대처할까요?</p>
+<button class="choice" data-sc="apologize"><b>📝 사과문 올리기</b><small>팬이 조금 떠나요. 심각도 '보통' 이상이면 광고가 해지돼요.</small></button>
+<button class="choice" data-sc="deny"><b>🙅 사실이 아니라고 해명하기</b><small>사실이 아니면 잘 풀리지만, 사실이면 더 커질 수 있어요.</small></button>
+<button class="choice" data-sc="pause"><b>⏸ 활동 중단</b><small>${3 + sc.sev * 2}주 쉬어요. 팬은 덜 떠나지만 드라마는 하차해요.</small></button>
+<button class="choice" data-sc="leave"><b>🚪 그룹 탈퇴</b><small>멤버가 그룹을 떠나요. 광고 위약금과 드라마 하차가 따라와요.</small></button>`);
+    return;
+  }
+  closeDlg(); render();
+}
+function memberDetail(id) {
+  const m = S.members.find(x => x.id === id); if (!m) return;
+  const skills = STATS.filter(([k]) => k !== 'health' && k !== 'person');
+  const sorted = skills.slice().sort((a, b) => m.stats[b[0]] - m.stats[a[0]]);
+  const fit = CONCEPTS.map(c => [c, (m.stats[c.fav[0]] + m.stats[c.fav[1]]) / 2]).sort((a, b) => b[1] - a[1]).slice(0, 2);
+  const rank = S.members.slice().sort((a, b) => perfOf(b) - perfOf(a)).indexOf(m) + 1;
+  const now = forcedLabel(m) || (SCHED[m.sched] || SCHED.rest).label;
+  const warn = [];
+  if (m.fatigue >= 70) warn.push('피로가 높아요. 훈련 효과가 반으로 줄어요 → 휴식 추천');
+  if (m.stats.health < 35) warn.push('건강이 낮아요. 쓰러질 수 있어요 → 건강 관리 추천');
+  if (m.stats.person < 40) warn.push('인성이 낮아서 논란이 생기기 쉬워요 → 인성 교육 추천');
+  openDlg(`<div class="mhead">${avatar(m, 84, true)}<div><h2 style="margin:0">${esc(m.name)}</h2>
+<div class="muted">무대 실력 ${Math.round(perfOf(m))} (그룹 ${rank}등) · 인기 ${Math.round(m.pop)}</div>
+<div class="muted">이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</div></div></div>
+<h3>능력치</h3>${STATS.map(([k, l]) => `<div class="stat"><span>${l}</span><div class="bar"><i style="width:${m.stats[k]}%"></i></div><b>${Math.round(m.stats[k])}</b></div>`).join('')}
+<div class="stat"><span>피로</span><div class="bar"><i style="width:${m.fatigue}%;background:var(--warn)"></i></div><b>${Math.round(m.fatigue)}</b></div>
+<h3>한눈에</h3>
+<div>💪 잘하는 것: ${sorted.slice(0, 2).map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
+<div>📉 부족한 것: ${sorted.slice(-2).reverse().map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
+<div>🎵 잘 맞는 콘셉트: ${fit.map(([c]) => conceptLabel(c)).join(', ')}</div>
+${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}
+${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
+<button class="btn" data-act="close" style="width:100%;margin-top:12px">닫기</button>`);
+}
+function settings() {
+  openDlg(`<h2>설정</h2><p class="muted">게임은 이 브라우저에 자동으로 저장돼요.</p>
+<button class="btn sub" data-act="reset" style="width:100%">처음부터 새 게임</button>
+<button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
+}
+
+// ===== 이벤트 =====
+document.addEventListener('click', e => {
+  const t = e.target.closest('button,[data-gender],[data-count],[data-member]'); if (!t) return;
+  const d = t.dataset;
+  if (d.tab) { closeDlg(); TAB = d.tab; render(); window.scrollTo(0, 0); return; }
+  if (d.member) return memberDetail(d.member);
+  if (d.ga) { S.ga = d.ga; save(); render(); return; }
+  if (d.accept) return acceptOffer(d.accept);
+  if (d.decline) return declineOffer(d.decline);
+  if (d.sign) { const [k, id] = d.sign.split(':'); return signVendor(k, id); }
+  if (d.term) return terminate(d.term);
+  if (d.sc) return resolveScandal(d.sc);
+  if (d.gender) { SU.gender = d.gender; document.querySelectorAll('[data-gender]').forEach(b => b.classList.toggle('on', b === t)); fillNames(); return; }
+  if (d.count) {
+    SU.count = +d.count; document.querySelectorAll('[data-count]').forEach(b => b.classList.toggle('on', b === t));
+    const old = [...document.querySelectorAll('#suNames input')].map(i => i.value); fillNames();
+    document.querySelectorAll('#suNames input').forEach((inp, i) => { if (old[i]) inp.value = old[i]; });
+    return;
+  }
+  switch (d.act) {
+    case 'end-week': return endWeek();
+    case 'next-popup': return nextPopup();
+    case 'settings': return settings();
+    case 'close': return closeDlg();
+    case 'recruit': return recruit();
+    case 'comeback': return startComeback();
+    case 'rand-title': $('#cbTitle').value = pick(TITLES); return;
+    case 'rand-names': return fillNames();
+    case 'start': {
+      const names = [...document.querySelectorAll('#suNames input')].map((i, n) => i.value.trim() || `멤버${n + 1}`);
+      return newGame({ name: $('#suName').value.trim() || 'LUMIÈRE', gender: SU.gender, names });
+    }
+    case 'reset':
+      if (!confirm('지금 게임을 지우고 처음부터 할까요?')) return;
+      try { localStorage.removeItem(KEY); } catch (e) { }
+      S = null; closeDlg(); render(); fillNames(); return;
+  }
+});
+document.addEventListener('change', e => {
+  const id = e.target.dataset.sched;
+  if (id) { const m = S.members.find(x => x.id === id); if (m) { m.sched = e.target.value; save(); render(); } }
+});
+
+load();
+render();
+if (!S) fillNames();
+else if (S.pending.length && !S.over) nextPopup();
+</script>
+<script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body>
+</html>
