@@ -74,6 +74,39 @@ label{font-family:Jua,sans-serif;color:var(--title);font-size:15px}
 @keyframes sing{0%{opacity:1}50%{opacity:0}}
 @keyframes nod{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(9deg) translateY(4px)}}
 @keyframes zz{0%{transform:translate(0,0);opacity:0}20%{opacity:1}100%{transform:translate(14px,-30px);opacity:0}}
+/* 2차: 마디 꼬리·팔꿈치·따라오는 움직임 */
+.v2 .ts,.v2 .pt{transform-box:view-box}
+.v2 .ts{animation:tsIdle 1.6s ease-in-out infinite alternate}
+.v2 .arm-l{animation:armIdleL 2.4s ease-in-out infinite alternate;animation-delay:var(--d)}
+.v2 .arm-r{animation:armIdleR 2.4s ease-in-out infinite alternate;animation-delay:var(--d)}
+.v2 .arm-l-f{animation:foreIdle 2.4s ease-in-out infinite alternate}
+.v2 .arm-r-f{animation:foreIdleR 2.4s ease-in-out infinite alternate}
+.v2 .torso{transform-origin:100px 226px;animation:breathe 2.6s ease-in-out infinite}
+.dance.v2 .ts{animation:tsFast .5s ease-in-out infinite alternate}
+.dance.v2 .arm-l{animation:armL .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance.v2 .arm-r{animation:armR .5s ease-in-out infinite alternate;animation-delay:var(--d)}
+.dance.v2 .arm-l-f{animation:foreL .5s ease-in-out infinite alternate;animation-delay:calc(var(--d) - .1s)}
+.dance.v2 .arm-r-f{animation:foreR .5s ease-in-out infinite alternate;animation-delay:calc(var(--d) - .1s)}
+.dance.v2 .head{animation:headD 1s ease-in-out infinite alternate;animation-delay:calc(var(--d) - .15s)}
+.dance.v2 .ear-l,.dance.v2 .ear-r{animation:earFlap .5s ease-in-out infinite alternate;animation-delay:calc(var(--d) - .3s)}
+.cheer.v2 .ts{animation:tsFast .3s ease-in-out infinite alternate}
+.cheer.v2 .arm-l{animation:upL .35s ease-in-out infinite alternate}
+.cheer.v2 .arm-r{animation:upR .35s ease-in-out infinite alternate}
+.cheer.v2 .arm-l-f{animation:foreUp .35s ease-in-out infinite alternate}
+.cheer.v2 .arm-r-f{animation:foreUpR .35s ease-in-out infinite alternate}
+.sleep.v2 .ts{animation:tsIdle 3.5s ease-in-out infinite alternate}
+.sleep.v2 .arm-l,.sleep.v2 .arm-r,.sleep.v2 .arm-l-f,.sleep.v2 .arm-r-f{animation:none}
+@keyframes tsIdle{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
+@keyframes tsFast{from{transform:rotate(-11deg)}to{transform:rotate(11deg)}}
+@keyframes armIdleL{from{transform:rotate(2deg)}to{transform:rotate(7deg)}}
+@keyframes armIdleR{from{transform:rotate(-7deg)}to{transform:rotate(-2deg)}}
+@keyframes foreIdle{from{transform:rotate(0)}to{transform:rotate(-8deg)}}
+@keyframes foreIdleR{from{transform:rotate(0)}to{transform:rotate(8deg)}}
+@keyframes foreL{from{transform:rotate(-5deg)}to{transform:rotate(-40deg)}}
+@keyframes foreR{from{transform:rotate(40deg)}to{transform:rotate(5deg)}}
+@keyframes foreUp{from{transform:rotate(-10deg)}to{transform:rotate(-35deg)}}
+@keyframes foreUpR{from{transform:rotate(35deg)}to{transform:rotate(10deg)}}
+@keyframes earFlap{from{transform:rotate(-6deg)}to{transform:rotate(5deg)}}
 @media (prefers-reduced-motion:reduce){.cat *{animation:none!important}}
 </style>
 </head>
@@ -85,6 +118,8 @@ label{font-family:Jua,sans-serif;color:var(--title);font-size:15px}
   <svg id="stage" class="stage" viewBox="0 0 360 230"></svg>
   <label>움직임</label>
   <div class="chips" id="modes"></div>
+  <label>그림 버전</label>
+  <div class="chips" id="vers"></div>
 </div>
 <div class="card">
   <h2 id="selName"></h2>
@@ -125,7 +160,7 @@ let cats = [
   { name: '삼순이', coat: 'calico', eye: 1, outfit: 'frill', acc: 'ribbon' },
   { name: '구름이', coat: 'siamese', eye: 0, outfit: 'suit', acc: 'crown' },
 ];
-let sel = 0, mode = 'dance';
+let sel = 0, mode = 'dance', ver = 2;
 
 // ===== 고양이 그리기 (200×240 도화지, 부위마다 따로) =====
 function cat(c, uid) {
@@ -209,31 +244,140 @@ function accessory(a, st) {
 }
 function shade(hex, a) { const n = parseInt(hex.slice(1), 16); const f = c => Math.round(Math.max(0, Math.min(255, a < 0 ? c * (1 + a) : c + (255 - c) * a))); return '#' + [n >> 16, n >> 8 & 255, n & 255].map(c => f(c).toString(16).padStart(2, '0')).join(''); }
 
+// ===== 2차: 자연스러운 고양이 (털 윤곽·얇은 색 선·부드러운 명암·관절 팔·마디 꼬리) =====
+function cat2(c, uid) {
+  const C = COATS[c.coat], E = EYES[c.eye], o = c.outfit;
+  const fur = C.base, furD = C.dark, line = shade(furD, -.5), lineS = shade(furD, -.3);
+  const id = s => `${s}-${uid}`;
+  const st = (w = 1.8) => `stroke="${line}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+  const pt = C.points, white = C.white || C.patches || C.points;
+  const muzzle = C.points ? shade(C.points, .15) : white ? '#fffaf5' : shade(fur, .35);
+  const defs = `<defs>
+<radialGradient id="${id('hg')}" cx=".42" cy=".32" r=".8"><stop offset="0" stop-color="${shade(fur, .25)}"/><stop offset=".55" stop-color="${fur}"/><stop offset="1" stop-color="${furD}"/></radialGradient>
+<radialGradient id="${id('bg')}" cx=".45" cy=".25" r=".85"><stop offset="0" stop-color="${shade(fur, .2)}"/><stop offset=".6" stop-color="${fur}"/><stop offset="1" stop-color="${furD}"/></radialGradient>
+<linearGradient id="${id('lg')}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${shade(fur, .15)}"/><stop offset="1" stop-color="${furD}"/></linearGradient>
+<radialGradient id="${id('ir')}" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="${shade(E, .55)}"/><stop offset=".55" stop-color="${E}"/><stop offset="1" stop-color="${shade(E, -.55)}"/></radialGradient>
+<radialGradient id="${id('ear')}" cx=".5" cy=".9" r=".9"><stop offset="0" stop-color="#ffc4d2"/><stop offset="1" stop-color="${pt ? shade(pt, .2) : '#f08aa6'}"/></radialGradient>
+<linearGradient id="${id('pt')}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${pt || fur}"/><stop offset="1" stop-color="${pt ? shade(pt, -.2) : fur}"/></linearGradient>
+<filter id="${id('soft')}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.5"/></filter>
+<filter id="${id('soft2')}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6"/></filter>
+<clipPath id="${id('hc')}"><path d="${HEAD2}"/></clipPath><clipPath id="${id('bc')}"><path d="${BODY2}"/></clipPath>
+</defs>`;
+  // --- 꼬리: 마디 7개가 차례로 휘며 물결침 (테두리 한 번, 털 한 번 같은 움직임)
+  const J = [[124, 212], [139, 213], [151, 206], [159, 194], [163, 180], [163, 166], [159, 153], [152, 143]];
+  const tailCol = pt || (C.patches ? C.patches[1] : fur);
+  const chain = (pass) => { let s = ''; for (let i = J.length - 2; i >= 0; i--) {
+      const [x1, y1] = J[i], [x2, y2] = J[i + 1], w = 15 - i * 1.1;
+      const seg = pass === 0 ? `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${line}" stroke-width="${w + 3.4}" stroke-linecap="round"/>`
+        : `<path d="M${x1} ${y1}L${x2} ${y2}" stroke="${i > 4 && pt ? pt : tailCol}" stroke-width="${w}" stroke-linecap="round"/>${C.stripes && i % 2 ? `<path d="M${(x1 + x2) / 2 - 4} ${(y1 + y2) / 2 - 3}l7 4" stroke="${furD}" stroke-width="3" stroke-linecap="round"/>` : ''}`;
+      s = `<g class="ts" style="transform-origin:${x1}px ${y1}px;animation-delay:calc(var(--d) - ${(i * .12).toFixed(2)}s)">${seg}${s}</g>`;
+    } return s; };
+  const tail = `<g>${chain(0)}${chain(1)}<path d="M150 146q3 -5 1 -9" stroke="${shade(tailCol, .3)}" stroke-width="2" fill="none" opacity=".6"/></g>`;
+  // --- 다리(발): 통통한 발과 발가락
+  const pawCol = pt || (C.white ? '#fffaf5' : fur);
+  const shoe = { sailor: '#6b3a2a', frill: '#ff8fb8', jacket: '#26222b', suit: '#1d1b22' }[o];
+  const foot = (cls, x) => `<g class="pt ${cls}" style="transform-origin:${x}px 206px"><path d="M${x - 12} 200C${x - 13} 212 ${x - 12} 220 ${x - 8} 224L${x + 8} 224C${x + 12} 220 ${x + 13} 212 ${x + 12} 200Z" fill="url(#${id('lg')})" ${st()}/>
+<path d="M${x - 15} 226C${x - 16} 218 ${x - 8} 215 ${x} 215C${x + 8} 215 ${x + 16} 218 ${x + 15} 226C${x + 14} 231 ${x - 14} 231 ${x - 15} 226Z" fill="${shoe || pawCol}" ${st()}/>
+${shoe ? `<path d="M${x - 10} 219Q${x} 216 ${x + 10} 219" stroke="${shade(shoe, .35)}" stroke-width="1.6" fill="none"/>` : `<path d="M${x - 6} 229Q${x - 5} 225 ${x - 4} 229M${x - 1} 230Q${x} 225 ${x + 1} 230M${x + 4} 229Q${x + 5} 225 ${x + 6} 229" stroke="${lineS}" stroke-width="1.2" fill="none"/>`}</g>`;
+  // --- 몸: 배와 가슴털
+  let body = `<path d="${BODY2}" fill="url(#${id('bg')})"/>`;
+  body += `<g clip-path="url(#${id('bc')})">`;
+  if (white) body += `<path d="M100 150C84 150 78 170 80 192C82 214 118 214 120 192C122 170 116 150 100 150Z" fill="#fffaf5"/>`;
+  if (C.patches) body += `<path d="M60 170C70 158 88 164 86 182C84 196 64 198 58 186Z" fill="${C.patches[0]}"/><path d="M140 196C130 188 118 196 122 210C126 222 142 218 144 208Z" fill="${C.patches[1]}"/>`;
+  if (C.stripes) body += `<g stroke="${furD}" stroke-width="3.5" stroke-linecap="round" fill="none"><path d="M64 178q6 2 12 0M63 192q6 2 12 0M136 178q-6 2 -12 0M137 192q-6 2 -12 0"/></g>`;
+  body += `<ellipse cx="100" cy="218" rx="40" ry="12" fill="${furD}" opacity=".35" filter="url(#${id('soft')})"/><ellipse cx="84" cy="168" rx="10" ry="16" fill="#fff" opacity=".22" filter="url(#${id('soft')})"/></g>`;
+  body += `<path d="${BODY2}" fill="none" ${st()}/>`;
+  body += `<path d="M86 152L89 160L92 154L96 164L100 156L104 164L108 154L111 160L114 152" fill="${white ? '#fffaf5' : shade(fur, .2)}" stroke="${lineS}" stroke-width="1.3" stroke-linejoin="round"/>`;
+  body += outfit2(o, st, id);
+  // --- 팔: 어깨 → 팔꿈치 → 앞발 (두 마디)
+  const arm = (cls, sx, flip) => { const m = flip ? -1 : 1, ex = sx - 4 * m, ey = 184, px = sx - 6 * m, py = 205;
+    const upper = `<path d="M${sx - 9} 160C${sx - 11} 170 ${ex - 9} 178 ${ex - 8} ${ey + 3}L${ex + 8} ${ey + 3}C${ex + 9} 176 ${sx + 9} 170 ${sx + 9} 160Z" fill="url(#${id('lg')})" ${st()}/>`;
+    const fore = `<path d="M${ex - 8} ${ey}C${ex - 9} 192 ${px - 9} 198 ${px - 8} ${py - 2}L${px + 8} ${py - 2}C${px + 9} 196 ${ex + 9} 190 ${ex + 8} ${ey}Z" fill="url(#${id('lg')})" ${st()}/>`;
+    const paw = `<path d="M${px - 10} ${py}C${px - 11} ${py - 8} ${px + 11} ${py - 8} ${px + 10} ${py}C${px + 10} ${py + 9} ${px - 10} ${py + 9} ${px - 10} ${py}Z" fill="${pawCol}" ${st()}/><path d="M${px - 4} ${py + 6}v-3M${px} ${py + 7}v-3M${px + 4} ${py + 6}v-3" stroke="${lineS}" stroke-width="1.2"/>`;
+    return `<g class="pt ${cls}" style="transform-origin:${sx}px 164px">${upper}${sleeve2(o, sx, ex, ey, 'u', st)}<g class="pt ${cls}-f" style="transform-origin:${ex}px ${ey}px">${fore}${sleeve2(o, sx, ex, ey, 'f', st)}${paw}</g></g>`; };
+  // --- 머리: 털이 삐져나온 윤곽, 부드러운 명암
+  const earCol = pt ? `url(#${id('pt')})` : C.patches ? C.patches[0] : `url(#${id('hg')})`;
+  const ear = (cls, mirror) => { const T = s => mirror ? `<g transform="translate(200,0) scale(-1,1)">${s}</g>` : s;
+    return `<g class="pt ${cls}" style="transform-origin:${mirror ? 136 : 64}px 62px">${T(`<path d="M48 80C42 62 41 42 48 26C51 20 57 19 62 23C72 32 84 44 93 56Z" fill="${mirror && C.patches ? C.patches[1] : earCol}" ${st()}/><path d="M55 70C52 56 52 42 56 32C64 40 74 50 82 58Z" fill="url(#${id('ear')})"/><path d="M57 64q4 -6 9 -8M58 56q4 -5 8 -6" stroke="#fff" stroke-width="1.2" opacity=".8" fill="none"/>`)}</g>`; };
+  let head = `<path d="${HEAD2}" fill="url(#${id('hg')})"/><g clip-path="url(#${id('hc')})">`;
+  if (C.points) head += `<ellipse cx="100" cy="122" rx="34" ry="26" fill="${pt}" opacity=".55" filter="url(#${id('soft')})"/>`;
+  if (C.white) head += `<path d="M100 66C96 80 92 92 86 100C74 106 70 120 74 134C80 148 120 148 126 134C130 120 126 106 114 100C108 92 104 80 100 66Z" fill="#fffaf5"/>`;
+  if (C.patches) head += `<path d="M36 70C52 48 88 48 94 70C96 88 70 98 42 96Z" fill="${C.patches[0]}"/><path d="M164 64C150 48 116 50 108 68C108 84 136 90 162 86Z" fill="${C.patches[1]}"/>`;
+  if (C.stripes) head += `<g stroke="${furD}" stroke-width="3.6" stroke-linecap="round" fill="none"><path d="M90 48q2 8 4 14M100 46v14M110 48q-2 8 -4 14"/><path d="M40 98q8 1 14 4M40 110q7 0 12 2M160 98q-8 1 -14 4M160 110q-7 0 -12 2"/></g>`;
+  head += `<ellipse cx="100" cy="146" rx="50" ry="14" fill="${furD}" opacity=".45" filter="url(#${id('soft')})"/><ellipse cx="78" cy="66" rx="20" ry="10" fill="#fff" opacity=".35" filter="url(#${id('soft')})"/></g>`;
+  head += `<path d="${HEAD2}" fill="none" ${st()}/>`;
+  head += `<path d="M44 106q-6 2 -9 6M46 118q-6 3 -8 8M156 106q6 2 9 6M154 118q6 3 8 8" stroke="${lineS}" stroke-width="1.3" fill="none" opacity=".7"/>`;
+  // 얼굴
+  const eye = (x, m) => `<g class="eye-open"><g class="eye" style="--d:${-(uid % 7) * .5}s">
+<path d="M${x - 14} ${104}C${x - 13} ${90} ${x + 13} ${88} ${x + 14} ${102}C${x + 14} ${116} ${x - 13} ${120} ${x - 14} ${104}Z" fill="#fff"/>
+<ellipse cx="${x + m}" cy="106" rx="10" ry="12.5" fill="url(#${id('ir')})"/><ellipse cx="${x + m}" cy="107" rx="4.2" ry="8" fill="${shade(E, -.75)}"/>
+<path d="M${x - 14} ${104}C${x - 13} ${90} ${x + 13} ${88} ${x + 14} ${102}C${x + 14} ${116} ${x - 13} ${120} ${x - 14} ${104}Z" fill="none" stroke="${line}" stroke-width="1.2"/>
+<path d="M${x - 16} ${101}C${x - 12} ${86} ${x + 12} ${84} ${x + 16} ${99}C${x + 10} ${92} ${x - 10} ${92} ${x - 16} ${101}Z" fill="${line}"/>
+<path d="M${x + 13 * m} ${95}l${5 * m} -5" stroke="${line}" stroke-width="1.8" stroke-linecap="round"/>
+<circle cx="${x - 4 + m}" cy="99" r="3.6" fill="#fff"/><circle cx="${x + 4 + m}" cy="112" r="1.8" fill="#fff"/><path d="M${x - 7} 114q${7} 4 ${14} 0" stroke="#fff" stroke-width="1.4" opacity=".5" fill="none"/></g></g>
+<path class="eye-shut" d="M${x - 12} 106Q${x} 114 ${x + 12} 106" fill="none" stroke="${line}" stroke-width="2.6" stroke-linecap="round"/>`;
+  head += `<ellipse cx="100" cy="126" rx="17" ry="12" fill="${muzzle}" opacity="${white ? .9 : .55}" filter="url(#${id('soft2')})"/>`;
+  head += eye(76, -1) + eye(124, 1);
+  head += `<ellipse cx="60" cy="122" rx="10" ry="6" fill="#ff7f9c" opacity=".45" filter="url(#${id('soft2')})"/><ellipse cx="140" cy="122" rx="10" ry="6" fill="#ff7f9c" opacity=".45" filter="url(#${id('soft2')})"/>`;
+  head += `<path d="M96 117C96 114 104 114 104 117C104 120 101 122 100 123C99 122 96 120 96 117Z" fill="${C.pinkNose || pt ? '#ff9db5' : '#ee7a96'}" stroke="${line}" stroke-width="1.1"/><ellipse cx="98.5" cy="116.5" rx="1.4" ry=".9" fill="#fff" opacity=".8"/>`;
+  head += `<path d="M100 123V126M92 125C94 130 98 130 100 126C102 130 106 130 108 125" fill="none" stroke="${line}" stroke-width="1.7" stroke-linecap="round"/>`;
+  head += `<path class="mopen" d="M93 127C95 138 105 138 107 127C104 129 96 129 93 127Z" fill="#b8405c" stroke="${line}" stroke-width="1.4"/><path class="mopen" d="M96 133C98 130 102 130 104 133C102 136 98 136 96 133Z" fill="#ff8fa8"/>`;
+  head += `<g stroke="${lineS}" stroke-width="1" stroke-linecap="round" opacity=".55" fill="none"><path d="M70 124C56 120 42 119 28 120M70 129C56 128 42 130 30 134M130 124C144 120 158 119 172 120M130 129C144 128 158 130 170 134"/></g>`;
+  const headG = `<g class="pt head" style="transform-origin:100px 146px">${ear('ear-l', false)}${ear('ear-r', true)}${head}${accessory(c.acc, `stroke="${line}" stroke-width="1.8" stroke-linejoin="round"`)}</g>`;
+  const zz = `<g class="zz"><text x="150" y="60" font-family="Jua" font-size="18" fill="#8f7cd6">Z</text><text x="162" y="44" font-family="Jua" font-size="13" fill="#8f7cd6" style="animation-delay:.8s">z</text></g>`;
+  const shadow = `<ellipse cx="100" cy="230" rx="44" ry="6" fill="#000" opacity=".18" filter="url(#${id('soft2')})"/>`;
+  return defs + shadow + `<g class="whole pt"><g class="body-g">${tail}${foot('leg-l', 84)}${foot('leg-r', 116)}<g class="torso pt">${body}</g>${arm('arm-l', 74)}${arm('arm-r', 126, true)}${headG}</g></g>${zz}`;
+}
+const HEAD2 = 'M100 46C126 46 148 58 156 80C160 90 160 98 167 104C162 106 160 108 161 111C166 115 166 120 170 124C163 125 158 127 156 130C148 144 126 151 100 151C74 151 52 144 44 130C42 127 37 125 30 124C34 120 34 115 39 111C40 108 38 106 33 104C40 98 40 90 44 80C52 58 74 46 100 46Z';
+const BODY2 = 'M74 156C66 170 62 190 65 208C67 222 80 226 100 226C120 226 133 222 135 208C138 190 134 170 126 156C116 149 84 149 74 156Z';
+function outfit2(o, st, id) {
+  const fold = c => `stroke="${shade(c, -.25)}" stroke-width="1.3" fill="none" stroke-linecap="round"`;
+  if (o === 'hoodie') return `<path d="M70 158C74 148 126 148 130 158C136 172 138 192 137 206C134 216 66 216 63 206C62 192 64 172 70 158Z" fill="#b9d6ff" ${st()}/><path d="M80 150C86 166 114 166 120 150" fill="#a4c6f5" ${st(1.4)}/><path d="M85 186C92 184 108 184 115 186L117 202C108 204 92 204 83 202Z" fill="#a4c6f5" ${st(1.4)}/><path d="M94 160Q93 168 95 176M106 160Q107 168 105 176" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M76 176q3 14 2 26M124 176q-3 14 -2 26" ${fold('#b9d6ff')}/>`;
+  if (o === 'sailor') return `<path d="M70 158C74 148 126 148 130 158C134 170 136 184 136 196H64C64 184 66 170 70 158Z" fill="#fffdfa" ${st()}/><path d="M74 152C84 162 92 172 100 178C108 172 116 162 126 152L128 162C118 172 110 182 100 188C90 182 82 172 72 162Z" fill="#2c4a8a" ${st(1.4)}/><path d="M79 158C88 166 94 172 100 176C106 172 112 166 121 158" stroke="#fff" stroke-width="1.5" fill="none"/><path d="M100 178C94 172 86 170 85 176C84 184 94 184 100 178ZM100 178C106 172 114 170 115 176C116 184 106 184 100 178Z" fill="#e0384f" ${st(1.3)}/><path d="M98 179L94 194L100 189L106 194L102 179Z" fill="#c92a42" ${st(1.2)}/>
+<path d="M64 194C80 191 120 191 136 194C140 202 143 210 145 216C120 222 80 222 55 216C57 210 60 202 64 194Z" fill="#2c4a8a" ${st()}/><path d="M76 195L72 217M88 194L86 220M100 194V221M112 194L114 220M124 195L128 217" ${fold('#2c4a8a')}/>`;
+  if (o === 'jacket') return `<path d="M68 158C72 147 128 147 132 158C138 172 139 196 138 208C132 216 68 216 62 208C61 196 62 172 68 158Z" fill="#2c2a33" ${st()}/><path d="M88 150C92 160 96 170 100 178C104 170 108 160 112 150Z" fill="#fffaf5"/><path d="M86 150C88 164 94 176 98 184C90 178 84 172 78 164ZM114 150C112 164 106 176 102 184C110 178 116 172 122 164Z" fill="#3e3b48" ${st(1.4)}/><path d="M101 184V212" stroke="#d9d9e4" stroke-width="1.8"/><path d="M72 180q2 12 1 24M128 180q-2 12 -1 24" stroke="#45424f" stroke-width="1.4" fill="none"/><path d="M80 170l6 2M120 170l-6 2" stroke="#d9d9e4" stroke-width="1.6"/>`;
+  if (o === 'frill') return `<path d="M72 158C76 148 124 148 128 158C130 168 132 180 132 190H68C68 180 70 168 72 158Z" fill="#ffb8d2" ${st()}/><path d="M68 188C80 186 120 186 132 188C138 198 144 206 148 214C120 220 80 220 52 214C56 206 62 198 68 188Z" fill="#ffb8d2" ${st()}/>${[54, 66, 78, 90, 102, 114, 126, 138, 146].map((x, i) => `<path d="M${x - 6} ${215 + (i % 2)}C${x - 6} ${222} ${x + 6} ${222} ${x + 6} ${215 + (i % 2)}" fill="#fff" stroke="${shade('#ffb8d2', -.4)}" stroke-width="1.2"/>`).join('')}<path d="M80 192q-4 12 -8 22M100 192v24M120 192q4 12 8 22" ${fold('#ffb8d2')}/><path d="M100 164C94 158 86 158 86 164C86 170 94 170 100 164ZM100 164C106 158 114 158 114 164C114 170 106 170 100 164Z" fill="#ff5a90" ${st(1.3)}/><circle cx="100" cy="164" r="3" fill="#ffe08a" ${st(1)}/>`;
+  if (o === 'suit') return `<path d="M68 158C72 147 128 147 132 158C138 172 139 198 138 210C132 216 68 216 62 210C61 198 62 172 68 158Z" fill="#26252e" ${st()}/><path d="M89 150C92 162 96 176 100 188C104 176 108 162 111 150Z" fill="#fff" ${st(1.2)}/><path d="M93 154C96 156 98 157 100 158C102 157 104 156 107 154L106 162C104 161 102 160 100 158C98 160 96 161 94 162Z" fill="#e0384f" ${st(1)}/><path d="M87 150C89 166 94 180 99 192C90 184 82 176 77 166ZM113 150C111 166 106 180 101 192C110 184 118 176 123 166Z" fill="#383744" ${st(1.4)}/><circle cx="100" cy="198" r="1.8" fill="#ffe08a"/>`;
+  return '';
+}
+function sleeve2(o, sx, ex, ey, part, st) {
+  const col = { hoodie: '#b9d6ff', sailor: '#fffdfa', jacket: '#2c2a33', suit: '#26252e', frill: '#ffb8d2' }[o]; if (!col) return '';
+  if (part === 'u') {
+    if (o === 'frill') return `<path d="M${sx - 13} 166C${sx - 14} 154 ${sx + 14} 154 ${sx + 13} 166C${sx + 12} 176 ${sx - 12} 176 ${sx - 13} 166Z" fill="${col}" ${st()}/>`;
+    return `<path d="M${sx - 10} 158C${sx - 12} 168 ${ex - 10} 178 ${ex - 9} ${ey + 4}L${ex + 9} ${ey + 4}C${ex + 10} 176 ${sx + 10} 168 ${sx + 10} 158Z" fill="${col}" ${st()}/>${o === 'sailor' ? `<path d="M${ex - 9} ${ey}H${ex + 9}" stroke="#2c4a8a" stroke-width="3"/>` : ''}`;
+  }
+  if (o === 'sailor' || o === 'frill') return '';
+  const end = o === 'suit' ? `<path d="M${ex - 9} ${ey + 13}H${ex + 9}" stroke="#fff" stroke-width="3"/>` : '';
+  return `<path d="M${ex - 9} ${ey - 1}C${ex - 10} ${ey + 6} ${ex - 9} ${ey + 12} ${ex - 9} ${ey + 14}L${ex + 9} ${ey + 14}C${ex + 9} ${ey + 12} ${ex + 10} ${ey + 6} ${ex + 9} ${ey - 1}Z" fill="${col}" ${st()}/>${end}`;
+}
+
 // ===== 화면 =====
 const $ = s => document.querySelector(s);
 function drawStage() {
   const spot = [60, 150, 240, 320].map((x, i) => `<path d="M${x - 5} 0H${x + 5}L${x + 50} 175H${x - 50}Z" fill="#fff" opacity=".07"/>`).join('');
   const lights = Array.from({ length: 9 }, (_, i) => `<rect x="${40 + i * 32}" y="14" width="24" height="44" rx="4" fill="#ab95e6" opacity="${.2 + (i % 3) * .1}"/>`).join('');
   const n = cats.length, w = 86;
-  const cs = cats.map((c, i) => `<svg x="${180 - (n * w) / 2 + i * w - 4}" y="64" width="${w + 8}" height="146" viewBox="0 0 200 240" class="cat ${mode}" data-i="${i}" style="--d:${-i * .17}s;cursor:pointer">${cat(c, i)}${i === sel ? '<path d="M100 252 l-8 -10h16z" fill="#ffd34d"/>' : ''}</svg>`).join('');
+  const cs = cats.map((c, i) => `<svg x="${180 - (n * w) / 2 + i * w - 4}" y="64" width="${w + 8}" height="146" viewBox="0 0 200 240" class="cat ${mode}${ver === 2 ? ' v2' : ''}" data-i="${i}" style="--d:${-i * .17}s;cursor:pointer">${(ver === 2 ? cat2 : cat)(c, i)}${i === sel ? '<path d="M100 252 l-8 -10h16z" fill="#ffd34d"/>' : ''}</svg>`).join('');
   $('#stage').innerHTML = `<defs><linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b46a8"/><stop offset="1" stop-color="#2a1850"/></linearGradient></defs>
 <rect width="360" height="230" fill="#2b1d4a"/>${lights}${spot}<rect y="190" width="360" height="40" fill="url(#fl)"/><rect y="190" width="360" height="3" fill="#ff8fb8"/>
 <rect x="10" y="10" width="54" height="18" rx="5" fill="#e23b5a"/><text x="37" y="23" font-size="10" font-weight="800" fill="#fff" text-anchor="middle" font-family="Arial">ON AIR</text>${cs}`;
-  $('#big').innerHTML = `<svg viewBox="0 0 200 240" y="5" class="cat ${mode}" style="--d:0s">${cat(cats[sel], 99)}</svg>`;
+  $('#big').innerHTML = `<svg viewBox="0 0 200 240" y="5" class="cat ${mode}${ver === 2 ? ' v2' : ''}" style="--d:0s">${(ver === 2 ? cat2 : cat)(cats[sel], 99)}</svg>`;
   $('#selName').textContent = `🐾 ${cats[sel].name}`;
 }
 function drawOpts() {
   const c = cats[sel];
   $('#modes').innerHTML = Object.entries(MODES).map(([k, l]) => `<button class="chip${mode === k ? ' on' : ''}" data-mode="${k}">${l}</button>`).join('');
+  $('#vers').innerHTML = [[1, '1차 (도형)'], [2, '2차 (자연스럽게)']].map(([k, l]) => `<button class="chip${ver === k ? ' on' : ''}" data-ver="${k}">${l}</button>`).join('');
   $('#coat').innerHTML = Object.entries(COATS).map(([k, v]) => `<button class="chip${c.coat === k ? ' on' : ''}" data-coat="${k}">${v.name}</button>`).join('');
   $('#eyes').innerHTML = EYES.map((e, i) => `<button class="${c.eye === i ? 'on' : ''}" style="background:${e}" data-eye="${i}" aria-label="눈 색 ${i + 1}"></button>`).join('');
   $('#outfit').innerHTML = Object.entries(OUTFITS).map(([k, v]) => `<button class="chip${c.outfit === k ? ' on' : ''}" data-outfit="${k}">${v.name}</button>`).join('');
   $('#acc').innerHTML = Object.entries(ACCS).map(([k, v]) => `<button class="chip${c.acc === k ? ' on' : ''}" data-acc="${k}">${v}</button>`).join('');
 }
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-mode],[data-coat],[data-eye],[data-outfit],[data-acc],[data-i]'); if (!t) return;
+  const t = e.target.closest('[data-ver],[data-mode],[data-coat],[data-eye],[data-outfit],[data-acc],[data-i]'); if (!t) return;
   const d = t.dataset, c = cats[sel];
-  if (d.mode) mode = d.mode;
+  if (d.ver) ver = +d.ver;
+  else if (d.mode) mode = d.mode;
   else if (d.coat) c.coat = d.coat;
   else if (d.eye) c.eye = +d.eye;
   else if (d.outfit) c.outfit = d.outfit;
