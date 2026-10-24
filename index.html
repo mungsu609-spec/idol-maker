@@ -223,9 +223,10 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .st3host>svg.scene{margin-bottom:0}
 .st3host canvas.st3d{position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
 .thumbrow{position:absolute;left:0;right:0;bottom:6%;display:flex;justify-content:center;gap:2px;height:62%}
-.thumbrow img{height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.thumbrow img{height:100%;max-width:19%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
 .avbox img.a3{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 20%}
 .avbox.full img.a3{object-fit:contain;object-position:50% 100%}
+.avbox img.a3{background:transparent}
 .su-row{display:flex;align-items:center;gap:6px;margin:6px 0}
 .su-row img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#fff}
 .su-row input{flex:1;min-width:0}
@@ -371,7 +372,7 @@ function newGame(cfg) {
     ga: 'none', lastConcert: -99, lastPromoEnd: 0, festival: null, awards: [],
     npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null,
   };
-  S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; const M = M3D[cfg.gender === 'boy' ? 'boy' : 'girl']; m.l3 = { model: M[(lookOf(m).ch - 1) % M.length][0], hair: null, cloth: null, cat: false }; });
+  S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; m.cat = CATS[(lookOf(m).ch - 1) % CATS.length][0]; });
   news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
   save(); TAB = 'plan'; render();
 }
@@ -871,7 +872,7 @@ function recruit() {
   const m = newMember(pick(pool.length ? pool : ['새멤버']), 15, 38, S.gender, ri(15, 20));
   const used = S.members.map(x => lookOf(x).ch), free = [1, 2, 3, 4, 5, 6, 7].filter(c => !used.includes(c));
   lookOf(m).ch = free.length ? pick(free) : ri(1, 7);
-  { const M = models3(), used3 = S.members.map(x => look3(x).model), f3 = M.filter(x => !used3.includes(x[0])); m.l3 = { model: (f3.length ? pick(f3) : pick(M))[0], hair: f3.length ? null : pick(HAIR3.slice(1))[0], cloth: null, cat: false }; }
+  { const used = S.members.map(catOf), free = CATS.filter(c => !used.includes(c[0])); m.cat = (free.length ? pick(free) : pick(CATS))[0]; }
   RC = { m, bonus: 1 };
   recruitDlg();
 }
@@ -1258,7 +1259,42 @@ function puppetDefs() {
 }
 document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
-// ===== 3D 아이돌 (VRM, VRoid 공식 샘플 CC0) =====
+// ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
+const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
+const CATV = '?v=6';
+const catOf = m => { if (!m.cat || !CATS.some(c => c[0] === m.cat)) { const i = Math.max(0, S ? S.members.indexOf(m) : 0); m.cat = CATS[i % CATS.length][0]; } return m.cat; };
+const catImg = (coat, kind) => `art/cat/${coat}-${kind}.png${CATV}`;
+let PIXIP = null;
+const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
+let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
+const MODE2 = { stage: 'dance', concert: 'dance', festival: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
+let MOUNT_ID = 0;
+async function mount2d(host, members, kind) {
+  const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
+  if (!host || window.NO3D || !members.length) return;
+  try {
+    await loadPixi(); LG('pixi');
+    if (!CAT2) CAT2 = await import('./cat2d.js' + CATV);
+    if (!CATCV) { CATCV = document.createElement('canvas'); CATCV.className = 'st3d'; }
+    host.appendChild(CATCV);
+    const w = host.clientWidth - 6, h = host.clientHeight - 6;
+    if (!CATAPP) { CATAPP = new PIXI.Application({ view: CATCV, backgroundAlpha: 0, antialias: true, width: w, height: h, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true }); CATAPP.ticker.add(() => { const dt = CATAPP.ticker.deltaMS / 1000; CATS_ON.forEach(c => c.update(dt)); }); }
+    else CATAPP.renderer.resize(w, h);
+    CATAPP.stage.removeChildren().forEach(o => o.destroy({ children: true, texture: false, baseTexture: false })); CATS_ON = [];   // 지난주 무대는 지워서 메모리가 쌓이지 않게
+    const list = members.slice(0, 7), n = list.length;
+    await Promise.all(list.map(m => { const k = catOf(m); return CATDATA[k] || (CATDATA[k] = CAT2.loadCat(PIXI, k)); }));   // 한꺼번에 불러오기
+    LG('data'); if (my !== MOUNT_ID) return;        // 그 사이 다음 주로 넘어갔으면 그만
+    for (const [i, m] of list.entries()) {
+      const coat = catOf(m), data = await CATDATA[coat];
+      const c = CAT2.makeCat(PIXI, data, { phase: i * .37 });
+      const sc = Math.min(h * .78 / c.H, w / (Math.max(n, 2.2) * .95) / c.W);
+      c.root.scale.set(sc); c.root.x = w / 2 + (i - (n - 1) / 2) * Math.min(w / (n + .2), c.W * sc * 1.05); c.root.baseY = h * .97; c.root.y = c.root.baseY;
+      c.setMode(MODE2[kind] || 'idle'); CATAPP.stage.addChild(c.root); CATS_ON.push(c);
+    }
+    host.classList.add('ready');
+  } catch (e) { console.warn('고양이 무대 실패', e); }
+}
+// ===== (예전) 3D 아이돌 — 지금은 쓰지 않음 =====
 const M3D = {
   girl: [['AvatarSample_G', '핑크 아이돌'], ['HairSample_Female', '고양이 귀 소녀'], ['AvatarSample_D', '교복 단발'], ['Sendagaya_Shino', '교복 장발'], ['AvatarSample_F', '사이버 걸'], ['AvatarSample_D_Darkness', '고딕 소녀'], ['AvatarSample_E', '숲속 소녀'], ['Base_Female', '청록 머리']],
   boy: [['Sakurada_Fumiriya', '갈색 머리'], ['HairSample_Male', '후드티'], ['Base_Male', '청록 머리']],
@@ -1320,9 +1356,8 @@ async function mount3d(host, members, kind) {
 }
 function avatar(m, size = 44, full, outfit) {
   if (m && m.stats && S && !m.gender) {
-    const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick', stage = outfit ? V2_OUT[outfit] && V2_OUT[outfit].type === 'stage' : false;
-    const sn = snapSrc(look3For(m, { stage }), full ? 'full' : 'face');
-    return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.75) : size}px;--h:${m.hue || 0}"><img class="a3" src="${sn.src}" data-snap="${esc(sn.key)}" alt=""></span>`;
+    const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
+    return `<span class="avbox${full ? ' full' : ''}${off ? ' off' : ''}" style="width:${size}px;height:${full ? Math.round(size * 1.35) : size}px;--h:${m.hue || 0}"><img class="a3" src="${catImg(catOf(m), full ? 'full' : 'face')}" alt=""></span>`;
   }
   {
     const b = m.busy && m.busy.type, off = b === 'pause' || b === 'sick';
@@ -1402,7 +1437,7 @@ ${star(160, 30, 18, '#ffd54a', 'a-twinkle')}<text x="160" y="64" font-size="12" 
       `<rect width="320" height="180" fill="#fde6e6"/>${Array.from({ length: 14 }, (_, i) => `<path d="M${i * 30 - 40} 180L${i * 30 + 40} 0" stroke="#f8d4d4" stroke-width="8"/>`).join('')}
 <g transform="rotate(-3 160 90)"><g class="a-shake"><rect x="80" y="18" width="160" height="140" rx="4" fill="#fff" stroke="#d9c3c3" stroke-width="2"/><rect x="92" y="30" width="70" height="20" fill="#d64545"/><text x="127" y="45" font-size="13" font-weight="900" fill="#fff" text-anchor="middle">속보</text>
 ${[60, 72, 84, 96, 108, 120, 132, 144].map((y, i) => `<rect x="92" y="${y}" width="${i % 2 ? 60 : 72}" height="5" rx="2" fill="#e8dada"/>`).join('')}<rect x="172" y="30" width="56" height="62" fill="#efe3e3" stroke="#d9c3c3"/>
-${m ? `<image href="${snapSrc(look3For(m, { exp: 'surprised' }), 'face').src}" x="172" y="30" width="56" height="62" preserveAspectRatio="xMidYMid slice"/>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g></g>
+${m ? `<image href="${catImg(catOf(m), 'face')}" x="172" y="30" width="56" height="62" preserveAspectRatio="xMidYMid slice"/>` : ''}<rect x="172" y="100" width="56" height="5" rx="2" fill="#e8dada"/><rect x="172" y="112" width="40" height="5" rx="2" fill="#e8dada"/></g></g>
 ${[[34, 40], [290, 50], [40, 140], [286, 140]].map(([x, y], i) => `<circle class="a-flash" style="animation-delay:${i * .33}s" cx="${x}" cy="${y - 6}" r="38" fill="#fff"/>${star(x, y - 16, 14, '#fff', 'a-flash')}<rect x="${x - 16}" y="${y}" width="32" height="22" rx="4" fill="#333"/><rect x="${x - 7}" y="${y - 5}" width="12" height="6" rx="2" fill="#333"/><circle cx="${x}" cy="${y + 11}" r="7" fill="#666" stroke="#222" stroke-width="2"/>`).join('')}`); }
     case 'live': { const m = ms.find(x => !x.busy) || ms[0]; return W(lg('bg', '#ffd1e6', '#ffeef6'),
       `<rect width="320" height="180" fill="url(#bg)"/><rect x="112" y="6" width="96" height="168" rx="16" fill="#2b2230"/><rect x="118" y="18" width="84" height="146" rx="6" fill="#fff0f7"/>
@@ -1614,13 +1649,12 @@ function fillNames(keep) {
   const old = [...box.querySelectorAll('.su-row')].map(r2 => [r2.querySelector('input').value, r2.querySelector('select').value]);
   const pool = shuffle(SU.gender === 'girl' ? GIRL : BOY), gg = SU.gender === 'boy' ? 'b' : 'g';
   box.innerHTML = Array.from({ length: SU.count }, (_, i) => { const nm = keep && old[i] ? old[i][0] : pool[i], ag = keep && old[i] ? +old[i][1] : ri(16, 21);
-    const M = M3D[SU.gender === 'boy' ? 'boy' : 'girl'], mi = (SU.chars[i] - 1) % M.length;
-    return `<div class="su-row"><img src="${thumbOf(M[mi][0], 'face')}" alt="" title="${M[mi][1]}"><button class="arrow" data-such="${i}:-1" aria-label="이전 캐릭터">◀</button><button class="arrow" data-such="${i}:1" aria-label="다음 캐릭터">▶</button>
+    const ci = (SU.chars[i] - 1) % CATS.length;
+    return `<div class="su-row"><img src="${catImg(CATS[ci][0], 'face')}" alt="" title="${CATS[ci][1]}"><button class="arrow" data-such="${i}:-1" aria-label="이전 캐릭터">◀</button><button class="arrow" data-such="${i}:1" aria-label="다음 캐릭터">▶</button>
 <input type="text" value="${esc(nm)}" maxlength="10" aria-label="이름"><select aria-label="나이">${Array.from({ length: 11 }, (_, a) => a + 14).map(a => `<option value="${a}"${a === ag ? ' selected' : ''}>${a}세</option>`).join('')}</select></div>`; }).join('');
   const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: { ch: SU.chars[i], daily: 'basic', exp: 'normal' }, gender: gg, stats: { visual: 0 }, fatigue: 0, busy: null }));
   const keepS = S; S = { gender: SU.gender, members: [], albums: [], promo: null, ga: 'none' };
-  const M = M3D[SU.gender === 'boy' ? 'boy' : 'girl'];
-  $('#suScene').innerHTML = `<div class="st3host">${scene('stage', [])}<div class="thumbrow">${Array.from({ length: SU.count }, (_, i) => `<img src="${thumbOf(M[(SU.chars[i] - 1) % M.length][0], 'full')}" alt="">`).join('')}</div></div>`; S = keepS;
+  $('#suScene').innerHTML = `<div class="st3host">${scene('stage', [])}<div class="thumbrow">${Array.from({ length: SU.count }, (_, i) => `<img src="${catImg(CATS[(SU.chars[i] - 1) % CATS.length][0], 'full')}" alt="">`).join('')}</div></div>`; S = keepS;
 }
 function memberDetail(id) {
   const m = S.members.find(x => x.id === id); if (!m) return;
@@ -1648,13 +1682,8 @@ function memberDetail(id) {
 ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>꾸미기</h3>
-${(() => { const l = look3(m), sw3 = (f, list, cur) => `<div class="sw">${list.map(([c, nm, bg], i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${bg || c}" data-cust="${m.id}:${f}:${i}" aria-label="${nm}"></button>`).join('')}</div>`;
-  return `<p class="muted center">캐릭터: ${(models3().find(x => x[0] === l.model) || ['', ''])[1]} (처음 정한 캐릭터는 바뀌지 않아요)</p>
-<div class="cust"><span>머리색</span>${sw3('h3', HAIR3, l.hair)}</div>
-<div class="cust"><span>옷 색</span>${sw3('c3', CLOTH3, l.cloth)}</div>
-<div class="cust"><span>고양이</span><button class="chip${!l.cat ? ' on' : ''}" data-cust="${m.id}:cat:0">없음</button><button class="chip${l.cat ? ' on' : ''}" data-cust="${m.id}:cat:1">귀·꼬리 달기 🐱</button></div>`; })()}
-<div class="cust"><span>표정</span>${arrows('exp', { normal: '기본 (가끔 깜빡임)', smile: '웃음', surprise: '놀람', closed: '편안' }[L.exp] || '기본')}</div>
-<p class="muted">무대에서는 콘셉트에 맞는 색 옷으로 바뀌어요 (옷 색을 정하면 그 색으로).</p>
+<p class="muted center">🐾 털 무늬: ${(CATS.find(c => c[0] === catOf(m)) || ['', ''])[1]} (처음 정한 고양이는 바뀌지 않아요)</p>
+<p class="muted">옷·소품 꾸미기는 준비 중이에요.</p>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
 function customize(spec) {
@@ -1683,7 +1712,8 @@ const dlg = $('#dlg');
 function openDlg(html) { $('#dlgBody').innerHTML = CREST + html; if (!dlg.open) dlg.showModal(); }
 function closeDlg() { if (dlg.open) dlg.close(); }
 dlg.addEventListener('cancel', e => { if (S && S.pending.length) e.preventDefault(); });
-const CAPTION = { dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
+const CAPTION0 = { dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
+const CAPTION = new Proxy(CAPTION0, { get: (o, k) => (o[k] || '').replace('연습실에서 구슬땀', '연습실에서 꾹꾹이 대신 구슬땀') });
 let REVEAL = null;
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
@@ -1699,7 +1729,7 @@ function showReport(r) {
   if (S.pending.length) h += `<p class="neg" style="margin-top:12px"><b>⚠️ 논란이 ${S.pending.length}건 생겼어요!</b></p>`;
   h += `<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`;
   openDlg(top + `<div class="rep-body">${h}</div><p class="skip muted">눌러서 바로 보기</p>`);
-  if (r.scene !== 'clinic') { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; mount3d($('#st3host'), ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : S.members.filter(m => !m.busy), r.scene); }
+  if (r.scene !== 'clinic') { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; mount2d($('#st3host'), ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : S.members.filter(m => !m.busy), r.scene); }
   const body = $('#dlgBody'); body.classList.add('intro');
   [...body.querySelectorAll('.rep-body > *')].forEach((el, i) => el.style.setProperty('--i', i));
   const fmt = { '💗 팬': n => (n >= 0 ? '+' : '') + num(n), '💰 자금': n => (n >= 0 ? '+' : '') + money(n), '⭐ 인지도': n => (n >= 0 ? '+' : '') + n };
@@ -1725,7 +1755,7 @@ function nextPopup() {
 <button class="choice" data-sc="guard"><b>🛡 경호 강화</b><small>비용 500만. 가장 안전해요.</small></button>
 <button class="choice" data-sc="police"><b>🚓 경찰 신고·공식 대응</b><small>돈은 안 들어요. 멤버가 조금 지쳐요.</small></button>
 <button class="choice" data-sc="ignore"><b>🙈 무시하기</b><small>멤버가 불안해하고, 숙소 침입이 생길 수 있어요.</small></button>`);
-      mount3d($('#st3host'), [m], 'scandal');
+      mount2d($('#st3host'), [m], 'scandal');
       return;
     }
     const extra = [];
@@ -1739,7 +1769,7 @@ ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <button class="choice" data-sc="pause"><b>⏸ 활동 중단</b><small>${3 + sc.sev * 2}주 쉬어요. 팬은 덜 떠나지만 드라마는 하차해요.</small></button>
 ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 인정하기</b><small>팬이 조금 떠나지만 논란이 빨리 끝나요. 심각하면 광고가 해지돼요.</small></button>` : ''}
 <button class="choice" data-sc="leave"><b>🚪 그룹 탈퇴</b><small>멤버가 그룹을 떠나요. 광고 위약금과 드라마 하차가 따라와요.</small></button>`);
-    mount3d($('#st3host'), [m], 'scandal');
+    mount2d($('#st3host'), [m], 'scandal');
     return;
   }
   closeDlg(); render();
@@ -1760,7 +1790,7 @@ document.addEventListener('click', e => {
   if (d.cust) return customize(d.cust);
   if (d.rcb) { RC.bonus = +d.rcb; return recruitDlg(); }
   if (d.dorm) return moveDorm(d.dorm);
-  if (d.such) { const [i, v] = d.such.split(':').map(Number), n = M3D[SU.gender === 'boy' ? 'boy' : 'girl'].length; SU.chars[i] = ((SU.chars[i] - 1 + v + n) % n) + 1; return fillNames(true); }
+  if (d.such) { const [i, v] = d.such.split(':').map(Number), n = CATS.length; SU.chars[i] = ((SU.chars[i] - 1 + v + n) % n) + 1; return fillNames(true); }
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
   if (d.cbsolo) { CB.solo = d.cbsolo; $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
@@ -1806,7 +1836,7 @@ document.addEventListener('change', e => {
 });
 
 load();
-if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); look3(m); }); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
+if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); catOf(m); }); setTimeout(() => { if (window.NO3D) return; loadPixi().then(() => import('./cat2d.js' + CATV)).then(mod => { CAT2 = mod; S.members.forEach(m => { const k = catOf(m); CATDATA[k] = CATDATA[k] || CAT2.loadCat(PIXI, k); }); }).catch(() => {}); }, 1500); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 render();
 if (!S) fillNames();

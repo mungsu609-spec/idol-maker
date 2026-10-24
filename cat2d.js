@@ -1,6 +1,6 @@
 // ===== 2D 고양이 아이돌 (그림을 휘고 늘리는 메시 애니메이션, PixiJS) =====
 // 부위 그림(몸통·팔·꼬리·표정)을 격자 모양 메시로 붙이고, 꼭짓점을 움직여서 이음새 없이 휘게 만듦.
-const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=4';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
+const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=6';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
 const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]; };
 
@@ -15,7 +15,7 @@ export async function loadCat(PIXI, name) {
 }
 
 export function makeCat(PIXI, data, opt = {}) {
-  const { info, tex } = data, W = info.w, H = info.h;
+  const { info, tex } = data, W = info.w, H = info.h, U = H / 1200;   // U: 그림 크기 비율 (움직임 크기 맞추기)
   const root = new PIXI.Container();
   const parts = [];
   // 몸 비율: 머리-목 경계, 발 위치
@@ -39,7 +39,7 @@ export function makeCat(PIXI, data, opt = {}) {
   for (const k of ['face-blink', 'face-sing', 'face-joy', 'face-sad', 'face-sleep']) if (P[k]) { faces[k] = plane(k, 8, 6, P[k].x, P[k].y, 'face'); faces[k].p.alpha = 0; }
   // 그리는 순서: 꼬리 → 몸 → 표정 → 팔
   [tail, body, ...Object.values(faces), armL, armR].forEach(o => o && root.addChild(o.p));
-  const zz = [0, 1, 2].map(i => { const z = new PIXI.Text('Z', { fontFamily: 'Jua, sans-serif', fontSize: 70 + i * 22, fill: 0xb9a6ff, stroke: 0xffffff, strokeThickness: 10, fontWeight: '700' }); z.anchor.set(.5); z.alpha = 0; root.addChild(z); return z; });
+  const zz = [0, 1, 2].map(i => { const z = new PIXI.Text('Z', { fontFamily: 'Jua, sans-serif', fontSize: (70 + i * 22) * U, fill: 0xb9a6ff, stroke: 0xffffff, strokeThickness: 10 * U, fontWeight: '700' }); z.anchor.set(.5); z.alpha = 0; root.addChild(z); return z; });
   root.pivot.set(W / 2, feetY);
 
   const st = { mode: 'idle', t: Math.random() * 10, phase: opt.phase || 0 };
@@ -122,10 +122,10 @@ export function makeCat(PIXI, data, opt = {}) {
     zz.forEach((z, i) => {
       if (st.mode !== 'sleep') { z.alpha = 0; return; }
       const u = ((st.t * .45) + i / 3) % 1;              // 머리 오른쪽에서 위로 둥실
-      z.x = W * .74 + u * W * .18 + Math.sin(u * 6) * 18; z.y = H * .2 - u * H * .2;
+      z.x = W * .74 + u * W * .18 + Math.sin(u * 6) * 18 * U; z.y = H * .2 - u * H * .2;
       z.alpha = u < .15 ? u / .15 : 1 - (u - .15) / .85; z.scale.set(.6 + u * .6); z.rotation = -.2 + u * .3;
     });
-    root.y = (root.baseY || 0) - q.bounce * (root.scale.y || 1);
+    root.y = (root.baseY || 0) - q.bounce * U * (root.scale.y || 1);
   }
   return { root, update, setMode(m) { st.mode = m; }, get mode() { return st.mode; }, W, H };
 }
