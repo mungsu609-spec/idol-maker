@@ -321,7 +321,7 @@ const SCHED = {
   surgery: { label: '성형 (3주 회복)', cost: 1500, fat: 0, gain: {} },
   rest: { label: '휴식', cost: 0, fat: -35, gain: { health: 2 } },
 };
-const BUSY = { drama: '드라마 촬영', adshoot: '광고 촬영', surgery: '성형 회복', pause: '활동 중단', sick: '건강 회복' };
+const BUSY = { drama: '드라마 촬영', adshoot: '광고 촬영', variety: '예능 촬영', surgery: '성형 회복', pause: '활동 중단', sick: '건강 회복' };
 const CONCEPTS = [
   { id: 'fresh', label: '청량', fav: ['dance', 'camera'] },
   { id: 'crush', label: '걸크러시', boy: '카리스마', fav: ['dance', 'visual'] },
@@ -344,6 +344,7 @@ const BOY = ['도윤', '시우', '이안', '하준', '태오', '윤재', '건우
 const NPC = ['STELLAR', '루미너스', 'NOVA:X', '블루밍', 'ECLIPSE', '하이틴', 'ARCADIA', '미라클', 'VERTEX', '솔라리스', 'PRISM', 'DAWN'];
 const TITLES = ['Sparkle', '여름 끝에서', 'Butterfly Effect', 'Midnight Run', '고백', 'Neon Heart', 'Starlight', 'Blue Wave', '첫눈', 'Velvet', 'Rush', 'Daydream', '불꽃놀이', 'Gravity', '나의 별'];
 const BRANDS = ['화장품 「루미에」', '음료 「톡팡」', '치킨 「바삭왕」', '스마트폰 「노바폰」', '스포츠웨어 「런업」', '과자 「달콤칩」', '안경 「클리어뷰」', '게임 「드림퀘스트」'];
+const VARIETY = ['〈냥냥 런닝맨〉', '〈아는 고양이〉', '〈놀면 뭐하냥〉', '〈나 혼자 산다냥〉', '〈1박 2일 캣캠프〉', '〈주간 아이돌냥〉', '〈전지적 집사 시점〉', '〈냥슐랭 가이드〉'];
 const DRAMAS = ['〈봄날의 레시피〉', '〈비밀 계약 연애〉', '〈하이틴 크러시〉', '〈법정의 온도〉', '〈달빛 고등학교〉', '〈청춘 오피스〉', '〈마지막 여름〉'];
 const HEAD = {
   '인성': ['학창 시절 학교폭력 의혹', '스태프 무시 논란', '팬 비하 발언 논란', '촬영장 지각·갑질 의혹', '과거 SNS 막말 재조명'],
@@ -377,7 +378,7 @@ function newMember(name, low = 15, high = 40, gender = S ? S.gender : SU.gender,
   const st = {};
   for (const [k] of STATS) st[k] = ri(low, high);
   st.person = ri(30, 75); st.health = ri(55, 80);
-  return { id: uid(), name, age, hue: ri(0, 359), look: makeLook(gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null };
+  return { id: uid(), name, age, hue: ri(0, 359), look: makeLook(gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null, variety: null };
 }
 function newGame(cfg) {
   S = {
@@ -482,6 +483,7 @@ function endWeek() {
 
   for (const m of S.members) {
     if (m.ad) { m.ad.left--; if (m.ad.left <= 0) { news('info', `${m.name}의 광고 ${m.ad.brand} 계약이 끝났어요.`); m.ad = null; } }
+    if (m.variety) { const v = m.variety; earn(v.feeW, `${m.name} 예능 ${v.title} 출연료`); gain(m, 'camera', .6); gain(m, 'person', .3); addFat(m, 5); v.left--; if (v.left % 3 === 0 || v.left <= 0) varietyAir(m, v.title, false); if (v.left <= 0) { news('info', `${m.name}의 고정 예능 ${v.title} 출연이 끝났어요.`); m.variety = null; } }
     if (m.busy) { tickBusy(m); continue; }
     if (ga === 'concert' || ga === 'festival') { addFat(m, 20); gain(m, 'vocal', 1.5); gain(m, 'dance', 1.5); gain(m, 'camera', 1.5); }
     else if (P && inPromo(m) && P.phase === 'prep') { addFat(m, 12); gain(m, 'vocal', 2.5); gain(m, 'dance', 2.5); }
@@ -661,14 +663,29 @@ function tickBusy(m) {
   const t = m.busy.type;
   if (t === 'drama') { gain(m, 'act', 2.5); gain(m, 'camera', 1); addFat(m, 10); earn(m.drama.feeW, `${m.name} 드라마 출연료`); S.fame = clamp(S.fame + 0.3, 0, 100); }
   else if (t === 'adshoot') { gain(m, 'camera', 1); addFat(m, 6); }
+  else if (t === 'variety') { gain(m, 'camera', 1.5); gain(m, 'person', .5); addFat(m, 8); earn(m.busy.fee || 0, `${m.name} 예능 게스트 출연료`); varietyAir(m, m.busy.title, true); }
   else if (t === 'surgery') addFat(m, -10);
   else if (t === 'pause') { addFat(m, -25); gain(m, 'person', 1); }
   else if (t === 'sick') { addFat(m, -30); gain(m, 'health', 6); }
   m.busy.left--;
   if (m.busy.left <= 0) {
     if (t === 'drama') dramaEnd(m);
-    else if (t !== 'adshoot') news('info', `${m.name} 복귀! 다시 스케줄을 할 수 있어요.`);
+    else if (t !== 'adshoot' && t !== 'variety') news('info', `${m.name} 복귀! 다시 스케줄을 할 수 있어요.`);
     m.busy = null;
+  }
+}
+// 예능 방송 결과: 표현력·인성이 좋으면 화제, 인성이 낮으면 가끔 비호감 논란
+function varietyAir(m, title, guest) {
+  const sc = m.stats.camera * .5 + m.stats.person * .3 + m.pop * .1 + rand(-10, 20);
+  if (m.stats.person < 30 && Math.random() < .25) {
+    const f = Math.round(300 + S.fans * .01); S.fans = Math.max(0, S.fans - f); S.fame = clamp(S.fame - 1, 0, 100); m.pop = Math.max(0, m.pop - 2);
+    news('scandal', `${m.name}, 예능 ${title}에서 태도 논란 · 팬 -${num(f)}`); REP.lines.push(`📺 ${m.name} 예능 ${title} 태도 논란 · 팬 -${num(f)}`);
+  } else if (sc > 45) {
+    const f = Math.round(sc * (guest ? 60 : 40) * (1 + S.fame / 100)); S.fans += f; S.fame = clamp(S.fame + (guest ? 1.2 : .8), 0, 100); m.pop += 3;
+    news('win', `${m.name}, 예능 ${title}에서 화제! · 팬 +${num(f)}`); REP.lines.push(`📺 ${m.name} 예능 ${title} 화제 · 팬 +${num(f)}`);
+  } else {
+    const f = Math.round(Math.max(10, sc) * 15); S.fans += f; m.pop += 1;
+    REP.lines.push(`📺 ${m.name} 예능 ${title} 방송 · 팬 +${num(f)}`);
   }
 }
 function dramaEnd(m) {
@@ -698,7 +715,7 @@ function yearEnd(avail) {
   REP.lines.push(`🎄 연말 무대 · 점수 ${Math.round(st)}${award ? ` · 🏅 ${award} 수상!` : ''} · 팬 +${num(f)}`);
 }
 
-// ===== 제의 (광고·드라마) =====
+// ===== 제의 (광고·드라마·예능) =====
 function makeOffers() {
   if (!debuted()) return;
   if (Math.random() < 0.04 + S.fame / 250) {
@@ -719,6 +736,16 @@ function makeOffers() {
       news('offer', `${m.name}에게 드라마 ${lead ? '주연' : '조연'} 제의가 왔어요!`);
     }
   }
+  if (Math.random() < 0.05 + S.fame / 220) {   // 예능: 게스트(1주) 또는 고정(12주, 인지도 30 이상)
+    const c = S.members.filter(m => !m.variety && !(m.busy && m.busy.type === 'pause') && !S.offers.some(o => o.mid === m.id));
+    if (c.length) {
+      const m = wpick(c, m => 5 + m.stats.camera + m.stats.person * .5 + m.pop);
+      const reg = S.fame >= 30 && Math.random() < .35;
+      if (reg) S.offers.push({ id: uid(), type: 'variety', mid: m.id, title: pick(VARIETY), regular: true, weeks: 12, feeW: Math.round((80 + S.fame * 3 + m.pop * 2) / 10) * 10, expire: S.week + 2 });
+      else S.offers.push({ id: uid(), type: 'variety', mid: m.id, title: pick(VARIETY), regular: false, fee: Math.round((200 + S.fame * 12 + m.pop * 4) / 10) * 10, expire: S.week + 2 });
+      news('offer', `${m.name}에게 예능 ${reg ? '고정 출연' : '게스트'} 제의가 왔어요!`);
+    }
+  }
 }
 function acceptOffer(id) {
   const o = S.offers.find(x => x.id === id); if (!o) return;
@@ -729,6 +756,9 @@ function acceptOffer(id) {
     m.ad = { brand: o.brand, fee: o.fee, left: 24 }; m.busy = { type: 'adshoot', left: 1 };
     S.money += o.fee; m.pop += 3;
     news('win', `${m.name}, ${o.brand} 광고 모델 계약! 계약금 ${money(o.fee)}`);
+  } else if (o.type === 'variety') {
+    if (o.regular) { m.variety = { title: o.title, feeW: o.feeW, left: o.weeks }; news('win', `${m.name}, 예능 ${o.title} 고정 멤버 합류!`); }
+    else { m.busy = { type: 'variety', left: 1, title: o.title, fee: o.fee }; news('win', `${m.name}, 예능 ${o.title} 게스트 출연 확정!`); }
   } else {
     m.drama = { title: o.title, role: o.role, feeW: o.feeW }; m.busy = { type: 'drama', left: o.weeks };
     news('win', `${m.name}, 드라마 ${o.title} ${o.role} 캐스팅!`);
@@ -796,6 +826,9 @@ function resolveScandal(choice) {
       out.push(`💸 광고 ${m.ad.brand} 계약 해지 → 위약금 ${money(pen)} 발생`);
       news('scandal', `${m.ad.brand}, ${m.name} 광고 계약 해지 · 위약금 ${money(pen)}`);
       m.ad = null;
+    }
+    if (m.variety && (sev >= 2 || choice === 'pause' || choice === 'leave')) {
+      out.push(`📺 예능 ${m.variety.title}에서 하차했어요.`); news('scandal', `${m.name}, 예능 ${m.variety.title} 하차`); m.variety = null;
     }
     if (m.drama && (sev >= 3 || choice === 'pause' || choice === 'leave')) {
       out.push(`🎬 드라마 ${m.drama.title}에서 하차했어요.`);
@@ -1592,7 +1625,7 @@ function managerLine() {
   const tired = S.members.filter(m => !m.busy && m.fatigue >= 70);
   if (tired.length) return [`${tired.map(m => esc(m.name)).join(', ')} 멤버가 많이 지쳤어요. 휴식을 시켜 주세요.`, ''];
   if (!debuted()) return ['아직 데뷔 전이에요. 데뷔를 준비해 볼까요?', TAB !== 'act' ? go('act', '🎤 데뷔 준비하러 가기') : ''];
-  if (S.offers.length && TAB !== 'act') return [`광고·드라마 제의가 ${S.offers.length}건 와 있어요!`, go('act', '💌 제의 보러 가기')];
+  if (S.offers.length && TAB !== 'act') return [`광고·드라마·예능 제의가 ${S.offers.length}건 와 있어요!`, go('act', '💌 제의 보러 가기')];
   if (S.festival && S.week <= S.festival.until) return [`${S.festival.name} 출연 제의가 왔어요. 그룹 일정에서 고를 수 있어요.`, ''];
   return [`지금은 공백기예요. ${TIPS[S.week % TIPS.length]}`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
 }
@@ -1640,7 +1673,7 @@ ${S.members.map(m => `<div class="card"><div class="mcard who" data-member="${m.
 <div><span class="name">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</div>
 <div class="muted">만 ${m.age || 18}세 · 인기 ${Math.round(m.pop)} · 피로 ${Math.round(m.fatigue)} · 실력 ${Math.round(perfOf(m))}</div>
 ${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음 (논란 시 위약금 ${money(m.ad.fee * 2)})</div>` : ''}
-${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role} · 주당 ${money(m.drama.feeW)}</div>` : ''}</div></div>${statBars(m, true)}</div>`).join('')}
+${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role} · 주당 ${money(m.drama.feeW)}</div>` : ''}${m.variety ? `<div class="muted">📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음 · 주당 ${money(m.variety.feeW)}</div>` : ''}</div></div>${statBars(m, true)}</div>`).join('')}
 <div class="card"><b class="name">연습생 영입</b><p class="muted">연습생을 만나 보고 영입을 제안해요. 거절할 수도 있어요 · 최대 7명</p><button class="btn small" data-act="recruit"${S.members.length >= 7 ? ' disabled' : ''}>영입하기</button></div>`;
 }
 const outfitOptions = c => catStageOutfits(c).map(k => `<option value="${k}">${outfitName(k, S.gender)}</option>`).join('');
@@ -1677,10 +1710,10 @@ function actHTML() {
   h += `<h2>들어온 제의</h2>`;
   h += S.offers.length ? S.offers.map(o => {
     const m = S.members.find(x => x.id === o.mid); if (!m) return '';
-    const what = o.type === 'ad' ? `📢 ${esc(o.brand)} 광고 · 계약금 ${money(o.fee)} · 24주 계약 (1주 촬영)` : `🎬 드라마 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 주당 ${money(o.feeW)}`;
+    const what = o.type === 'ad' ? `📢 ${esc(o.brand)} 광고 · 계약금 ${money(o.fee)} · 24주 계약 (1주 촬영)` : o.type === 'variety' ? (o.regular ? `📺 예능 ${esc(o.title)} 고정 출연 · ${o.weeks}주 · 주당 ${money(o.feeW)} (스케줄은 그대로 할 수 있어요)` : `📺 예능 ${esc(o.title)} 게스트 · 1주 촬영 · 출연료 ${money(o.fee)}`) : `🎬 드라마 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 주당 ${money(o.feeW)}`;
     return `<div class="card offer">${avatar(m, 52)}<div class="info"><b class="name">${esc(m.name)}</b><div class="muted">${what}</div><div class="muted">${o.expire - S.week}주 안에 답해야 해요</div></div>
 <div class="row" style="flex-direction:column"><button class="btn small" data-accept="${o.id}">수락</button><button class="btn sub small" data-decline="${o.id}">거절</button></div></div>`;
-  }).join('') : `<p class="muted center">${debuted() ? '아직 없어요. 인지도가 높을수록 제의가 자주 와요.' : '데뷔하면 광고·드라마 제의가 들어와요.'}</p>`;
+  }).join('') : `<p class="muted center">${debuted() ? '아직 없어요. 인지도가 높을수록 제의가 자주 와요.' : '데뷔하면 광고·드라마·예능 제의가 들어와요.'}</p>`;
   h += `<h2>앨범 기록</h2>` + (S.albums.length ? `<div class="card">${S.albums.slice().reverse().map(a => `<div class="news"><span class="ni">💿</span><div><small>${dateStr(a.w)}</small>${a.kind && a.kind !== 'group' ? `<span class="tag blue">${a.kind === 'solo' ? '솔로' : '유닛'} ${esc(a.who || '')}</span> ` : ''}「${esc(a.title)}」 ${a.debut ? '<span class="tag">데뷔곡</span>' : ''} · ${conceptLabel(CONCEPTS.find(c => c.id === a.concept))} · 최고 ${a.best}위${a.wins ? ` · 🏆${a.wins}` : ''}</div></div>`).join('')}</div>` : '<p class="muted center">아직 없어요.</p>');
   if (S.awards.length) h += `<h2>수상</h2><div class="card">${S.awards.map(a => `<div class="news"><span class="ni">🏅</span><div>${a.y}년차 ${a.award}</div></div>`).join('')}</div>`;
   h += `<p class="muted">💡 12월 4주에는 연말 무대가 있어요 (인지도 25 이상). 5월·8월엔 페스티벌 제의가 와요.</p>`;
@@ -1762,7 +1795,7 @@ function memberDetail(id) {
 <div>💪 잘하는 것: ${sorted.slice(0, 2).map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
 <div>📉 부족한 것: ${sorted.slice(-2).reverse().map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
 <div>🎵 잘 맞는 콘셉트: ${fit.map(([c]) => conceptLabel(c)).join(', ')}</div>
-${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}
+${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.variety ? `<div>📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>꾸미기</h3>
 <p class="muted center">🐾 털 무늬: ${(CATS.find(c => c[0] === catOf(m)) || ['', ''])[1]} (처음 정한 고양이는 바뀌지 않아요)</p>
@@ -1846,6 +1879,7 @@ function nextPopup() {
     const extra = [];
     if (m.ad) extra.push(`광고 ${m.ad.brand} 계약 중 (심각하면 위약금 ${money(m.ad.fee * 2)})`);
     if (m.drama) extra.push(`드라마 ${m.drama.title} 촬영 중`);
+    if (m.variety) extra.push(`예능 ${m.variety.title} 고정 출연 중 (논란이 크면 하차)`);
     openDlg(`<div class="st3host" id="st3host">${bgHTML('scandal')}</div><h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
 ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <p class="muted">어떻게 대처할까요?</p>
