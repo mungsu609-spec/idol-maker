@@ -233,6 +233,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .avbox.full img.a3{object-fit:contain;object-position:50% 100%}
 .avbox img.a3{background:transparent}
 .st3host .vig{z-index:1;position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:11px;pointer-events:none;-webkit-backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);background:radial-gradient(ellipse 75% 70% at 50% 55%,transparent 55%,rgba(20,10,40,.38) 100%)}
+.allrow{background:#fff6fb;border-radius:12px;margin-bottom:4px}
+.allico{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:#ffe3f0;border:2.5px solid #fff;box-shadow:0 0 0 2px var(--gold)}
 .doll{position:relative;display:block;height:100%;aspect-ratio:448/600;margin:0 auto}
 .doll img.a3{object-fit:fill}
 .doll .witem{position:absolute;display:block;pointer-events:none}
@@ -1274,7 +1276,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=14';
+const CATV = '?v=15';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['headset', '헤드셋 마이크'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1631,7 +1633,7 @@ function planHTML() {
   return `${managerBox()}
 <h2>그룹 일정</h2><div class="chips">${opts.map(o => `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}"${o.ok === false ? ' disabled' : ''}>${o.label}</button>`).join('')}</div>
 <p class="muted">${esc(cur.desc)}${opts.find(o => o.id === 'concert' && o.ok === false) ? ` · 콘서트: ${concertWhy()}` : ''}</p>
-<h2>멤버별 스케줄</h2><div class="card">${rows}</div>
+<h2>멤버별 스케줄</h2><div class="card"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에 바꾸기</div></div></div><select id="schedAll"><option value="">골라 주세요</option>${Object.entries(SCHED).map(([k, s]) => `<option value="${k}">${s.label}${s.cost ? ` · ${money(s.cost)}` : ''}</option>`).join('')}</select></div>${rows}</div>
 <p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고, 80을 넘으면 건강이 깎여요.</p>`;
 }
@@ -1919,6 +1921,7 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => {
   if (e.target.id === 'cbConcept') { $('#cbOutfit').innerHTML = outfitOptions(e.target.value); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (e.target.id === 'cbOutfit') { $('#cbPreview').innerHTML = outfitPreview(e.target.value); return; }
+  if (e.target.id === 'schedAll') { const v = e.target.value; if (v) { S.members.forEach(m => { if (!forcedLabel(m)) m.sched = v; }); save(); render(); } return; }
   const id = e.target.dataset.sched;
   if (id) { const m = S.members.find(x => x.id === id); if (m) { m.sched = e.target.value; save(); render(); } }
 });
