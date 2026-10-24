@@ -1644,7 +1644,7 @@ const outfitOptions = c => catStageOutfits(c).map(k => `<option value="${k}">${o
 let CB = { kind: 'group', solo: null, unit: new Set() };
 const cbMembers = () => CB.kind === 'solo' ? S.members.filter(m => m.id === CB.solo) : CB.kind === 'unit' ? S.members.filter(m => CB.unit.has(m.id)) : S.members;
 const catStageOutfits = c => { const l = (STAGE_WEAR[c] || []).map(x => x[0]).filter(k => ITEMINFO[k]); return l.length ? l : [CONCEPT_WEAR[c]]; };
-const outfitPreview = k => (cbMembers().length ? cbMembers() : S.members).slice(0, 4).map(m => avatar(m, 62, true, k)).join('');
+const outfitPreview = k => (cbMembers().length ? cbMembers() : S.members).map(m => avatar(m, 62, true, k)).join('');   // 활동하는 멤버 전원
 function cbWhoHTML() {
   const N = S.members.length;
   if (CB.kind === 'solo') return `<label class="f">솔로 활동할 멤버</label><div class="chips">${S.members.map(m => `<button class="chip${CB.solo === m.id ? ' on' : ''}" data-cbsolo="${m.id}">${esc(m.name)}</button>`).join('')}</div>`;
