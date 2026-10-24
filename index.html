@@ -234,6 +234,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .avbox img.a3{background:transparent}
 .st3host .vig{z-index:1;position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:11px;pointer-events:none;-webkit-backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);background:radial-gradient(ellipse 75% 70% at 50% 55%,transparent 55%,rgba(20,10,40,.38) 100%)}
 .evrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed #f0d8c0}.evrow b{flex:none;width:96px;font-size:13px}.evrow select{flex:1;min-width:0}.evrow .avbox{flex:none}
+.pvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:8px}.pvgrid>div{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}.pvgrid small{font-size:11px;line-height:1.2}
 .allrow{background:#fff6fb;border-radius:12px;margin-bottom:4px}
 .allico{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:#ffe3f0;border:2.5px solid #fff;box-shadow:0 0 0 2px var(--gold)}
 .doll{position:relative;display:block;height:100%;aspect-ratio:448/600;margin:0 auto}
@@ -1337,7 +1338,7 @@ const EVENT_WEAR = {
 };
 const eventWearNow = ev => { const l = EVENT_WEAR[ev][1].map(x => x[0]).filter(k => ITEMINFO[k]); if (!l.length) return null; const c = S && S.eventWear && S.eventWear[ev]; return l.includes(c) ? c : l[(S ? S.week : 0) % l.length]; };
 let ITEMINFO = {};
-fetch('art/cat/items.json' + CATV).then(r => r.json()).then(j => { ITEMINFO = j; if (S) render(); }).catch(() => {});
+fetch('art/cat/items.json' + CATV).then(r => r.json()).then(j => { ITEMINFO = j; if (window.PV) pvRender(); else if (S) render(); }).catch(() => {});
 const wearOf = m => m.wear || (m.wear = { cloth: null, acc: null });
 const curStageWear = () => {   // 이번 활동 무대 의상 (고른 것 → 지난 앨범 것 → 콘셉트 기본)
   const a = S && !S.promo && S.albums && S.albums.length ? S.albums[S.albums.length - 1] : null, o = S && S.promo ? S.promo.outfit : a && a.outfit;
@@ -1345,6 +1346,7 @@ const curStageWear = () => {   // 이번 활동 무대 의상 (고른 것 → �
 };
 const curConcept = () => S && S.promo ? S.promo.concept : (S && S.albums && S.albums.length ? S.albums[S.albums.length - 1].concept : null);
 function wearFor(m, kind) {   // 이 장면에서 입을 옷·소품
+  if (window.PV && PV.cloth !== 'auto') return [PV.cloth === 'none' ? null : PV.cloth, PV.acc].filter(k => k && ITEMINFO[k]);   // 미리보기에서 고른 옷
   const w = wearOf(m), out = [];
   let cloth = w.cloth;
   const ev = kind === 'win' && REP && REP.yearWin ? 'yearend' : kind;   // 연말 시상식 수상 장면은 연말 의상
@@ -1395,6 +1397,7 @@ async function mount2d(host, members, kind) {
   try {
     await loadPixi(); LG('pixi');
     if (!CAT2) CAT2 = await import('./cat2d.js' + CATV);
+    if (my !== MOUNT_ID || !host.isConnected) return;   // 그 사이 화면이 다시 그려졌으면 새 호출에 맡김
     if (!CATCV) { CATCV = document.createElement('canvas'); CATCV.className = 'st3d'; }
     host.appendChild(CATCV);
     const w = host.clientWidth - 6, h = host.clientHeight - 6;
@@ -1426,7 +1429,7 @@ async function mount2d(host, members, kind) {
         const m = r === rows[rows.length - 1] && two ? list[j] : two ? list[nf + j] : list[j];
         const c = CAT2.makeCat(PIXI, await CATDATA[catOf(m)], { phase: idx * .37, items: ITEMS2, wear: wearFor(m, kind), shadowAlpha: r.back ? .62 : .5 });
         c.root.scale.set(sc); c.root.x = w / 2 + (r.back ? slots[j] : j - (r.k - 1) / 2) * gap; c.root.baseY = r.y; c.root.y = r.y;
-        c.setMode(MODE2[kind] || 'idle'); shadows.addChild(c.shadow); crowd.addChild(c.root); CATS_ON.push(c);
+        c.setMode((window.PV && PV.mode !== 'auto' && PV.mode) || MODE2[kind] || 'idle'); shadows.addChild(c.shadow); crowd.addChild(c.root); CATS_ON.push(c);
       }
     }
     host.classList.add('ready');
@@ -1776,6 +1779,7 @@ function setupHTML() {
 function overHTML() {
   return `<div class="over"><div class="logo"><h1>게임 끝</h1></div><p>${esc(S.over)}</p><div class="card" style="text-align:left">
 <div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div></div>
+<a class="btn sub" href="?preview" style="text-decoration:none">🔍 미리보기 (장면·옷 바로 보기)</a>
 <button class="btn" data-act="reset">새 게임</button></div>`;
 }
 let SU = { gender: 'girl', count: 5, chars: [1, 2, 3, 4, 5, 6, 7] };
@@ -1979,12 +1983,60 @@ document.addEventListener('change', e => {
   if (id) { const m = S.members.find(x => x.id === id); if (m) { m.sched = e.target.value; save(); render(); } }
 });
 
+// ===== 미리보기 (?preview): 게임을 진행하지 않고 장면·인원·옷·동작을 바로 골라 보기. 저장은 하지 않음 =====
+const PV_SCENES = [['stage', '🎤 음악 방송'], ['win', '🏆 1위'], ['concert', '🎆 단독 콘서트'], ['festival', '🎪 여름 페스티벌'], ['campus', '🏫 대학 축제'], ['yearend', '🎄 연말 무대'], ['practice', '💃 연습실'], ['prep', '🎧 녹음실'], ['live', '📱 라이브'], ['fansign', '✍️ 팬싸인회'], ['drama', '🎬 드라마'], ['dorm', '🏠 숙소'], ['scandal', '📸 논란'], ['clinic', '🏥 성형외과(고양이 없음)']];
+const PV_MODES = [['auto', '장면에 맞게'], ['idle', '대기'], ['dance', '춤'], ['cheer', '만세'], ['wave', '손 흔들기'], ['sleep', '졸기'], ['sad', '시무룩']];
+function pvStart() {
+  window.PV = { scene: 'stage', dorm: 'd2', n: 5, cats: CATS.map(c => c[0]), mode: 'auto', cloth: 'auto', acc: '', concept: 'cute', gal: 'cheese' };
+  save = () => {};
+  S = { v: 1, name: '미리보기', gender: 'girl', week: 1, money: 0, fans: 0, fame: 50, members: [], dorm: { id: 'd2', since: 0 }, promo: null, albums: [], offers: [], news: [], pending: [], festival: null, awards: [], eventWear: {} };
+  pvRender();
+}
+function pvMembers() {
+  return PV.cats.slice(0, PV.n).map((c, i) => ({ id: 'pv' + i, name: (CATS.find(x => x[0] === c) || ['', ''])[1], cat: c, stats: { person: 50 }, wear: { cloth: null, acc: PV.acc || null }, hue: i * 50 }));
+}
+function pvRender() {
+  if (!window.PV) return;
+  const all = [['auto', '자동 (장면에 맞는 옷)'], ['none', '없음']], og = (lab, l) => `<optgroup label="${lab}">${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${PV.cloth === k ? ' selected' : ''}>${n}</option>`).join('')}</optgroup>`;
+  S.dorm.id = PV.dorm; S.albums = [{ title: '미리보기', concept: PV.concept, outfit: catStageOutfits(PV.concept)[0], best: 1, wins: 0, w: 0, weeks: 1, kind: 'group' }];
+  S.members = pvMembers();
+  const chip = (attr, v, cur, l) => `<button class="chip${String(cur) === String(v) ? ' on' : ''}" data-${attr}="${v}">${l}</button>`;
+  const items = [...WEAR_CLOTH.filter(x => x[0]), ...Object.values(STAGE_WEAR).flat(), ...Object.values(EVENT_WEAR).flatMap(e => e[1]), ...WEAR_ACC.filter(x => x[0])].filter(([k]) => ITEMINFO[k]);
+  const gm = { id: 'g', cat: PV.gal, stats: { person: 50 }, wear: {}, hue: 300 };
+  $('#app').innerHTML = `<header><div class="top"><div class="ribbon">🔍 미리보기</div><a class="btn sub small" href="./" style="margin-left:auto">게임으로 ▶</a></div></header>
+<p class="muted center">게임을 하지 않고 장면·인원·옷·동작을 바로 골라 볼 수 있어요. 여기서 바꾼 건 저장되지 않아요.</p>
+<div class="st3host" id="st3host">${bgHTML(PV.scene)}</div>
+<div class="card">
+<label class="f">장면</label><select class="full" data-pvsel="scene">${PV_SCENES.map(([k, l]) => `<option value="${k}"${PV.scene === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
+${PV.scene === 'dorm' ? `<label class="f">숙소 종류</label><select class="full" data-pvsel="dorm">${DORMS.map(d => `<option value="${d.id}"${PV.dorm === d.id ? ' selected' : ''}>${d.name}</option>`).join('')}</select>` : ''}
+<label class="f">인원</label><div class="chips">${[1, 2, 3, 4, 5, 6, 7].map(n => chip('pvn', n, PV.n, n + '명')).join('')}</div>
+<label class="f">고양이 <button class="btn sub small" data-pvshuffle="1">🎲 섞기</button></label><p class="muted">${PV.cats.slice(0, PV.n).map(c => (CATS.find(x => x[0] === c) || ['', ''])[1]).join(' · ')}</p>
+<label class="f">동작</label><div class="chips">${PV_MODES.map(([k, l]) => chip('pvmode', k, PV.mode, l)).join('')}</div>
+<label class="f">옷</label><select class="full" data-pvsel="cloth">${all.map(([k, l]) => `<option value="${k}"${PV.cloth === k ? ' selected' : ''}>${l}</option>`).join('')}${og('평소 옷', WEAR_CLOTH.filter(x => x[0]))}${Object.entries(STAGE_WEAR).map(([c, l]) => og('무대 · ' + conceptLabel(CONCEPTS.find(x => x.id === c)), l)).join('')}${Object.values(EVENT_WEAR).map(([lab, l]) => og(lab, l)).join('')}</select>
+${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악 방송·1위 장면 옷)</label><select class="full" data-pvsel="concept">${CONCEPTS.map(c => `<option value="${c.id}"${PV.concept === c.id ? ' selected' : ''}>${conceptLabel(c)}</option>`).join('')}</select>` : ''}
+<label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
+</div>
+<h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
+<div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(n)}</small></div>`).join('')}</div></div>`;
+  if (PV.scene !== 'clinic') mount2d($('#st3host'), S.members, PV.scene);
+}
+document.addEventListener('click', e => {
+  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal]'); if (!t) return;
+  const d = t.dataset;
+  if (d.pvn) PV.n = +d.pvn; if (d.pvmode) PV.mode = d.pvmode; if (d.pvgal) PV.gal = d.pvgal;
+  if (d.pvshuffle) PV.cats = PV.cats.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+  pvRender();
+});
+document.addEventListener('change', e => { if (!window.PV || !e.target.dataset.pvsel) return; PV[e.target.dataset.pvsel] = e.target.value; pvRender(); });
+const IS_PV = new URLSearchParams(location.search).has('preview');
+if (IS_PV) pvStart(); else {
 load();
 if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); catOf(m); }); setTimeout(() => { if (window.NO3D) return; loadPixi().then(() => import('./cat2d.js' + CATV)).then(mod => { CAT2 = mod; S.members.forEach(m => { const k = catOf(m); CATDATA[k] = CATDATA[k] || CAT2.loadCat(PIXI, k); }); }).catch(() => {}); }, 1500); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 render();
 if (!S) fillNames();
 else if (S.pending.length && !S.over) nextPopup();
+}
 </script>
 <script>if("serviceWorker" in navigator&&location.protocol.startsWith("http"))addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body>
