@@ -221,6 +221,9 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 @keyframes nod{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg)}}
 .st3host{position:relative;margin-bottom:12px}
 .st3host>svg.scene{margin-bottom:0}
+.st3host>img.bgimg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:3px solid var(--gold);box-shadow:0 3px 0 var(--goldd)}
+.winfx{position:absolute;inset:3px;border-radius:12px;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,230,140,.35) 0 8deg,transparent 8deg 22deg);mix-blend-mode:screen;animation:winspin 12s linear infinite}
+@keyframes winspin{to{transform:rotate(0)}}
 .st3host canvas.st3d{position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
 .thumbrow{position:absolute;left:0;right:0;bottom:6%;display:flex;justify-content:center;gap:2px;height:62%}
 .thumbrow img{height:100%;max-width:19%;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
@@ -1268,6 +1271,13 @@ let PIXIP = null;
 const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
 const MODE2 = { stage: 'dance', concert: 'dance', festival: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
+// 무료 AI(FLUX)로 만든 배경 그림. 없는 장면은 예전 그림(scene) 그대로
+const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep'];
+const BG_ALIAS = { win: 'stage' };
+function bgHTML(kind) {
+  const k = BGS.includes(kind) ? kind : BGS.includes(BG_ALIAS[kind]) ? BG_ALIAS[kind] : null;
+  return k ? `<img class="bgimg" src="art/bg/${k}.webp" alt="">${kind === 'win' ? '<div class="winfx"></div>' : ''}` : scene(kind, [], kind !== 'clinic');
+}
 let MOUNT_ID = 0;
 async function mount2d(host, members, kind) {
   const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
@@ -1662,7 +1672,7 @@ function fillNames(keep) {
 <input type="text" value="${esc(nm)}" maxlength="10" aria-label="이름"><select aria-label="나이">${Array.from({ length: 11 }, (_, a) => a + 14).map(a => `<option value="${a}"${a === ag ? ' selected' : ''}>${a}세</option>`).join('')}</select></div>`; }).join('');
   const demo = Array.from({ length: SU.count }, (_, i) => ({ hue: i * 55, look: { ch: SU.chars[i], daily: 'basic', exp: 'normal' }, gender: gg, stats: { visual: 0 }, fatigue: 0, busy: null }));
   const keepS = S; S = { gender: SU.gender, members: [], albums: [], promo: null, ga: 'none' };
-  $('#suScene').innerHTML = `<div class="st3host">${scene('stage', [])}<div class="thumbrow">${Array.from({ length: SU.count }, (_, i) => `<img src="${catImg(CATS[(SU.chars[i] - 1) % CATS.length][0], 'full')}" alt="">`).join('')}</div></div>`; S = keepS;
+  $('#suScene').innerHTML = `<div class="st3host">${bgHTML('stage')}<div class="thumbrow">${Array.from({ length: SU.count }, (_, i) => `<img src="${catImg(CATS[(SU.chars[i] - 1) % CATS.length][0], 'full')}" alt="">`).join('')}</div></div>`; S = keepS;
 }
 function memberDetail(id) {
   const m = S.members.find(x => x.id === id); if (!m) return;
@@ -1726,7 +1736,7 @@ let REVEAL = null;
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
   const d0 = dateOf(S.week - 1), d1 = dateOf(S.week);
-  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div>${r.scene === 'clinic' ? scene('clinic', [], false) : `<div class="st3host" id="st3host">${scene(r.scene, [], true)}</div>`}<p class="caption">${CAPTION[r.scene] || ''}</p>
+  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div>${r.scene === 'clinic' ? scene('clinic', [], false) : `<div class="st3host" id="st3host">${bgHTML(r.scene)}</div>`}<p class="caption">${CAPTION[r.scene] || ''}</p>
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
@@ -1758,7 +1768,7 @@ function nextPopup() {
     const sc = S.pending[0], m = S.members.find(x => x.id === sc.mid);
     if (!m) { S.pending.shift(); save(); return nextPopup(); }
     if (sc.kind === '사생') {
-      openDlg(`<div class="st3host" id="st3host">${scene('scandal', [], true)}</div><h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
+      openDlg(`<div class="st3host" id="st3host">${bgHTML('scandal')}</div><h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
 <p class="muted">어떻게 할까요?</p>
 <button class="choice" data-sc="guard"><b>🛡 경호 강화</b><small>비용 500만. 가장 안전해요.</small></button>
 <button class="choice" data-sc="police"><b>🚓 경찰 신고·공식 대응</b><small>돈은 안 들어요. 멤버가 조금 지쳐요.</small></button>
@@ -1769,7 +1779,7 @@ function nextPopup() {
     const extra = [];
     if (m.ad) extra.push(`광고 ${m.ad.brand} 계약 중 (심각하면 위약금 ${money(m.ad.fee * 2)})`);
     if (m.drama) extra.push(`드라마 ${m.drama.title} 촬영 중`);
-    openDlg(`<div class="st3host" id="st3host">${scene('scandal', [], true)}</div><h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
+    openDlg(`<div class="st3host" id="st3host">${bgHTML('scandal')}</div><h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
 ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <p class="muted">어떻게 대처할까요?</p>
 <button class="choice" data-sc="apologize"><b>📝 사과문 올리기</b><small>팬이 조금 떠나요. 심각도 '보통' 이상이면 광고가 해지돼요.</small></button>
