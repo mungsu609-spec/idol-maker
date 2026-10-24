@@ -1311,7 +1311,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=18';
+const CATV = '?v=19';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['headset', '헤드셋 마이크'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1988,12 +1988,13 @@ const PV_SCENES = [['stage', '🎤 음악 방송'], ['win', '🏆 1위'], ['conc
 const PV_MODES = [['auto', '장면에 맞게'], ['idle', '대기'], ['dance', '춤'], ['cheer', '만세'], ['wave', '손 흔들기'], ['sleep', '졸기'], ['sad', '시무룩']];
 function pvStart() {
   window.PV = { scene: 'stage', dorm: 'd2', n: 5, cats: CATS.map(c => c[0]), mode: 'auto', cloth: 'auto', acc: '', concept: 'cute', gal: 'cheese' };
-  save = () => {};
+  save = () => {}; render = () => pvRender();   // 미리보기에서는 저장·게임 화면 그리기 안 함
   S = { v: 1, name: '미리보기', gender: 'girl', week: 1, money: 0, fans: 0, fame: 50, members: [], dorm: { id: 'd2', since: 0 }, promo: null, albums: [], offers: [], news: [], pending: [], festival: null, awards: [], eventWear: {} };
   pvRender();
 }
 function pvMembers() {
-  return PV.cats.slice(0, PV.n).map((c, i) => ({ id: 'pv' + i, name: (CATS.find(x => x[0] === c) || ['', ''])[1], cat: c, stats: { person: 50 }, wear: { cloth: null, acc: PV.acc || null }, hue: i * 50 }));
+  PV.mem = PV.mem || {};
+  return PV.cats.slice(0, PV.n).map((c, i) => { const m = PV.mem[c] || (PV.mem[c] = Object.assign(newMember((CATS.find(x => x[0] === c) || ['', ''])[1]), { id: 'pv-' + c, cat: c })); m.wear = { cloth: null, acc: PV.acc || null }; m.busy = null; return m; });
 }
 function pvRender() {
   if (!window.PV) return;
@@ -2005,7 +2006,7 @@ function pvRender() {
   const gm = { id: 'g', cat: PV.gal, stats: { person: 50 }, wear: {}, hue: 300 };
   $('#app').innerHTML = `<header><div class="top"><div class="ribbon">🔍 미리보기</div><a class="btn sub small" href="./" style="margin-left:auto">게임으로 ▶</a></div></header>
 <p class="muted center">게임을 하지 않고 장면·인원·옷·동작을 바로 골라 볼 수 있어요. 여기서 바꾼 건 저장되지 않아요.</p>
-<div class="st3host" id="st3host">${bgHTML(PV.scene)}</div>
+<div class="st3host" id="pvstage">${bgHTML(PV.scene)}</div>
 <div class="card">
 <label class="f">장면</label><select class="full" data-pvsel="scene">${PV_SCENES.map(([k, l]) => `<option value="${k}"${PV.scene === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
 ${PV.scene === 'dorm' ? `<label class="f">숙소 종류</label><select class="full" data-pvsel="dorm">${DORMS.map(d => `<option value="${d.id}"${PV.dorm === d.id ? ' selected' : ''}>${d.name}</option>`).join('')}</select>` : ''}
@@ -2016,13 +2017,21 @@ ${PV.scene === 'dorm' ? `<label class="f">숙소 종류</label><select class="fu
 ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악 방송·1위 장면 옷)</label><select class="full" data-pvsel="concept">${CONCEPTS.map(c => `<option value="${c.id}"${PV.concept === c.id ? ' selected' : ''}>${conceptLabel(c)}</option>`).join('')}</select>` : ''}
 <label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
 </div>
+<h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['외모', '💄 외모 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
 <div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(n)}</small></div>`).join('')}</div></div>`;
-  if (PV.scene !== 'clinic') mount2d($('#st3host'), S.members, PV.scene);
+  if (PV.scene !== 'clinic' && !dlg.open) mount2d($('#pvstage'), S.members, PV.scene);   // 이벤트 창이 열려 있으면 그 창 무대를 그대로 둠
 }
 document.addEventListener('click', e => {
-  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal]'); if (!t) return;
+  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev]'); if (!t) return;
   const d = t.dataset;
+  if (d.pvev) {   // 논란·사생팬 창 띄우기 (게임과 같은 창)
+    const m = S.members[0], k = d.pvev; if (!m) return;
+    const head = k === '사생' ? pick(['숙소 앞까지 따라온 사생팬', '이동 차량을 쫓아온 사생팬']) : pick(HEAD[k]);
+    S.pending = [{ mid: m.id, name: m.name, kind: k, sev: k === '열애' ? 2 : ri(1, 3), truth: Math.random() < .5, head }];
+    S.fans = Math.max(S.fans, 20000); S.money = Math.max(S.money, 50000);
+    return nextPopup();
+  }
   if (d.pvn) PV.n = +d.pvn; if (d.pvmode) PV.mode = d.pvmode; if (d.pvgal) PV.gal = d.pvgal;
   if (d.pvshuffle) PV.cats = PV.cats.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
   pvRender();
