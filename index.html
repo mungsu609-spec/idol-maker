@@ -54,6 +54,7 @@ h3::before{content:"✦ ";color:var(--gold)}
 .muted{color:var(--sub);font-size:13px}
 .center{text-align:center}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
+.namerow{flex-wrap:nowrap;margin-bottom:6px}.namerow .chip{flex:0 1 auto;min-width:0;padding:5px 10px}
 .chip{font-family:"Jua",sans-serif;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);border-radius:999px;padding:5px 13px;font-size:14.5px;box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd)}
 .chip.on,.chip:has(input:checked){background:linear-gradient(#ffa8cb,#ef5c96);border-color:var(--pinkd);color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 2px 0 var(--pinkd);text-shadow:0 1px 0 var(--pinkd)}
 .chip input{display:none}
@@ -344,7 +345,20 @@ const MIN_CONTRACT = 12;
 const GIRL = ['하린', '유나', '서아', '지우', '채원', '나은', '예린', '소이', '리아', '다인', '윤서', '시아', '하늘', '루나', '세라', '미유'];
 const BOY = ['도윤', '시우', '이안', '하준', '태오', '윤재', '건우', '레오', '주원', '한결', '우진', '서진', '카이', '로한', '지한', '은호'];
 const NPC = ['STELLAR', '루미너스', 'NOVA:X', '블루밍', 'ECLIPSE', '하이틴', 'ARCADIA', '미라클', 'VERTEX', '솔라리스', 'PRISM', 'DAWN'];
-const TITLES = ['Sparkle', '여름 끝에서', 'Butterfly Effect', 'Midnight Run', '고백', 'Neon Heart', 'Starlight', 'Blue Wave', '첫눈', 'Velvet', 'Rush', 'Daydream', '불꽃놀이', 'Gravity', '나의 별'];
+// 콘셉트별 곡 제목 후보 10개씩 (🎲 버튼·빈칸일 때 이 중에서 골라요)
+const CONCEPT_TITLES = {
+  fresh: ['Summer Splash', '레모네이드', '파란 하늘 아래', 'Blue Wave', 'Fresh Start', '소나기', 'Cider', '여름 끝에서', 'Sunshine Run', '바람이 분다'],
+  crush: ['Firestorm', 'Venom', 'No Limit', 'Break the Rules', '왕관', 'Thunder', 'Wild Card', 'Black Out', 'Unstoppable', 'Savage'],
+  cute: ['Candy Pop', '말랑말랑', 'Strawberry Kiss', '두근두근', 'Bubble Gum', '냥냥 펀치', 'Jelly Beans', 'Peach Fuzz', '오늘도 맑음', 'Marshmallow'],
+  dream: ['Daydream', '달빛 정원', 'Starlight', 'Moonlit', '꿈의 미로', 'Butterfly Effect', 'Lucid', '은하수 편지', 'Fairy Tale', 'Mirage'],
+  retro: ['Disco Night', '1985', 'Neon Heart', 'Midnight Run', 'Cassette Tape', '오락실', 'Roller Skate', 'Funky Love', '라디오 키드', 'Polaroid'],
+  hiphop: ['Rush', 'Boom Bap', 'Gravity', 'Street King', 'Hype', 'Loud', '불도저', 'Underground', 'Flex', 'Bounce'],
+  ballad: ['첫눈', '고백', '나의 별', '너의 계절', '안녕, 그리고', 'Snowflake', '그리운 날', '편지', 'Stay Here', '눈물 자국'],
+  sexy: ['Velvet', 'Red Light', 'Midnight Kiss', 'Silk', 'Temptation', 'Heat', 'Bad Habit', '향기', 'Burn', 'Moonshine'],
+};
+const TITLES = Object.values(CONCEPT_TITLES).flat();
+// 이 콘셉트 제목 중 아직 안 쓴 것 (다 썼으면 아무거나)
+const titleFor = c => { const l = CONCEPT_TITLES[c] || TITLES, used = (S.albums || []).map(a => a.title), left = l.filter(t => !used.includes(t)); return pick(left.length ? left : l); };
 const BRANDS = ['화장품 「루미에」', '음료 「톡팡」', '치킨 「바삭왕」', '스마트폰 「노바폰」', '스포츠웨어 「런업」', '과자 「달콤칩」', '안경 「클리어뷰」', '게임 「드림퀘스트」'];
 const VARIETY = ['〈냥냥 런닝맨〉', '〈아는 고양이〉', '〈놀면 뭐하냥〉', '〈나 혼자 산다냥〉', '〈1박 2일 캣캠프〉', '〈주간 아이돌냥〉', '〈전지적 집사 시점〉', '〈냥슐랭 가이드〉'];
 const DRAMAS = ['〈봄날의 레시피〉', '〈비밀 계약 연애〉', '〈하이틴 크러시〉', '〈법정의 온도〉', '〈달빛 고등학교〉', '〈청춘 오피스〉', '〈마지막 여름〉'];
@@ -546,7 +560,7 @@ function endWeek() {
         if (a < 40 && Math.random() < (40 - a) * 0.006) addScandal(m, '실력');
       }
       if (P.left <= 0) {
-        S.albums.push({ title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P) });
+        S.albums.push({ title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P), mids: P.mids || null });
         news('promo', `${promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P) : ''}「${P.title}」 활동 마무리 · 최고 ${P.best}위${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
         S.promo = null; S.lastPromoEnd = w;
       }
@@ -619,6 +633,7 @@ function endWeek() {
   S.week++;
   const nd = dateOf(S.week);
   if (S.week % 48 === 0) { S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`); }
+  if (S.week % 48 === 0) retireCheck();
   S.offers = S.offers.filter(o => o.expire > S.week);
   makeOffers();
   if (debuted() && nd.k === 1 && (nd.m === 5 || nd.m === 8) && S.fame >= 15) {
@@ -859,14 +874,17 @@ function resolveScandal(choice) {
 
 // ===== 컴백·계약·영입 =====
 function startComeback() {
-  const concept = $('#cbConcept').value, title = $('#cbTitle').value.trim() || pick(TITLES);
+  const concept = $('#cbConcept').value, title = $('#cbTitle').value.trim() || titleFor(concept);
   const kind = CB.kind, N = S.members.length;
   let mids = null, uname = '';
   if (kind === 'solo') { if (!S.members.some(m => m.id === CB.solo)) return alert('솔로 활동할 멤버를 골라 주세요.'); mids = [CB.solo]; }
   if (kind === 'unit') {
     mids = [...CB.unit].filter(id => S.members.some(m => m.id === id));
     if (mids.length < 2 || mids.length > N - 2) return alert(`유닛은 2명부터 ${N - 2}명까지 고를 수 있어요.`);
-    uname = ($('#cbUname') && $('#cbUname').value.trim()) || pick(['STAR:LIGHT', 'Twinkle', 'BLOOM', 'MOONLIT', 'Sugar Rush', 'ECHO', 'Velvet Moon']);
+    S.units = S.units || {};
+    const used = Object.values(S.units), pool = ['STAR:LIGHT', 'Twinkle', 'BLOOM', 'MOONLIT', 'Sugar Rush', 'ECHO', 'Velvet Moon', 'LUMI', 'Cherry Pop', 'AURORA'].filter(n => !used.includes(n));
+    uname = S.units[unitKey(mids)] || ($('#cbUname') && $('#cbUname').value.trim()) || pick(pool.length ? pool : ['NEW UNIT']);
+    S.units[unitKey(mids)] = uname;
   }
   const weeks = +document.querySelector('[name=cbWeeks]:checked').value, tier = +document.querySelector('[name=cbTier]:checked').value;
   if (S.promo) return;
@@ -883,6 +901,23 @@ function startComeback() {
   news('promo', `${kind !== 'group' ? S.promo.who + ' ' + promoKindLabel(S.promo) : ''}「${title}」 ${S.promo.debut ? '데뷔' : '컴백'} 준비 시작! (${conceptLabel(CONCEPTS.find(c => c.id === concept))} 콘셉트 · 활동 ${weeks}주)`);
   CB = { kind: 'group', solo: null, unit: new Set() };
   save(); TAB = 'plan'; render();
+}
+// 은퇴: 만 35세가 되면 자동으로 그룹 탈퇴 (광고·드라마·예능은 위약금 없이 마무리)
+const RETIRE_AGE = 35;
+function retireCheck() {
+  const gone = S.members.filter(m => (m.age || 18) >= RETIRE_AGE); if (!gone.length) return;
+  for (const m of gone) {
+    S.members = S.members.filter(x => x !== m);
+    S.offers = S.offers.filter(o => o.mid !== m.id);
+    S.pending = S.pending.filter(p => p.mid !== m.id);
+    news('info', `🎓 ${m.name} 멤버가 만 ${m.age}세로 은퇴하며 그룹을 떠났어요. 그동안 고마웠어요! (이제 ${S.members.length}인조)`);
+  }
+  const P = S.promo;
+  if (P && P.mids) {
+    P.mids = P.mids.filter(id => S.members.some(m => m.id === id));
+    if (!P.mids.length || (P.kind === 'unit' && P.mids.length < 2)) { news('promo', `${P.who} 활동은 멤버 은퇴로 여기서 마무리했어요.`); S.promo = null; S.lastPromoEnd = S.week; }
+  }
+  if (!S.members.length) S.over = '멤버가 모두 은퇴해 그룹이 해체됐어요.';
 }
 function dormPenalty() { const d = dormOf(); return d.cost * Math.max(0, MIN_CONTRACT - (S.week - (S.dorm ? S.dorm.since : 0))); }
 function moveDorm(id) {
@@ -1311,10 +1346,10 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=21';
+const CATV = '?v=22';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
-const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['headset', '헤드셋 마이크'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
+const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
 // 콘셉트별 무대 의상 3벌 (컴백 준비 때 하나 골라 멤버 전원이 입음)
 const STAGE_WEAR = {
   fresh: [['st-fresh1', '민트 레몬 스커트'], ['st-fresh2', '데이지 멜빵 원피스'], ['st-fresh3', '아쿠아 응원단복']],
@@ -1346,16 +1381,20 @@ const curStageWear = () => {   // 이번 활동 무대 의상 (고른 것 → �
   return ITEMINFO[o] ? o : CONCEPT_WEAR[curConcept()];
 };
 const curConcept = () => S && S.promo ? S.promo.concept : (S && S.albums && S.albums.length ? S.albums[S.albums.length - 1].concept : null);
+// 헤드셋 마이크는 고르는 소품이 아니라 음악 방송·행사 무대에서 자동으로 씀
+const HEADSET_KINDS = ['stage', 'win', 'yearend', 'festival', 'campus', 'concert'];
 function wearFor(m, kind) {   // 이 장면에서 입을 옷·소품
-  if (window.PV && PV.cloth !== 'auto') return [PV.cloth === 'none' ? null : PV.cloth, PV.acc].filter(k => k && ITEMINFO[k]).map(gk);   // 미리보기에서 고른 옷
+  const hs = HEADSET_KINDS.includes(kind) ? ['headset'] : [];
+  if (window.PV && PV.cloth !== 'auto') return [PV.cloth === 'none' ? null : PV.cloth, ...hs, PV.acc].filter(k => k && ITEMINFO[k]).map(gk);   // 미리보기에서 고른 옷
   const w = wearOf(m), out = [];
+  if (w.acc === 'headset') w.acc = null;   // 예전에 소품으로 고른 헤드셋은 빼기
   let cloth = w.cloth;
   const ev = kind === 'win' && REP && REP.yearWin ? 'yearend' : kind;   // 연말 시상식 수상 장면은 연말 의상
   if (EVENT_WEAR[ev] && eventWearNow(ev)) cloth = eventWearNow(ev);
   else if (STAGE_KINDS.includes(kind) && curConcept()) cloth = curStageWear() || cloth;
   else if (!cloth && kind === 'practice') cloth = 'sport';
   else if (!cloth && kind === 'dorm') cloth = 'hoodie';
-  if (cloth) out.push(cloth); if (w.acc) out.push(w.acc);
+  if (cloth) out.push(cloth); out.push(...hs); if (w.acc) out.push(w.acc);
   return out.filter(k => ITEMINFO[k]).map(gk);
 }
 // 보이그룹: 원피스·스커트 등은 남자용(-b) 그림으로 바꿔 입기
@@ -1711,12 +1750,24 @@ let CB = { kind: 'group', solo: null, unit: new Set() };
 const cbMembers = () => CB.kind === 'solo' ? S.members.filter(m => m.id === CB.solo) : CB.kind === 'unit' ? S.members.filter(m => CB.unit.has(m.id)) : S.members;
 const catStageOutfits = c => { const l = (STAGE_WEAR[c] || []).map(x => x[0]).filter(k => ITEMINFO[k]); return l.length ? l : [CONCEPT_WEAR[c]]; };
 const outfitPreview = k => (cbMembers().length ? cbMembers() : S.members).map(m => avatar(m, 62, true, k)).join('');   // 활동하는 멤버 전원
+// 멤버 이름 버튼 두 줄: 윗줄 4명(5인조는 3명), 아랫줄 나머지
+function nameRows(f) {
+  const ms = S.members, top = ms.length === 5 ? 3 : 4;
+  return [ms.slice(0, top), ms.slice(top)].filter(r => r.length).map(r => `<div class="chips namerow">${r.map(f).join('')}</div>`).join('');
+}
+// 한 번 만든 유닛은 같은 멤버 조합이면 계속 같은 이름으로 활동 (S.units: 조합 → 이름)
+const unitKey = ids => [...ids].sort().join(',');
+const savedUnits = () => Object.entries(S.units || {}).filter(([k]) => k.split(',').every(id => S.members.some(m => m.id === id)));
 function cbWhoHTML() {
   const N = S.members.length;
-  if (CB.kind === 'solo') return `<label class="f">솔로 활동할 멤버</label><div class="chips">${S.members.map(m => `<button class="chip${CB.solo === m.id ? ' on' : ''}" data-cbsolo="${m.id}">${esc(m.name)}</button>`).join('')}</div>`;
-  if (CB.kind === 'unit') return `<label class="f">유닛 멤버 (2명 ~ ${N - 2}명)</label><div class="chips">${S.members.map(m => `<button class="chip${CB.unit.has(m.id) ? ' on' : ''}" data-cbunit="${m.id}">${esc(m.name)}</button>`).join('')}</div>
-<label class="f">유닛 이름</label><input type="text" id="cbUname" placeholder="비워 두면 자동으로 정해요" maxlength="20">
+  if (CB.kind === 'solo') return `<label class="f">솔로 활동할 멤버</label>${nameRows(m => `<button class="chip${CB.solo === m.id ? ' on' : ''}" data-cbsolo="${m.id}">${esc(m.name)}</button>`)}`;
+  if (CB.kind === 'unit') {
+    const same = (S.units || {})[unitKey(CB.unit)], saved = savedUnits();
+    return `${saved.length ? `<label class="f">지난 유닛</label><div class="chips">${saved.map(([k, n]) => `<button class="chip${unitKey(CB.unit) === k ? ' on' : ''}" data-cbunitset="${k}">✨ ${esc(n)} <small>(${k.split(',').map(id => esc(S.members.find(m => m.id === id).name)).join('·')})</small></button>`).join('')}</div>` : ''}
+<label class="f">유닛 멤버 (2명 ~ ${N - 2}명)</label>${nameRows(m => `<button class="chip${CB.unit.has(m.id) ? ' on' : ''}" data-cbunit="${m.id}">${esc(m.name)}</button>`)}
+<label class="f">유닛 이름</label>${same ? `<p class="muted">이 멤버 조합은 <b>「${esc(same)}」</b> 유닛이에요. 같은 이름으로 계속 활동해요.</p>` : `<input type="text" id="cbUname" placeholder="비워 두면 자동으로 정해요" maxlength="20"><p class="muted" style="font-size:12px">처음 정한 이름은 같은 멤버 조합으로 다시 활동할 때 자동으로 쓰여요.</p>`}
 <p class="muted">지금 ${CB.unit.size}명 골랐어요.</p>`;
+  }
   return '';
 }
 function actHTML() {
@@ -1805,7 +1856,7 @@ function fillNames(keep) {
     const front = all.slice(0, nf).map((i, j) => im(i, j - (nf - 1) / 2)).join(''), bs = backSlots(nf, n - nf);
     return two ? `<div class="thumbrow back">${all.slice(nf).map((i, j) => im(i, bs[j])).join('')}</div><div class="thumbrow two">${front}</div>` : `<div class="thumbrow">${front}</div>`; })()}</div>`; S = keepS;
 }
-function memberDetail(id) {
+function memberDetail(id, pick = null) {   // pick: 'cloth'(옷 갈아입기) / 'acc'(소품 장착하기) 목록 펼치기
   const m = S.members.find(x => x.id === id); if (!m) return;
   const L = lookOf(m);
   const skills = STATS.filter(([k]) => k !== 'health' && k !== 'person');
@@ -1817,6 +1868,7 @@ function memberDetail(id) {
   if (m.fatigue >= 70) warn.push('피로가 높아요. 훈련 효과가 반으로 줄어요 → 휴식 추천');
   if (m.stats.health < 35) warn.push('건강이 낮아요. 쓰러질 수 있어요 → 건강 관리 추천');
   if (m.stats.person < 40) warn.push('인성이 낮아서 논란이 생기기 쉬워요 → 인성 교육 추천');
+  if ((m.age || 18) >= RETIRE_AGE - 1) warn.push(`내년 새해에 만 ${RETIRE_AGE}세가 되면 은퇴해서 그룹을 떠나요.`);
   const arrows = (f, label) => `<button class="arrow" data-cust="${m.id}:${f}:-1" aria-label="이전">◀</button><b>${label}</b><button class="arrow" data-cust="${m.id}:${f}:1" aria-label="다음">▶</button>`;
   const sw = (f, list, cur) => `<div class="sw">${list.map((c, i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:${f}:${i}" aria-label="색 ${i + 1}"></button>`).join('')}</div>`;
   openDlg(`<div class="pcard"><div class="pcard-art">${avatar(m, 170, true)}${gradeBadge(gradeOf(m))}</div>
@@ -1830,11 +1882,11 @@ function memberDetail(id) {
 <div>🎵 잘 맞는 콘셉트: ${fit.map(([c]) => conceptLabel(c)).join(', ')}</div>
 ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.variety ? `<div>📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
-<h3>꾸미기</h3>
-<p class="muted center">🐾 털 무늬: ${(CATS.find(c => c[0] === catOf(m)) || ['', ''])[1]} (처음 정한 고양이는 바뀌지 않아요)</p>
-<b>👗 평소 옷</b><div class="wearpick">${WEAR_CLOTH.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m).cloth === k ? 'on' : ''}" data-wear="${m.id}:cloth:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>
-<b>🎀 소품</b><div class="wearpick">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m).acc === k ? 'on' : ''}" data-wear="${m.id}:acc:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>
-<p class="muted" style="font-size:12px">무대(음악방송·콘서트·축제·시상식)에서는 콘셉트 의상으로 자동으로 갈아입어요. 소품은 무대에서도 그대로예요. 평소 옷을 안 고르면 연습 땐 운동복, 숙소에선 후드 조끼를 입어요.</p>
+<h3>옷·소품</h3>
+<p class="muted center">👗 평소 옷: <b>${wearOf(m).cloth ? boyName(wearOf(m).cloth, stageWearName0(wearOf(m).cloth)) : '없음'}</b> · 🎀 소품: <b>${wearOf(m).acc && wearOf(m).acc !== 'headset' ? boyName(wearOf(m).acc, (WEAR_ACC.find(x => x[0] === wearOf(m).acc) || ['', ''])[1]) : '없음'}</b></p>
+<div class="row" style="justify-content:center;gap:8px"><button class="btn small${pick === 'cloth' ? '' : ' sub'}" data-wpick="${m.id}:${pick === 'cloth' ? '' : 'cloth'}">👗 옷 갈아입기</button><button class="btn small${pick === 'acc' ? '' : ' sub'}" data-wpick="${m.id}:${pick === 'acc' ? '' : 'acc'}">🎀 소품 장착하기</button></div>
+${pick ? `<div class="wearpick" id="wpList">${(pick === 'cloth' ? WEAR_CLOTH : WEAR_ACC).filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m)[pick] === k ? 'on' : ''}" data-wear="${m.id}:${pick}:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>` : ''}
+<p class="muted" style="font-size:12px">무대(음악 방송·콘서트·축제·시상식)에서는 콘셉트 의상과 헤드셋 마이크로 자동으로 갈아입어요. 소품은 무대에서도 그대로예요. 평소 옷을 안 고르면 연습 땐 운동복, 숙소에선 후드 조끼를 입어요.</p>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
 function customize(spec) {
@@ -1941,12 +1993,14 @@ document.addEventListener('click', e => {
   if (d.tab) { closeDlg(); TAB = d.tab; render(); window.scrollTo(0, 0); return; }
   if (d.member) return memberDetail(d.member);
   if (d.cust) return customize(d.cust);
+  if (d.wpick !== undefined) { const [id, pk] = d.wpick.split(':'), top = $('#dlgBody').scrollTop; memberDetail(id, pk || null); $('#dlgBody').scrollTop = top; const l = $('#wpList'); if (l) l.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
   if (d.wear) { const [id, f, k] = d.wear.split(':'), m = S.members.find(x => x.id === id); if (m) { wearOf(m)[f] = k || null; save(); render(); const top = $('#dlgBody').scrollTop; memberDetail(id); $('#dlgBody').scrollTop = top; } return; }
   if (d.rcb) { RC.bonus = +d.rcb; return recruitDlg(); }
   if (d.dorm) return moveDorm(d.dorm);
   if (d.such) { const [i, v] = d.such.split(':').map(Number), n = CATS.length; SU.chars[i] = ((SU.chars[i] - 1 + v + n) % n) + 1; return fillNames(true); }
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
   if (d.cbsolo) { CB.solo = d.cbsolo; $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
+  if (d.cbunitset) { CB.unit = new Set(d.cbunitset.split(',')); $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.accept) return acceptOffer(d.accept);
@@ -1969,7 +2023,7 @@ document.addEventListener('click', e => {
     case 'rc-offer': return recruitOffer();
     case 'rc-next': return recruit();
     case 'comeback': return startComeback();
-    case 'rand-title': $('#cbTitle').value = pick(TITLES); return;
+    case 'rand-title': $('#cbTitle').value = titleFor($('#cbConcept').value); return;
     case 'rand-names': return fillNames();
     case 'start': {
       const rows = [...document.querySelectorAll('#suNames .su-row')];
@@ -2010,7 +2064,8 @@ function pvRender() {
   S.dorm.id = PV.dorm; S.albums = [{ title: '미리보기', concept: PV.concept, outfit: catStageOutfits(PV.concept)[0], best: 1, wins: 0, w: 0, weeks: 1, kind: 'group' }];
   S.members = pvMembers();
   const chip = (attr, v, cur, l) => `<button class="chip${String(cur) === String(v) ? ' on' : ''}" data-${attr}="${v}">${l}</button>`;
-  const items = [...WEAR_CLOTH.filter(x => x[0]), ...Object.values(STAGE_WEAR).flat(), ...Object.values(EVENT_WEAR).flatMap(e => e[1]), ...WEAR_ACC.filter(x => x[0])].filter(([k]) => ITEMINFO[k]);
+  const items = [...WEAR_CLOTH.filter(x => x[0]), ...Object.values(STAGE_WEAR).flat(), ...Object.values(EVENT_WEAR).flatMap(e => e[1]), ...WEAR_ACC.filter(x => x[0]), ['headset', '헤드셋 마이크 (무대 자동)']].filter(([k]) => ITEMINFO[k]);
+  const boyItems = Object.keys(BOY_NAME).filter(k => ITEMINFO[k]);   // 보이그룹 전용 옷 (걸그룹 화면에서도 보이게)
   const gm = { id: 'g', cat: PV.gal, stats: { person: 50 }, wear: {}, hue: 300 };
   $('#app').innerHTML = `<header><div class="top"><div class="ribbon">🔍 미리보기</div><a class="btn sub small" href="./" style="margin-left:auto">게임으로 ▶</a></div></header>
 <p class="muted center">게임을 하지 않고 장면·인원·옷·동작을 바로 골라 볼 수 있어요. 여기서 바꾼 건 저장되지 않아요.</p>
@@ -2028,7 +2083,8 @@ ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악
 </div>
 <h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['외모', '💄 외모 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
-<div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div></div>`;
+<div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
+${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그룹이면 위 옷 대신 이걸 입어요)</label><div class="pvgrid">${boyItems.map(k => `<div>${avatar(gm, 84, true, k)}<small>${esc(BOY_NAME[k])}</small></div>`).join('')}</div>`}</div>`;
   if (PV.scene !== 'clinic' && !dlg.open) mount2d($('#pvstage'), S.members, PV.scene);   // 이벤트 창이 열려 있으면 그 창 무대를 그대로 둠
 }
 document.addEventListener('click', e => {
@@ -2051,6 +2107,7 @@ const IS_PV = new URLSearchParams(location.search).has('preview');
 if (IS_PV) pvStart(); else {
 load();
 if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); catOf(m); }); setTimeout(() => { if (window.NO3D) return; loadPixi().then(() => import('./cat2d.js' + CATV)).then(mod => { CAT2 = mod; S.members.forEach(m => { const k = catOf(m); CATDATA[k] = CATDATA[k] || CAT2.loadCat(PIXI, k); }); }).catch(() => {}); }, 1500); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
+if (S && S.promo && S.promo.kind === 'unit' && S.promo.mids && S.promo.uname) { S.units = S.units || {}; S.units[unitKey(S.promo.mids)] = S.units[unitKey(S.promo.mids)] || S.promo.uname; }   // 지금 활동 중인 유닛 이름 기억
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 render();
 if (!S) fillNames();
