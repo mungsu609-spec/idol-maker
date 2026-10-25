@@ -1091,7 +1091,7 @@ function offerRisk(o, m) {
 }
 function riskHTML(o, m) {
   const r = offerRisk(o, m), L = [['low', '🟢', '낮음'], ['mid', '🟡', '보통'], ['high', '🔴', '높음']][r.lv];
-  return `<div class="risk ${L[0]}"><b>${L[1]} 위험 ${L[2]} · ${r.what} ${Math.round(r.p * 100)}%</b><div>${esc(r.why)}</div><div>리스크: ${esc(r.loss)}</div>${r.jobs >= 2 ? `<div>🧳 매주 피로 +${(r.jobs - 1) * 4}, 논란 확률 ×${1 + (r.jobs - 1) * 0.5}</div>` : ''}</div>`;
+  return `<div class="risk ${L[0]}"><b>${L[1]} 위험 ${L[2]} · ${r.what} ${Math.round(r.p * 100)}%</b><div>${esc(r.why)}</div><div>리스크: ${esc(r.loss)}</div>${r.jobs >= 2 ? `<div>🧳 동시 활동 ${r.jobs}개: 매주 피로 +${(r.jobs - 1) * 4}, 논란 확률 ×${1 + (r.jobs - 1) * 0.5}</div>` : ''}</div>`;
 }
 function makeOffers() {
   if (!debuted()) return;
