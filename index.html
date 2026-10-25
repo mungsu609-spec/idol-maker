@@ -38,7 +38,7 @@ header{position:sticky;top:0;z-index:5;padding:10px 0 10px;background:linear-gra
 .cal small{font-size:12.5px;font-weight:600;color:var(--sub);line-height:1.15;margin-left:5px;font-family:system-ui,sans-serif}
 .icon-btn{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd);font-size:17px}
 .kpis{display:grid;grid-template-columns:1.2fr 1.1fr .8fr 1fr;gap:5px;margin-top:9px}
-.kpi{display:flex;align-items:center;gap:3px;background:#fffdf8;border:2px solid #efd9b4;border-radius:12px;padding:4px 4px;box-shadow:0 2px 0 #e6cc9e;min-width:0}
+.kpi{font:inherit;color:inherit;text-align:left;cursor:pointer;display:flex;align-items:center;gap:3px;background:#fffdf8;border:2px solid #efd9b4;border-radius:12px;padding:4px 4px;box-shadow:0 2px 0 #e6cc9e;min-width:0}
 .kpi svg{width:19px;height:19px;flex:none}
 .kpi div{min-width:0}
 .kpi small{display:block;font-size:12px;font-weight:600;color:var(--sub);line-height:1.1;white-space:nowrap}
@@ -2372,7 +2372,7 @@ function render() {
   const kpi = [[ICON.coin, '자금', moneyShort(S.money), S.money < 0], [ICON.heart, '팬', num(S.fans)], [ICON.star, '인지도', Math.round(S.fame)], [ICON.trophy, '음방 1위', S.trophies + '번']];
   app.innerHTML = `<header>
 <div class="top"><div class="ribbon">${esc(S.name)}</div><div class="cal"><b>${d.m}</b><span>월</span><small>${d.y}년차<br>${d.k}주</small></div><button class="icon-btn" data-act="settings" aria-label="설정">⚙</button></div>
-<div class="kpis">${kpi.map(([i, l, v, neg]) => `<div class="kpi">${i}<div><small>${l}</small><b class="${neg ? 'neg' : ''}">${v}</b></div></div>`).join('')}</div>
+<div class="kpis">${kpi.map(([i, l, v, neg], k) => `<button class="kpi" data-kpi="${k}">${i}<div><small>${l}</small><b class="${neg ? 'neg' : ''}">${v}</b></div></button>`).join('')}</div>
 </header>${body}
 ${TAB !== 'plan' ? '' : '<div class="go"><button class="btn" data-act="end-week">한 주 진행 ▶</button></div>'}
 <nav><div>${tabs.map(([id, l]) => { const b = navBadge(id); return `<button class="${TAB === id ? 'on' : ''}" data-tab="${id}"><span class="ti">${TABICON[id]}${b ? `<i class="nbadge">${b}</i>` : ''}</span>${l}</button>`; }).join('')}</div></nav>`;
@@ -2524,18 +2524,19 @@ ${list.length > NEWSN ? `<button class="btn sub" data-act="news-more" style="wid
 }
 function setupHTML() {
   return `<div class="setup"><div class="logo"><h1>아이돌 메이커</h1><p class="muted">나만의 아이돌 그룹을 키워 보세요 ✨</p></div><div id="suScene"></div>
-<div class="card"><label class="f">그룹 이름</label><input type="text" id="suName" value="LUMIÈRE" maxlength="20">
+<div class="card"><label class="f">그룹 이름 <button class="btn sub small" data-act="rand-gname">🎲</button></label><input type="text" id="suName" value="LUMIÈRE" maxlength="20">
 <label class="f">그룹 종류</label><div class="chips"><button class="chip on" data-gender="girl">걸그룹</button><button class="chip" data-gender="boy">보이그룹</button></div>
 <label class="f">멤버 수</label><div class="chips">${[4, 5, 6, 7].map(n => `<button class="chip${n === 5 ? ' on' : ''}" data-count="${n}">${n}명</button>`).join('')}</div>
 <label class="f">멤버 (캐릭터·이름·나이) <button class="btn sub small" data-act="rand-names">🎲 이름 다시 뽑기</button></label><div id="suNames"></div>
 <p class="muted">캐릭터는 지금 한 번만 고를 수 있어요. 헤어스타일과 머리색은 게임 중에도 바꿀 수 있어요.</p>
-<button class="btn" data-act="start" style="width:100%;margin-top:14px">시작하기</button></div></div>`;
+<button class="btn" data-act="start" style="width:100%;margin-top:14px">시작하기</button>
+<button class="btn sub small" data-act="howto" style="display:block;margin:10px auto 0">📖 게임 방법 먼저 보기</button></div></div>`;
 }
 function overHTML() {
   const e = ENDINGS.find(x => x.id === S.endingId), n = ENDINGS.filter(x => META.endings[x.id]).length;
   return `<div class="over"><div class="logo"><h1>${e && !e.over ? `${CONTRACT_YEARS}년 계약 끝` : '게임 끝'}</h1></div>${e ? endScene(e.id) + endingCard(e, S.over) : `<p>${esc(S.over)}</p>`}<div class="card" style="text-align:left">
 <div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div><div>📖 엔딩 도감 ${n} / ${ENDINGS.length}</div></div>
-${e && !e.over ? '<button class="btn" data-act="keep-going" style="margin-bottom:8px">계속 키우기</button><br>' : ''}<button class="btn sub" data-act="goals-ending" style="margin-bottom:8px">📖 엔딩 도감</button><br><button class="btn" data-act="reset">새 게임</button></div>`;
+${e && !e.over ? '<button class="btn" data-act="keep-going" style="margin-bottom:8px">계속 키우기</button><br>' : ''}<button class="btn sub" data-act="brag" style="margin-bottom:8px">📋 결과 자랑하기</button><br><button class="btn sub" data-act="goals-ending" style="margin-bottom:8px">📖 엔딩 도감</button><br><button class="btn" data-act="reset">새 게임</button></div>`;
 }
 let SU = { gender: 'girl', count: 5, chars: [1, 2, 3, 4, 5, 6, 7] };
 function fillNames(keep) {
@@ -2798,6 +2799,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.kpi) return toast(['💰 자금: 지금 회사에 있는 돈이에요. -1억 아래로 떨어지면 파산해요.', '💗 팬: 음악 방송·팬싸·라이브·예능으로 늘고, 공백기가 길면 떠나요.', '⭐ 인지도: 높을수록 제의가 자주 오고 시상식·순위에 유리해요. 활동을 쉬면 조금씩 내려가요.', '🏆 음방 1위: 지금까지 음악 방송에서 1위를 한 횟수예요.'][+d.kpi]);
   if (d.msort) { MSORT = d.msort; return render(); }
   if (d.fold) { FOLD.has(d.fold) ? FOLD.delete(d.fold) : FOLD.add(d.fold); return render(); }
   if (d.newsf) { NEWSF = d.newsf; NEWSN = 30; return render(); }
@@ -2820,6 +2822,8 @@ document.addEventListener('click', e => {
     case 'next-popup': return nextPopup();
     case 'settings': return settings();
     case 'howto': return howTo();
+    case 'brag': { const e = ENDINGS.find(x => x.id === S.endingId) || {}; const t = `🐾 아이돌 메이커 · ${S.name}\n${e.icon || ''} 엔딩: ${e.title || '게임 끝'}\n${dateStr(S.week)} · 팬 ${num(S.fans)}명 · 음방 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장${S.awards.length ? ` · 시상식 ${S.awards.map(a => a.award).join('·')}` : ''}\n${location.origin + location.pathname}`;
+      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('결과를 복사했어요! 친구에게 붙여 넣어 자랑해 보세요'), () => prompt('아래 글을 복사하세요', t)); return; }
     case 'lowfx': { try { localStorage.setItem('idol-maker-lowfx', lowFx() ? '0' : '1'); } catch (e) { } document.body.classList.toggle('lowfx', lowFx()); return settings(); }
     case 'save-out': return saveOut();
     case 'save-in': return saveIn();
@@ -2838,6 +2842,7 @@ document.addEventListener('click', e => {
     case 'comeback': return startComeback();
     case 'rand-title': $('#cbTitle').value = titleFor($('#cbConcept').value); return;
     case 'rand-names': return fillNames();
+    case 'rand-gname': $('#suName').value = pick(['LUMIÈRE', 'STARLIGHT', 'NYANG:ON', 'Purrfect', 'MEOWMENT', '별빛냥', 'Velvet Paw', 'CATCH ME', 'Moonpaw', 'SUGAR TAIL', '츄르밤', 'PRISM CAT'].filter(n => n !== $('#suName').value)); return;
     case 'start': {
       const rows = [...document.querySelectorAll('#suNames .su-row')];
       const names = rows.map((r2, n) => r2.querySelector('input').value.trim() || `멤버${n + 1}`), ages = rows.map(r2 => +r2.querySelector('select').value);
