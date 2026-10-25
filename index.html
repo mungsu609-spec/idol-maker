@@ -739,7 +739,8 @@ function recapHTML(r) {
     ['💰 늘어난 자금', `${r.money >= 0 ? '+' : ''}${money(r.money)}`], ['🎆 콘서트 · ✍️ 팬싸', `${r.concert}번 · ${r.fansign}번`], ['📢 광고 · 🎬 드라마 · 🎥 영화', `${r.ad} · ${r.drama} · ${r.movie}`], ['📺 예능', `${r.variety}번`],
     ['📋 미션 성공', `${r.mission}번`], ['🚨 논란', `${r.scandal}번`]];
   return `<h2>🎉 ${r.y}년차 결산</h2>${managerHTML(talk)}<div class="money-list" style="margin-top:10px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
-<p class="muted center" style="margin-top:8px">새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.<br>올해도 ${esc(josa(fandom(), '과', '와'))} 함께해요 💗</p><button class="btn" data-act="next-popup" style="width:100%;margin-top:6px">${r.y + 1}년차 시작!</button>`;
+<p class="muted center" style="margin-top:8px">새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.<br>올해도 ${esc(josa(fandom(), '과', '와'))} 함께해요 💗</p><p class="schint" style="margin-top:8px">💾 가끔 <b>설정 → 저장 데이터 내보내기</b>로 백업해 두면, 브라우저 저장이 지워지거나 휴대폰을 바꿔도 이어 할 수 있어요. <button class="btn sub small" data-act="save-out" style="margin-top:4px">지금 백업하기</button></p>
+<button class="btn" data-act="next-popup" style="width:100%;margin-top:6px">${r.y + 1}년차 시작!</button>`;
 }
 // 작은 선택 이벤트: 가끔 한 주가 끝나면 두 가지 중 하나를 고름 (효과는 작게)
 const stat = (m, k, v) => { m.stats[k] = clamp(m.stats[k] + v, 0, 100); };
