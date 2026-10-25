@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.stat b{position:relative}.stat b em{position:absolute;right:-4px;top:-9px;font-style:normal;font-size:10px;line-height:1;font-weight:800;background:#fffdf8;border-radius:6px;padding:0 2px}.stat b em.up{color:var(--good)}.stat b em.dn{color:var(--bad)}
 [data-grade]{cursor:pointer}
 .renbtn{border:0;background:none;font-size:15px;padding:0 2px;cursor:pointer;vertical-align:2px}
 /* 한국어 줄 바꿈: 띄어쓰기 단위로만 끊고(단어 중간 X), 마지막 줄이 한두 글자만 남지 않게 */
@@ -786,6 +787,7 @@ function endWeek() {
   const w = S.week, d = dateOf(w);
   REP = { title: dateStr(w) + ' 결과', lines: [], chart: null, inc: [], exp: [], deltas: [], scene: 'practice', crew: {} };
   const before = new Map(S.members.map(m => [m.id, { ...m.stats, fatigue: m.fatigue }]));
+  S.members.forEach(m => { m.ls = Object.fromEntries(STATS.map(([k]) => [k, Math.round(m.stats[k])])); });   // 지난주 능력치 (막대 옆 +/-)
   const fans0 = S.fans, fame0 = S.fame;
   const gaO = gaOptions(); let ga = gaO[0].fixed ? gaO[0].id : S.ga; if (!gaO.some(o => o.id === ga && o.ok !== false)) ga = 'none';
   const P = S.promo;
@@ -2470,7 +2472,7 @@ const NEWSICON = { scandal: '🚨', win: '🏆', offer: '💌', promo: '🎤', i
 function gradeOf(m) { const p = perfOf(m); return p >= 80 ? 'S' : p >= 65 ? 'A' : p >= 50 ? 'B' : p >= 35 ? 'C' : 'D'; }
 const gradeBadge = (g, inline) => `<span class="grade${inline ? ' inline' : ''}" data-grade="${g}" role="button" title="등급 설명">${g}<small>class</small></span>`;
 function statBars(m, two) {
-  return `<div class="${two ? 'stats2' : ''}">${STATS.map(([k, l]) => `<div class="stat"><span>${l}</span><div class="bar"><i style="width:${m.stats[k]}%;--c:${STATC[k]}"></i></div><b>${Math.round(m.stats[k])}</b></div>`).join('')}</div>`;
+  return `<div class="${two ? 'stats2' : ''}">${STATS.map(([k, l]) => `<div class="stat"><span>${l}</span><div class="bar"><i style="width:${m.stats[k]}%;--c:${STATC[k]}"></i></div><b>${Math.round(m.stats[k])}${m.ls && Math.round(m.stats[k]) !== m.ls[k] ? `<em class="${Math.round(m.stats[k]) > m.ls[k] ? 'up' : 'dn'}">${Math.round(m.stats[k]) > m.ls[k] ? '+' : ''}${Math.round(m.stats[k]) - m.ls[k]}</em>` : ''}</b></div>`).join('')}</div>`;
 }
 const TIPS = ['콘셉트마다 잘 맞는 능력치가 달라요. 멤버를 눌러 확인해 보세요.', '의상·메이크업 업체와 계약하면<br>무대 점수가 올라가요.', '인성이 낮으면 유명해질수록 논란이 잘 생겨요.', '외국어가 높으면 해외 팬이 더 많이 늘어요.', '연기를 키우면 드라마 주연 제의가 와요.', '멤버를 누르면 옷 갈아입기·소품 장착을<br>할 수 있어요.', '돈이 넉넉하면 계약 탭 맨 아래<br>회사 시설을 지어 보세요.'];
 function managerLine() {
