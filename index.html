@@ -1050,7 +1050,7 @@ function goalsDlg(tab) {
   if (GTAB === 'goal') h = `<p class="muted center">하나씩 차례대로 이뤄 보세요. 이루면 보상을 받아요.</p><div class="glist">${GOALS.map((g, i) => { const done = i < (S.goal || 0), cur = i === (S.goal || 0);
     return `<div class="gi${done ? '' : cur ? ' cur' : ' off'}"><span>${done ? '✅' : cur ? '🎯' : '⬜'}</span><div><b>${esc(g.label)}</b><small>${done && S.goalW && S.goalW[i] != null ? `${dateStr(S.goalW[i])}에 달성 · ` : ''}보상 ${rewardText(g)}</small></div></div>`; }).join('')}</div>`;
   else if (GTAB === 'mission') { const x = S.mission;
-    h = `<p class="muted center">매달 1주에 매니저가 새 미션을 줘요. 실패해도 벌은 없어요.</p>${x ? `<div class="glist"><div class="gi cur"><span>📋</span><div><b>${esc(x.label)}</b><small>${missionState(x)}</small></div></div></div>` : ''}<p class="center">지금까지 성공 <b>${cnt('missionOk')}</b>번</p>`; }
+    h = `<p class="muted center">매달 첫째 주에 매니저가 새 미션을 줘요.</p>${x ? `<div class="glist"><div class="gi cur"><span>📋</span><div><b>${esc(x.label)}</b><small>${missionState(x)}</small></div></div></div>` : ''}<p class="center">지금까지 성공 <b>${cnt('missionOk')}</b>번</p>`; }
   else if (GTAB === 'ach') { const n = ACH.filter(a => META.ach[a[0]]).length;
     h = `<p class="muted center">업적은 새 게임을 해도 남아요. (${n} / ${ACH.length})</p><div class="glist">${ACH.map(([id, ic, l]) => `<div class="gi${META.ach[id] ? '' : ' off'}"><span>${META.ach[id] ? ic : '🔒'}</span><div><b>${esc(l)}</b>${META.ach[id] ? `<small>${esc(META.ach[id].g)} · ${dateStr(META.ach[id].w)}</small>` : ''}</div></div>`).join('')}</div>`; }
   else { const n = ENDINGS.filter(e => META.endings[e.id]).length;
