@@ -661,20 +661,28 @@ function concertWhy() {
 // 12월 4주 = 연말 무대 주. 조건이 되면 그룹 일정이 '연말 무대'로 고정
 const isYearEndWeek = () => { const d = dateOf(S.week); return d.m === 12 && d.k === 4; };
 function yearEndWhy() { if (!debuted()) return '데뷔 후 설 수 있어요'; if (S.fame < 25) return `인지도 25 필요 (지금 ${Math.round(S.fame)})`; return ''; }
+// 그룹 일정 예상치 (실제 계산식과 같은 식, 무작위 없이)
+function gaEstimate(id) {
+  const all = S.members, p = avg(all.map(m => m.stats.person)), lang = avg(all.map(m => m.stats.lang));
+  if (id === 'live') return `예상 팬 +약 ${num(Math.round((150 + Math.sqrt(S.fans) * 6) * (0.6 + p / 100) * (1 + lang / 200)))}`;
+  if (id === 'concert') { const sold = Math.round(Math.min(S.fans * 0.4, 3000 + S.fame * 300)); return `예상 관객 ${num(sold)}명 · 수익 약 ${money(sold * 1.2)} · 팬 +약 ${num(sold * 0.1)}`; }
+  if (id === 'fansign') { const who = fansignWho(), ps = avg(who.map(m => m.stats.person)), share = Math.sqrt(Math.max(1, who.length) / all.length); return `예상 팬 +약 ${num(Math.round((100 + Math.sqrt(S.fans) * 4) * (0.6 + ps / 100) * share))} · 앨범 판매 약 ${money(S.fans * 0.01 * share + 200)}`; }
+  return '';
+}
 function gaOptions() {
   if (isYearEndWeek()) {
     const why = yearEndWhy();
     if (!why) return [{ id: 'yearend', label: '🎄 연말 무대', desc: '이번 주는 연말 무대에 모두 함께 서요 · 출연료 1,500만 · 팬 크게 증가 · 피로 +15 · 시상식 수상 기회', fixed: true }];
   }
   const o = [{ id: 'none', label: '없음', desc: '각자 개인 스케줄을 해요' },
-  { id: 'live', label: '📱 팬 소통 라이브', desc: '팬이 늘어요. 인성이 낮으면 말실수할 수 있어요' }];
+  { id: 'live', label: '📱 팬 소통 라이브', desc: `${gaEstimate('live')} · 인성이 낮으면 말실수할 수 있어요` }];
   if (!S.promo) {
     const why = concertWhy();
-    o.push({ id: 'concert', label: '🎆 단독 콘서트', desc: why || '비용 5,000만 · 큰 수익과 팬 증가 · 모두 피로 +20', ok: !why });
+    o.push({ id: 'concert', label: '🎆 단독 콘서트', desc: why || `비용 5,000만 · ${gaEstimate('concert')} · 모두 피로 +20`, ok: !why });
     if (S.festival && S.week <= S.festival.until) o.push({ id: 'festival', label: '🎪 ' + S.festival.name, desc: `출연료 ${money(S.festival.fee)} · 팬 증가 · 모두 피로 +20` });
   }
   const fw = fansignWhy();
-  o.push({ id: 'fansign', label: '✍️ 팬싸인회', desc: fw || `비용 300만 · 앨범이 팔리고 팬과 인기가 늘어요 · ${S.promo && S.promo.kind !== 'group' ? promoWho(S.promo) + ' 멤버만' : '참여 멤버'} 피로 +8`, ok: !fw });
+  o.push({ id: 'fansign', label: '✍️ 팬싸인회', desc: fw || `비용 300만 · ${gaEstimate('fansign')} · ${S.promo && S.promo.kind !== 'group' ? promoWho(S.promo) + ' 멤버만' : '참여 멤버'} 피로 +8`, ok: !fw });
   if (isYearEndWeek()) o.unshift({ id: 'yearend', label: '🎄 연말 무대', desc: yearEndWhy(), ok: false });
   return o;
 }
