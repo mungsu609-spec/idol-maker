@@ -1379,6 +1379,7 @@ function mountEnd(id) { const h = $('#endstage'); if (h && S.members.length) mou
 const END_PROG = { legend: () => `대상 ${awardN('대상')} / 3 · 1위 ${S.trophies} / 20`, daesang: () => `대상 ${awardN('대상')} / 1`, world: () => `팬 ${num(S.fans)} / 50만 · 외국어 평균 ${Math.round(avgLang())} / 60`,
   chart: () => `1위 ${S.trophies} / 15`, actor: () => `드라마·영화 ${cnt('drama') + cnt('movie')} / 4`, variety: () => `예능 ${cnt('variety') + cnt('varietyReg')} / 8`, cf: () => `광고 ${cnt('ad')} / 8`,
   stage: () => `콘서트 ${cnt('concert')} / 6`, steady: () => `1위 ${S.trophies} · 수상 ${S.awards.length}` };
+const predEnding = () => ENDINGS.find(x => !x.over && x.ok());   // 지금 기록으로 계약이 끝나면 나올 엔딩
 function endGame(id, text) {
   S.over = text; S.endingId = id; S.pending = [];
   if (!META.endings[id]) META.endings[id] = { g: S.name, w: S.week };
@@ -1430,7 +1431,8 @@ function goalsDlg(tab) {
   else if (GTAB === 'ach') { const n = ACH.filter(a => META.ach[a[0]]).length;
     h = `<p class="muted center">업적은 새 게임을 해도 남아요. (${n} / ${ACH.length})</p><div class="glist">${ACH.map(([id, ic, l]) => `<div class="gi${META.ach[id] ? '' : ' off'}"><span>${META.ach[id] ? ic : '🔒'}</span><div><b>${esc(l)}</b>${META.ach[id] ? `<small>${esc(META.ach[id].g)} · ${dateStr(META.ach[id].w)}</small>` : achProg(id) ? `<small>지금 ${achProg(id)}</small>` : ''}</div></div>`).join('')}</div>`; }
   else { const n = ENDINGS.filter(e => META.endings[e.id]).length;
-    h = `<p class="muted center">${CONTRACT_YEARS}년 계약이 끝나면 기록에 따라 엔딩이 정해져요. 위에 있는 엔딩일수록 먼저 골라져요. (${n} / ${ENDINGS.length})</p><div class="glist">${ENDINGS.map(e => { const seen = META.endings[e.id];
+    const pe = S && !S.ended && !S.over ? predEnding() : null;
+    h = `${pe ? `<p class="schint center">🔮 지금 기록이면 예상 엔딩: <b>${META.endings[pe.id] ? `${pe.icon} ${esc(pe.title)}` : '처음 보는 엔딩!'}</b></p>` : ''}<p class="muted center">${CONTRACT_YEARS}년 계약이 끝나면 기록에 따라 엔딩이 정해져요. 위에 있는 엔딩일수록 먼저 골라져요. (${n} / ${ENDINGS.length})</p><div class="glist">${ENDINGS.map(e => { const seen = META.endings[e.id];
       return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small>${S && END_PROG[e.id] && !S.over ? `<small class="eprog">지금 ${END_PROG[e.id]()}</small>` : ''}</div>${seen && S && S.members.length ? `<button class="btn sub small" data-endview="${e.id}" style="margin-left:auto;flex:none">보기</button>` : ''}</div>`; }).join('')}</div>`; }
   openDlg(`<h2>목표</h2><div class="chips gtabs">${tabs.map(([k, l]) => `<button class="chip${GTAB === k ? ' on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>${h}<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
 }
@@ -2496,7 +2498,7 @@ function managerLine() {
   if (S.festival && S.week <= S.festival.until) return [`${S.festival.name} 출연 제의가 왔어요. 그룹 일정에서 고를 수 있어요.`, ''];
   const gap = S.week - S.lastPromoEnd;
   if (S.albums.length && gap > GAP.free) return [`공백기가 ${gap}주째예요. 팬들이 떠나고 있어요! 컴백을 서둘러요.`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
-  if (!S.ended && dateOf(S.week).y === CONTRACT_YEARS) return [`올해가 ${CONTRACT_YEARS}년 계약 마지막 해예요. 연말 무대가 끝나면 엔딩이에요!`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
+  if (!S.ended && dateOf(S.week).y === CONTRACT_YEARS) return [`올해가 ${CONTRACT_YEARS}년 계약 마지막 해예요. 지금 기록이면 '${predEnding().title}' 엔딩이 나올 것 같아요. 연말 무대까지 더 힘내요!`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
   return [`지금은 공백기예요. ${TIPS[S.week % TIPS.length]}`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
 }
 function managerBox() { const [t, b] = managerLine(); return managerHTML(t, b); }
