@@ -725,6 +725,33 @@ function recapHTML(r) {
   return `<h2>🎉 ${r.y}년차 결산</h2>${managerHTML(talk)}<div class="money-list" style="margin-top:10px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
 <p class="muted center" style="margin-top:8px">새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.</p><button class="btn" data-act="next-popup" style="width:100%;margin-top:6px">${r.y + 1}년차 시작!</button>`;
 }
+// 작은 선택 이벤트: 가끔 한 주가 끝나면 두 가지 중 하나를 고름 (효과는 작게)
+const stat = (m, k, v) => { m.stats[k] = clamp(m.stats[k] + v, 0, 100); };
+const MINI = [
+  { t: (m) => `${m.name} 멤버가 야식을 먹고 싶대요.`, a: ['🍗 치킨 사 주기', m => { S.money -= 30; S.members.forEach(x => addFat(x, -5)); return '다 같이 치킨 파티! 모두 피로 -5 (30만 원)'; }], b: ['🥗 다이어트 중이야', m => { stat(m, 'visual', 1); addFat(m, 3); return `${m.name} 외모 +1, 대신 조금 서운해해요 (피로 +3)`; }] },
+  { t: (m) => `팬이 ${m.name} 멤버에게 손편지와 선물을 보냈어요.`, a: ['📸 SNS에 인증샷 올리기', m => { const f = Math.round(50 + S.fans * 0.002); S.fans += f; m.pop += 1; return `팬들이 감동했어요! 팬 +${num(f)}, ${m.name} 인기 +1`; }], b: ['💌 조용히 간직하기', m => { stat(m, 'person', 1); return `${m.name} 인성 +1`; }] },
+  { t: (m) => `${m.name} 멤버가 직접 곡을 써 보고 싶대요.`, a: ['🎹 작곡 수업 지원하기', m => { S.money -= 200; stat(m, 'vocal', 2); stat(m, 'camera', 1); return `${m.name} 보컬 +2, 표현력 +1 (200만 원)`; }], b: ['⏳ 다음에 하자', m => `${m.name} 멤버가 조금 아쉬워하지만 이해해 줬어요.`] },
+  { two: true, t: (m, b) => `${m.name} 멤버와 ${b.name} 멤버가 사소한 일로 다퉜어요.`, a: ['🍜 맛집 데려가 화해시키기', (m, b) => { S.money -= 100; addFat(m, -5); addFat(b, -5); return `둘이 화해했어요! 둘 다 피로 -5 (100만 원)`; }], b: ['🤝 알아서 풀게 두기', (m, b) => { if (Math.random() < .5) { stat(m, 'person', 1); stat(b, 'person', 1); return '스스로 화해했어요. 둘 다 인성 +1'; } addFat(m, 8); addFat(b, 8); return '서먹서먹한 한 주… 둘 다 피로 +8'; }] },
+  { t: (m) => `${m.name} 멤버가 숙소 브이로그를 찍어 보고 싶대요.`, a: ['🎥 찍어 보자', m => { const f = Math.round(80 + S.fans * 0.003); S.fans += f; addFat(m, 5); return `브이로그 반응 좋아요! 팬 +${num(f)}, ${m.name} 피로 +5`; }], b: ['😴 쉬는 게 먼저야', m => { addFat(m, -5); return `${m.name} 피로 -5`; }] },
+  { t: (m) => `${m.name} 멤버가 몸살 기운이 있대요.`, a: ['🏥 병원 데려가기', m => { S.money -= 50; stat(m, 'health', 5); return `${m.name} 건강 +5 (50만 원)`; }], b: ['🛌 푹 자면 낫겠지', m => { if (Math.random() < .6) return '다행히 하룻밤 자고 괜찮아졌어요.'; stat(m, 'health', -6); return `몸살이 심해졌어요… ${m.name} 건강 -6`; }] },
+  { t: () => '연습실 앞에 팬들이 응원하러 와 있어요.', a: ['👋 잠깐 인사하기', () => { const f = Math.round(60 + S.fans * 0.002); S.fans += f; S.members.forEach(x => addFat(x, 2)); return `팬들이 좋아했어요! 팬 +${num(f)}, 모두 피로 +2`; }], b: ['🚗 안전을 위해 돌려보내기', () => '매니저가 정중하게 안내했어요. 팬들도 이해해 줬어요.'] },
+  { t: (m) => `브랜드에서 ${m.name} 멤버에게 옷을 협찬하고 싶대요.`, a: ['👗 받기', m => { stat(m, 'visual', 1); m.pop += 1; return `${m.name} 외모 +1, 인기 +1`; }], b: ['🙅 정중히 거절', m => '다음 기회에 함께하기로 했어요.'] },
+  { t: (m) => `${m.name} 멤버가 밤새 춤 연습을 더 하고 싶대요.`, a: ['💃 허락하기', m => { stat(m, 'dance', 2); addFat(m, 10); return `${m.name} 춤 +2, 피로 +10`; }], b: ['🌙 오늘은 쉬어', m => { addFat(m, -5); return `${m.name} 피로 -5`; }] },
+  { t: (m) => `${m.name} 멤버가 멤버들과 외국어 스터디를 열고 싶대요.`, a: ['📚 응원해!', () => { S.members.forEach(x => { stat(x, 'lang', 1); addFat(x, 2); }); return '모두 외국어 +1, 피로 +2'; }], b: ['⏳ 나중에', () => '컴백 끝나고 하기로 했어요.'] },
+];
+function miniHTML(e) {
+  const d = MINI[e.i], m = S.members.find(x => x.id === e.mid), b = S.members.find(x => x.id === e.bid);
+  return `<h2>🎲 작은 일이 생겼어요</h2>${managerHTML(d.t(m, b) + ' 어떻게 할까요?')}${m ? `<div class="row" style="justify-content:center;gap:10px;margin:10px 0">${avatar(m, 56)}${b ? avatar(b, 56) : ''}</div>` : ''}
+<button class="choice" data-mini="a"><b>${d.a[0]}</b></button><button class="choice" data-mini="b"><b>${d.b[0]}</b></button>`;
+}
+function miniPick(k) {
+  const e = S.mini; if (!e) return; S.mini = null;
+  const d = MINI[e.i], m = S.members.find(x => x.id === e.mid), b = S.members.find(x => x.id === e.bid);
+  const msg = m || !d.t.length ? d[k][1](m, b) : '멤버가 없어서 그냥 지나갔어요.';
+  news('info', `🎲 ${d.t(m || { name: '' }, b || { name: '' })} → ${d[k][0].replace(/^\S+ /, '')}`);
+  save(); render();
+  $('#dlgBody').innerHTML = CREST + `<h2>🎲 결과</h2><p class="center">${esc(msg)}</p><button class="btn" data-act="next-popup" style="width:100%;margin-top:8px">확인</button>`;
+}
 function endWeek() {
   if (S.over || S.pending.length) return;
   const w = S.week, d = dateOf(w);
@@ -937,6 +964,10 @@ function endWeek() {
     const df = Math.round(m.fatigue) - Math.round(b.fatigue); if (df) parts.push(`피로 ${df > 0 ? '+' : ''}${df}`);
     if (parts.length) REP.deltas.push([m, parts.join(', ')]);
   }
+  if (!S.pending.length && !S.mini && S.members.length >= 2 && Math.random() < 0.08) {
+    const i = ri(0, MINI.length - 1), [a, b] = shuffle(S.members.filter(m => !m.busy).length >= 2 ? S.members.filter(m => !m.busy) : S.members);
+    S.mini = { i, mid: a.id, bid: MINI[i].two ? b.id : null };
+  }
   if (S.money < 0) S.wasDebt = true;
   progress(true);
   S.maxFans = Math.max(S.maxFans || 0, S.fans);
@@ -961,22 +992,22 @@ let FAST = null;
 const FF_KEEP = /^(🏆|🎯|📋|🏅|🚨|🎂|🎉|💿|🎆|🎄|🎬|🎥|📢|🔥|🌧|🚑|📜|🦠|💉)/;
 function fastForward(n) {
   if (S.over) return;
-  if (S.pending.length || S.albumDone || S.recap) return nextPopup();   // 아직 못 본 창이 있으면 먼저
+  if (S.pending.length || S.albumDone || S.recap || S.mini) return nextPopup();   // 아직 못 본 창이 있으면 먼저
   const f0 = S.fans, m0 = S.money, fa0 = S.fame, w0 = S.week; FAST = [];
   for (let i = 0; i < n; i++) {
     S.members.forEach(m => { if (!forcedLabel(m) && !['rest', 'health'].includes(m.sched) && (m.fatigue >= 80 || m.stats.health < 25)) m.sched = 'rest'; });   // 너무 지친 멤버는 쉬게
     endWeek();
-    if (S.over || S.pending.length || S.albumDone || S.recap) break;
+    if (S.over || S.pending.length || S.albumDone || S.recap || S.mini) break;
   }
   const reps = FAST; FAST = null;
   const lines = reps.flatMap(r => r.lines.filter(l => FF_KEEP.test(l)).map(l => `<div class="ffl"><small>${esc(r.title.replace(' 결과', ''))}</small>${esc(l)}</div>`));
   const gap = S.week - S.lastPromoEnd; if (!S.over && !S.promo && S.albums.length && gap > GAP.free) lines.push(`<div class="ffl"><small>지금</small>💔 공백기 ${gap}주째라 팬이 계속 떠나고 있어요. 컴백을 준비해 보세요!</div>`);
-  const stop = S.over ? '게임이 끝났어요.' : S.pending.length ? '⚠️ 논란이 생겨서 멈췄어요.' : S.albumDone ? '💿 활동이 끝나서 멈췄어요.' : S.recap ? '🎉 새해가 되어 멈췄어요.' : '';
+  const stop = S.over ? '게임이 끝났어요.' : S.pending.length ? '⚠️ 논란이 생겨서 멈췄어요.' : S.mini ? '🎲 작은 일이 생겨서 멈췄어요.' : S.albumDone ? '💿 활동이 끝나서 멈췄어요.' : S.recap ? '🎉 새해가 되어 멈췄어요.' : '';
   const d = [['💗 팬', S.fans - f0, v => (v >= 0 ? '+' : '') + num(v)], ['💰 자금', S.money - m0, v => (v >= 0 ? '+' : '') + money(v)], ['⭐ 인지도', Math.round(S.fame - fa0), v => (v >= 0 ? '+' : '') + v]];
   openDlg(`<h2>⏩ ${reps.length}주 진행 결과</h2><p class="muted center">${dateStr(w0)} → ${dateStr(S.week)}</p>
 <div class="sum">${d.map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b>${f(v)}</b></span>`).join('')}</div>
 ${stop ? `<p class="center"><b>${stop}</b></p>` : ''}${lines.length ? `<h3>주요 소식</h3><div class="fflist">${lines.slice(0, 14).join('')}</div>` : '<p class="muted center">큰 일 없이 지나갔어요.</p>'}
-<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`);
+<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : S.mini ? '무슨 일인지 보기' : '확인'}</button>`);
 }
 function checkBeforeWeek() {
   const risky = S.members.filter(m => !forcedLabel(m) && !['rest', 'health'].includes(m.sched) && (m.fatigue >= 80 || m.stats.health < 25));
@@ -2790,6 +2821,7 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
     mount2d($('#st3host'), [m], scBg);
     return;
   }
+  if (S && S.mini && !S.over) { if (!S.members.some(m => m.id === S.mini.mid)) S.mini = null; else return openDlg(miniHTML(S.mini)); }
   if (S && S.albumDone && !S.over) { const a = S.albumDone; S.albumDone = null; save(); return openDlg(albumDoneHTML(a)); }
   if (S && S.recap && !S.over) { const r = S.recap; S.recap = null; save(); return openDlg(recapHTML(r)); }
   closeDlg(); render();
@@ -2876,6 +2908,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.mini) return miniPick(d.mini);
   if (d.endview) { const e = ENDINGS.find(x => x.id === d.endview); if (!e) return; openDlg(`${endScene(e.id)}${endingCard(e, e.text || (e.id === 'bankrupt' ? '자금이 -1억 아래로 떨어져 회사가 파산했어요.' : '멤버가 모두 떠나 그룹이 해체됐어요.'))}<button class="btn sub" data-gtab="ending" style="width:100%">◀ 엔딩 도감으로</button>`); if (e.id !== 'disband') mountEnd(e.id); return; }
   if (d.kpi) return toast(['💰 자금: 지금 회사에 있는 돈이에요. -1억 아래로 떨어지면 파산해요.', '💗 팬: 음악 방송·팬싸·라이브·예능으로 늘고, 공백기가 길면 떠나요.', '⭐ 인지도: 높을수록 제의가 자주 오고 시상식·순위에 유리해요. 활동을 쉬면 조금씩 내려가요.', '🏆 음방 1위: 지금까지 음악 방송에서 1위를 한 횟수예요.'][+d.kpi]);
   if (d.msort) { MSORT = d.msort; return render(); }
