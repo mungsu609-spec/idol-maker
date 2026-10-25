@@ -101,6 +101,8 @@ select.full{width:100%}
 .tag.red{background:#ffe3e3;color:var(--bad);border-color:#f5c0c0}
 .fbar{height:7px;border-radius:4px;background:var(--bar);overflow:hidden;margin-top:4px;max-width:150px;border:1px solid #ead6b6}
 .fbar i{display:block;height:100%;background:linear-gradient(90deg,#ffc06a,#f08a3a)}
+.fbar i.lo{background:linear-gradient(90deg,#9fe0b0,#4fbf7a)}.fbar i.hi{background:linear-gradient(90deg,#ff9a8a,#e0453f)}
+.mrow .info .mstat{flex-direction:column;gap:0;line-height:1.35}
 .avbox{flex:none;display:inline-block;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 35%,hsl(var(--h) 85% 97%),hsl(var(--h) 70% 85%));border:2.5px solid #fff;box-shadow:0 0 0 2px var(--gold),0 2px 0 2px var(--goldd)}
 .avbox.full{border-radius:16px;background:linear-gradient(180deg,hsl(var(--h) 85% 96%),hsl(var(--h) 60% 84%))}
 .avbox svg{display:block}
@@ -178,6 +180,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+#toast{position:fixed;left:50%;bottom:150px;z-index:60;max-width:86%;padding:9px 16px;border-radius:14px;background:rgba(61,38,50,.9);color:#fff;font-size:14px;font-weight:600;text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
+#toast.on{opacity:1;transform:translate(-50%,0)}
 #resdl{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(255,236,244,.92)}
 #resdl .card{width:100%;max-width:360px;text-align:center}
 #resdl .rbar{height:14px;border-radius:8px;background:var(--bar);overflow:hidden;margin:12px 0 6px}
@@ -870,6 +874,32 @@ function endWeek() {
   save(); render(); showReport(REP);
 }
 
+// 추천 스케줄: 지치면 휴식, 건강 낮으면 건강 관리, 인성 낮으면 인성 교육, 아니면 가장 부족한 실력
+function recSched(m) {
+  if (m.fatigue >= 60 || m.slump) return 'rest';
+  if (m.stats.health < 40) return 'health';
+  if (m.stats.person < 40) return 'person';
+  const c = CONCEPTS.find(x => x.id === curConcept()), keys = [...new Set(['vocal', 'dance', 'camera', ...(c ? c.fav : [])])].filter(k => SCHED[k]);
+  return keys.sort((a, b) => m.stats[a] - m.stats[b])[0];
+}
+function autoSched() { let n = 0; for (const m of S.members) { if (forcedLabel(m)) continue; const k = recSched(m); if (m.sched !== k) { m.sched = k; n++; } } return n; }
+// 한 주 진행 전: 많이 지쳤거나 건강이 위험한데 연습하는 멤버가 있으면 한 번 물어봄
+function checkBeforeWeek() {
+  const risky = S.members.filter(m => !forcedLabel(m) && !['rest', 'health'].includes(m.sched) && (m.fatigue >= 80 || m.stats.health < 25));
+  if (!risky.length) return endWeek();
+  window.RISKY = risky;
+  openDlg(`<h2>잠깐만요!</h2>${managerHTML(`${risky.map(m => esc(m.name)).join(', ')} 멤버가 너무 지쳤거나 건강이 위험해요. 이대로 연습하면 쓰러질 수 있어요.`)}
+<div class="dlist" style="margin-top:10px">${risky.map(m => `<div class="dl">${avatar(m, 36)}<div><b>${esc(m.name)}</b><small>피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)} · ${esc((SCHED[m.sched] || SCHED.rest).label)}</small></div></div>`).join('')}</div>
+<button class="btn" data-act="week-rest" style="width:100%;margin-top:12px">😴 이 멤버들은 쉬게 하고 진행</button>
+<button class="btn sub" data-act="week-go" style="width:100%;margin-top:8px">그대로 진행</button>
+<button class="btn sub" data-act="close" style="width:100%;margin-top:8px">취소</button>`);
+}
+// 화면 아래 잠깐 뜨는 알림
+function toast(t) {
+  let el = document.getElementById('toast'); if (!el) { el = document.createElement('div'); el.id = 'toast'; document.body.appendChild(el); }
+  el.textContent = t; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200);
+}
 function doSched(m, s) {
   if (s === SCHED.surgery) {
     m.busy = { type: 'surgery', left: 3 }; m.sched = 'rest';
@@ -2292,13 +2322,13 @@ function planHTML() {
     const sel = fl ? `<button class="schbtn" disabled><span class="si">⏳</span><span><b>${esc(fl.replace(/ \(.*\)/, ''))}</b><small>${esc((fl.match(/\((.*)\)/) || ['', '바꿀 수 없어요'])[1])}</small></span></button>`
       : `<button class="schbtn" data-schpick="${m.id}"><span class="si">${SCHED_ICON[m.sched] || '🛌'}</span><span><b>${s.label.replace(/ \(.*\)/, '')}</b><small>${s.cost ? money(s.cost) : '무료'}</small></span></button>`;
     return `<div class="mrow"><div class="who" data-member="${m.id}" title="눌러서 능력치 보기">${avatar(m, 48)}<div class="info"><div class="name">${esc(m.name)}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
-<div class="fbar" title="피로"><i style="width:${m.fatigue}%"></i></div><div class="mstat"><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span><span class="${m.stats.health < 35 ? 'hot' : ''}">건강 <b>${Math.round(m.stats.health)}</b></span></div></div></div>${sel}</div>`;
+<div class="fbar" title="피로"><i class="${m.fatigue >= 70 ? 'hi' : m.fatigue < 40 ? 'lo' : ''}" style="width:${m.fatigue}%"></i></div><div class="mstat"><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span><span class="${m.stats.health < 35 ? 'hot' : ''}">건강 <b>${Math.round(m.stats.health)}</b></span></div></div></div>${sel}</div>`;
   }).join('');
   const total = train + fixedCost() + contractCost() + (S.ga === 'concert' ? 5000 : 0);
   return `${managerBox()}${goalCard()}
 <h2>그룹 일정</h2><div class="chips">${opts.map(o => o.ok === false ? `<button class="chip lock" disabled>${o.label}<small>🔒 ${esc(o.desc)}</small></button>` : `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}">${o.label}</button>`).join('')}</div>
 <p class="muted">${esc(cur.desc)}</p>
-<h2>멤버별 스케줄</h2><div class="card fancy"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
+<h2>멤버별 스케줄</h2><div class="row" style="justify-content:flex-end;margin:-6px 0 10px"><button class="btn sub small" data-act="auto-sched">✨ 추천 스케줄로 채우기</button></div><div class="card fancy"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
 <p class="muted">이번 주 예상 지출 ${money(total)}<br>(스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted" style="display:flex;gap:4px"><span>💡</span><span>피로가 70을 넘으면 훈련 효과가 반으로 줄고,<br>80을 넘으면 건강이 깎여요.</span></p>`;
 }
@@ -2633,7 +2663,10 @@ document.addEventListener('click', e => {
     return;
   }
   switch (d.act) {
-    case 'end-week': return endWeek();
+    case 'end-week': return checkBeforeWeek();
+    case 'auto-sched': { const n = autoSched(); save(); render(); return toast(n ? `✨ ${n}명의 스케줄을 추천대로 바꿨어요` : '지금 스케줄이 이미 추천과 같아요'); }
+    case 'week-rest': { (window.RISKY || []).forEach(m => { m.sched = 'rest'; }); closeDlg(); save(); return endWeek(); }
+    case 'week-go': closeDlg(); return endWeek();
     case 'next-popup': return nextPopup();
     case 'settings': return settings();
     case 'goals': return goalsDlg();
