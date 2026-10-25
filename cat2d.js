@@ -72,6 +72,10 @@ export function makeCat(PIXI, data, opt = {}) {
       q.armL = -.35 + b * .45; q.armR = .35 + b * .45; q.head = -b * .12; q.sway = b * .07;
       q.bounce = Math.abs(s(k * 1.05)) * 22; q.squash = (1 - Math.abs(b)) * .05; q.tail = b * .25; q.tailWave = .18; q.tailSpeed = 4;
       q.face = (s(k * 2.1) > 0) ? 'face-sing' : null;
+    } else if (m === 'sing') {
+      const b = s(k * .55);
+      q.armL = -.15 + s(k * .55) * .12; q.armR = .45 + s(k * 1.1) * .1; q.head = -.05 + b * .06; q.sway = b * .03;
+      q.tail = b * .15; q.tailWave = .1; q.tailSpeed = 2; q.face = (s(k * 1.4) > -.4) ? 'face-sing' : null;
     } else if (m === 'cheer') {
       const b = s(k * 1.6), j = Math.max(0, b);
       q.armL = .75 + s(k * 3.2) * .2; q.armR = -.75 - s(k * 3.2) * .2; q.bounce = j * 70; q.squash = b < 0 ? -b * .08 : -j * .04;
