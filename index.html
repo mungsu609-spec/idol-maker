@@ -972,6 +972,7 @@ function endWeek() {
   }
   if (S.money < 0) S.wasDebt = true;
   progress(true);
+  S.members.forEach(m => { (m.ph = m.ph || []).push(Math.round(perfOf(m))); if (m.ph.length > 200) m.ph.splice(0, m.ph.length - 200); });
   S.maxFans = Math.max(S.maxFans || 0, S.fans); (S.fh = S.fh || []).push(S.fans); if (S.fh.length > 400) S.fh.splice(0, S.fh.length - 400);
   REP.dFans = S.fans - fans0; REP.dFame = Math.round(S.fame - fame0);
   if (S.money < -10000) endGame('bankrupt', '자금이 -1억 아래로 떨어져 회사가 파산했어요.');
@@ -2616,12 +2617,13 @@ ${on ? `<button class="btn sub small" data-term="${kind}">해지</button>` : `<b
 // 소식: 종류별로 거르기, 30개씩 더 보기. 위에는 그룹 기록(통계)
 let NEWSF = 'all', NEWSN = 30, RECOPEN = false;
 const NEWS_KINDS = [['all', '전체'], ['win', '🏆 좋은 일'], ['promo', '🎤 활동'], ['offer', '💌 제의'], ['scandal', '🚨 사건'], ['info', '✨ 기타']];
-// 팬 수 그래프 (주마다 기록, 최근 400주)
-function fanSpark() {
-  const h = S.fh || []; if (h.length < 3) return '';
+// 작은 선 그래프 (팬 수·멤버 실력, 주마다 기록)
+function spark(h, label, right, c = '#ef5c96', fill = 'rgba(239,92,150,.12)') {
+  if (!h || h.length < 3) return '';
   const mx = Math.max(...h), mn = Math.min(...h), W = 300, H = 60, pts = h.map((v, i) => `${(i / (h.length - 1) * W).toFixed(1)},${(H - 4 - (mx === mn ? 0.5 : (v - mn) / (mx - mn)) * (H - 8)).toFixed(1)}`).join(' ');
-  return `<div class="sparkw"><small><span>💗 팬 수 변화 (최근 ${h.length}주)</span><span>최고 ${num(mx)}</span></small><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="0,${H} ${pts} ${W},${H}" fill="rgba(239,92,150,.12)" stroke="none"/><polyline points="${pts}" fill="none" stroke="#ef5c96" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg></div>`;
+  return `<div class="sparkw"><small><span>${label}</span><span>${right}</span></small><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="0,${H} ${pts} ${W},${H}" fill="${fill}" stroke="none"/><polyline points="${pts}" fill="none" stroke="${c}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg></div>`;
 }
+const fanSpark = () => spark(S.fh, `💗 팬 수 변화 (최근 ${(S.fh || []).length}주)`, `최고 ${num(Math.max(...(S.fh || [0])))}`);
 function recordHTML() {
   const best = S.albums.filter(a => a.best < 99).reduce((b, a) => Math.min(b, a.best), 99), d = S.debutYear;
   const aw = ['대상', '본상', '신인상'].map(a => [a, S.awards.filter(x => x.award === a).length]).filter(x => x[1]);
@@ -2691,7 +2693,7 @@ function memberDetail(id, pick = null) {   // pick: 'cloth'(옷 갈아입기) / 
 <p class="muted center">만 ${m.age || 18}세${m.bday != null ? ` · 🎂 ${Math.floor(m.bday / 4) + 1}월 ${m.bday % 4 + 1}주` : ''} · 이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
 ${forcedLabel(m) ? '' : `<div class="row" style="justify-content:center;gap:8px;margin-bottom:6px"><button class="btn sub small" data-schpick="${m.id}">📋 스케줄 바꾸기</button>${recSched(m) !== m.sched ? `<button class="btn small" data-recone="${m.id}">✨ 추천: ${esc(SCHED[recSched(m)].label.replace(/ \(.*\)/, ''))}</button>` : ''}</div>`}
 <h3>능력치</h3>${statBars(m)}
-<div class="stat"><span>피로</span><div class="bar"><i style="width:${m.fatigue}%;--c:#f0a04b"></i></div><b>${Math.round(m.fatigue)}</b></div>
+<div class="stat"><span>피로</span><div class="bar"><i style="width:${m.fatigue}%;--c:#f0a04b"></i></div><b>${Math.round(m.fatigue)}</b></div>${spark(m.ph, `🎤 무대 실력 변화 (최근 ${(m.ph || []).length}주)`, `처음 ${(m.ph || [0])[0]} → 지금 ${Math.round(perfOf(m))}`, '#8a5ad0', 'rgba(138,90,208,.12)')}
 <h3>한눈에</h3>
 <div>💪 잘하는 것: ${sorted.slice(0, 2).map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
 <div>📉 부족한 것: ${sorted.slice(-2).reverse().map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
