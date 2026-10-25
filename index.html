@@ -2614,7 +2614,7 @@ function actHTML() {
   h += S.offers.length ? S.offers.map(o => {
     const m = S.members.find(x => x.id === o.mid); if (!m) return '';
     const what = o.type === 'ad' ? `📢 ${esc(o.brand)} 광고 · 계약금 ${money(o.fee)} · 24주 계약 (1주 촬영)` : o.type === 'movie' ? `🎥 영화 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 출연료 ${money(o.fee)} (계약할 때 한 번에)` : o.type === 'variety' ? (o.regular ? `📺 예능 ${esc(o.title)} ${varRole(o.title, true)} · ${o.weeks}주 · 주당 ${money(o.feeW)} (스케줄은 그대로 할 수 있어요)` : `📺 예능 ${esc(o.title)} ${varRole(o.title, false)} · 1주 촬영 · 출연료 ${money(o.fee)}`) : `🎬 드라마 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 주당 ${money(o.feeW)}`;
-    return `<div class="card offer">${avatar(m, 52)}<div class="info"><b class="name">${esc(m.name)}</b><div class="muted">${what}</div>${riskHTML(o, m)}<div class="muted">${o.expire - S.week}주 안에 답해야 해요</div></div>
+    return `<div class="card offer">${avatar(m, 52)}<div class="info"><b class="name">${esc(m.name)}</b><div class="muted">${what}</div>${riskHTML(o, m)}${o.expire - S.week <= 1 ? '<div class="neg" style="font-size:13px;font-weight:700">⏰ 이번 주까지 답해야 해요</div>' : `<div class="muted">${o.expire - S.week}주 안에 답해야 해요</div>`}</div>
 <div class="row" style="flex-direction:column"><button class="btn small" data-accept="${o.id}">수락</button><button class="btn sub small" data-decline="${o.id}">거절</button></div></div>`;
   }).join('') : `<p class="muted center">${debuted() ? '아직 없어요. 인지도가 높을수록 제의가 자주 와요.' : '데뷔하면 광고·드라마·예능 제의가 들어와요.'}</p>`;
   if (!S.promo) {
@@ -2713,7 +2713,7 @@ function recordHTML() {
 }
 function newsHTML() {
   const list = S.news.filter(n => NEWSF === 'all' || n.type === NEWSF || (NEWSF === 'info' && !NEWSICON[n.type])), shown = list.slice(0, NEWSN);
-  return `${recordHTML()}<h2>소식</h2><div class="chips" style="margin-bottom:8px">${NEWS_KINDS.map(([k, l]) => `<button class="chip${NEWSF === k ? ' on' : ''}" data-newsf="${k}">${l}</button>`).join('')}</div>
+  return `${recordHTML()}<h2>소식</h2><div class="chips" style="margin-bottom:8px">${NEWS_KINDS.map(([k, l]) => { const n = k === 'all' ? S.news.length : S.news.filter(x => x.type === k || (k === 'info' && !NEWSICON[x.type])).length; return `<button class="chip${NEWSF === k ? ' on' : ''}" data-newsf="${k}">${l} <small>${n}</small></button>`; }).join('')}</div>
 <div class="card">${shown.map(n => `<div class="news ${n.type}"><span class="ni">${NEWSICON[n.type] || '✨'}</span><div><small>${dateStr(n.w)}</small>${esc(n.text)}</div></div>`).join('') || '<p class="muted">아직 없어요.</p>'}</div>
 ${list.length > NEWSN ? `<button class="btn sub" data-act="news-more" style="width:100%">더 보기 (${list.length - NEWSN}개 남음)</button>` : ''}`;
 }
