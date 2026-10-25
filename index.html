@@ -2734,7 +2734,7 @@ function overHTML() {
   const e = ENDINGS.find(x => x.id === S.endingId), n = ENDINGS.filter(x => META.endings[x.id]).length;
   return `<div class="over"><div class="logo"><h1>${e && !e.over ? `${CONTRACT_YEARS}년 계약 끝` : '게임 끝'}</h1></div>${e ? endScene(e.id) + endingCard(e, S.over) : `<p>${esc(S.over)}</p>`}<div class="card" style="text-align:left">
 <div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div><div>📖 엔딩 도감 ${n} / ${ENDINGS.length}</div></div>
-<div class="overbtns">${e && !e.over ? '<button class="btn" data-act="keep-going">▶ 계속 키우기</button>' : ''}<button class="btn sub" data-act="brag">📋 결과 자랑하기</button><button class="btn sub" data-act="goals-ending">📖 엔딩 도감</button><button class="btn ${e && !e.over ? 'sub' : ''}" data-act="reset">🐾 새 게임</button></div></div>`;
+<div class="overbtns">${e && !e.over ? '<button class="btn" data-act="keep-going">▶ 계속 키우기</button>' : ''}${(!e || e.over) && autoBaks().length ? '<button class="btn" data-act="autobak">⏪ 지난 새해로 되돌리기</button>' : ''}<button class="btn sub" data-act="brag">📋 결과 자랑하기</button><button class="btn sub" data-act="goals-ending">📖 엔딩 도감</button><button class="btn ${e && !e.over ? 'sub' : ''}" data-act="reset">🐾 새 게임</button></div></div>`;
 }
 let SU = { gender: 'girl', count: 5, chars: [1, 2, 3, 4, 5, 6, 7] };
 function fillNames(keep) {
