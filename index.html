@@ -862,7 +862,7 @@ function endWeek() {
       REP.crew.stage = availP.filter(m => !m.busy).map(m => m.id);
       const rank = first ? 0 : list.findIndex(x => x.me) + 1;
       REP.chart = first ? null : { list, rank, stage: st, prev: P.lastRank || 0 }; setScene(rank === 1 ? 'win' : 'stage'); if (!first) P.lastRank = rank;
-      if (P.fans0 == null) P.fans0 = S.fans;
+      if (P.fans0 == null) P.fans0 = S.fans; (P.ranks = P.ranks || []).push(rank);
       const lang = avg(availP.map(m => m.stats.lang));
       const bonus = [5000, 2500, 1500, 800, 400, 200, 100][rank - 1] || 0;
       const kmul = P.kind === 'solo' ? 0.6 : P.kind === 'unit' ? 0.8 : 1;
@@ -880,7 +880,7 @@ function endWeek() {
       }
       if (P.left <= 0) {
         promoMembers().forEach(m => { (m.rec = m.rec || {}).album = (m.rec.album || 0) + 1; if (P.wins) m.rec.win = (m.rec.win || 0) + P.wins; });
-        S.albums.push({ title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P), mids: P.mids || null });
+        S.albums.push({ ranks: P.ranks || null, title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P), mids: P.mids || null });
         news('promo', `${promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P) : ''}「${P.title}」 활동 마무리 · ${P.best < 99 ? `최고 ${P.best}위` : '순위 없음'}${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
         S.albumDone = { title: P.title, who: promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P).trim() : S.name, concept: P.concept, best: P.best, wins: P.wins, weeks: P.weeks, fans: S.fans - (P.fans0 ?? S.fans), debut: P.debut };
         S.promo = null; S.lastPromoEnd = w;
@@ -3030,7 +3030,7 @@ document.addEventListener('click', e => {
     const rows = [['🗓 발매', dateStr(a.w - (a.weeks || 0) - 1)], ['🎵 콘셉트', c ? conceptLabel(c) : '-'], ['📺 활동 기간', `${a.weeks || '-'}주`], ['📈 최고 순위', a.best < 99 ? `${a.best}위` : '순위 없음'], ['🏆 1위', `${a.wins || 0}번`]];
     return openDlg(`<h2>💿 「${esc(a.title)}」</h2><p class="muted center">${a.kind && a.kind !== 'group' ? `${a.kind === 'solo' ? '솔로' : '유닛'} ${esc(a.who || '')}` : esc(S.name)}${a.debut ? ' · 데뷔곡' : ''}</p>
 <div class="row" style="justify-content:center;flex-wrap:wrap;gap:4px;margin:6px 0 10px">${ms.map(m => avatar(m, 70, true, a.outfit || null)).join('')}</div>
-<div class="money-list">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div><button class="btn" data-act="close" style="width:100%;margin-top:12px">닫기</button>`);
+<div class="money-list">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>${a.ranks && a.ranks.length ? `<p class="center" style="margin:10px 0 0;font-size:14px">📊 주차별 순위<br><b>${a.ranks.map(r => !r ? '집계 전' : r === 1 ? '1위🏆' : r + '위').join(' → ')}</b></p>` : ''}<button class="btn" data-act="close" style="width:100%;margin-top:12px">닫기</button>`);
   }
   if (d.grade) return toast(`${d.grade}등급 — 무대 실력(보컬·춤 30%씩, 표현력·외모 20%씩)으로 정해요. S 80↑ · A 65↑ · B 50↑ · C 35↑ · D 그 아래`);
   if (d.rename) {   // 이름 바꾸기 (멤버 10자, 그룹 20자)
