@@ -2467,6 +2467,16 @@ function cbWhoHTML() {
 // 콘셉트가 활동 멤버와 얼마나 잘 맞는지: 잘 맞는 능력치 두 개의 평균 → ★1~3
 const conceptFit = c => { const ms = cbMembers().length ? cbMembers() : S.members, v = avg(ms.map(m => (m.stats[c.fav[0]] + m.stats[c.fav[1]]) / 2)); return v >= 65 ? 3 : v >= 45 ? 2 : 1; };
 const conceptOptions = sel => CONCEPTS.map(c => `<option value="${c.id}"${sel === c.id ? ' selected' : ''}>${'★'.repeat(conceptFit(c))}${'☆'.repeat(3 - conceptFit(c))} ${conceptLabel(c)} — ${c.fav.map(k => SL[k]).join('·')}</option>`).join('');
+// 컴백 1위 가능성 미리 보기: 무대 점수(실력·콘셉트·업체·앨범) + 팬·인지도 vs 가장 강한 경쟁 그룹 (무작위 빼고 계산)
+function cbPredict() {
+  const el = $('#cbPred'), c = CONCEPTS.find(x => x.id === ($('#cbConcept') || {}).value); if (!el || !c) return;
+  const ms = cbMembers().length ? cbMembers() : S.members, tier = +((document.querySelector('[name=cbTier]:checked') || {}).value || 1);
+  const perf = avg(ms.map(perfOf)), fav = avg(ms.map(m => (m.stats[c.fav[0]] + m.stats[c.fav[1]]) / 2)), fat = avg(ms.map(m => m.fatigue)) + 24;
+  const me = perf * 0.8 + fav * 0.2 + contractBonus() + TIERS[tier].bonus - fat * 0.08 + Math.log10(S.fans + 1) * 6 + S.fame * 0.3 + 3;
+  const top = Math.max(...S.npc.map(n => n.p)) + Math.min((S.week + 3) * 0.06, 20), d = me - top;
+  const lv = d >= 5 ? ['높음', 'good', '1위를 노려 볼 만해요!'] : d >= -8 ? ['보통', 'warn', '운이 좋으면 1위도 할 수 있어요.'] : ['낮음', 'bad', '실력·콘셉트·업체를 더 키우면 좋아요.'];
+  el.innerHTML = `<p class="muted" style="margin:8px 0 0">📈 1위 가능성: <b style="color:var(--${lv[1]})">${lv[0]}</b> (예상 ${Math.round(me)}점 · 가장 강한 경쟁 그룹 약 ${Math.round(top)}점)<br>${lv[2]}</p>`;
+}
 function actHTML() {
   let h = managerBox();
   h += `<h2>들어온 제의</h2>`;
@@ -2492,7 +2502,7 @@ function actHTML() {
 <div class="row cbnav"><button class="btn sub" data-cbstep="1">◀ 이전</button><button class="btn" data-cbstep="3">다음 ▶</button></div></div>
 <div class="cbstep" data-step="3"${(CB.step || 1) === 3 ? '' : ' hidden'}><div id="cbSum" class="cbsum"></div>
 <label class="f">음악 방송 활동 기간</label><div class="chips">${[1, 2, 3, 4].map(n => `<label class="chip"><input type="radio" name="cbWeeks" value="${n}"${n === 2 ? ' checked' : ''}> ${n}주</label>`).join('')}</div>
-<label class="f">앨범 제작비</label><div class="chips">${TIERS.map((t, i) => `<label class="chip"><input type="radio" name="cbTier" value="${i}"${i === 1 ? ' checked' : ''}> ${t.label} ${money(t.cost)}</label>`).join('')}</div>
+<label class="f">앨범 제작비</label><div class="chips">${TIERS.map((t, i) => `<label class="chip"><input type="radio" name="cbTier" value="${i}"${i === 1 ? ' checked' : ''}> ${t.label} ${money(t.cost)}${t.bonus ? ` <small>(무대 +${t.bonus})</small>` : ''}</label>`).join('')}</div><div id="cbPred"></div>
 <p class="muted">준비 2주(녹음·안무) 뒤 음악 방송을 해요. 활동이 길수록 팬이 많이 늘지만 피로도 쌓여요.</p>
 <div class="row cbnav"><button class="btn sub" data-cbstep="2">◀ 이전</button><button class="btn" data-act="comeback" style="flex:1">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div></div></div>`;
   }
@@ -2818,7 +2828,7 @@ document.addEventListener('click', e => {
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
   if (d.cbstep) { CB.step = +d.cbstep; if (CB.step === 2 && $('#cbConcept')) $('#cbConcept').innerHTML = conceptOptions($('#cbConcept').value); document.querySelectorAll('.cbstep').forEach(el => el.hidden = +el.dataset.step !== CB.step); document.querySelectorAll('.cbsteps span').forEach((el, i) => el.className = CB.step === i + 1 ? 'on' : CB.step > i + 1 ? 'done' : '');
     if (CB.step === 3) { const c = CONCEPTS.find(x => x.id === $('#cbConcept').value), who = CB.kind === 'group' ? S.name + ' (전원)' : cbMembers().map(m => m.name).join('·') || '아직 안 골랐어요';
-      $('#cbSum').innerHTML = `<div><span>활동</span><b>${esc(who)}</b></div><div><span>곡 제목</span><b>${esc($('#cbTitle').value.trim() || '자동으로 정해요')}</b></div><div><span>콘셉트</span><b>${conceptLabel(c)}</b></div><div><span>무대 의상</span><b>${esc($('#cbOutfit').selectedOptions[0] ? $('#cbOutfit').selectedOptions[0].text : '')}</b></div>`; }
+      $('#cbSum').innerHTML = `<div><span>활동</span><b>${esc(who)}</b></div><div><span>곡 제목</span><b>${esc($('#cbTitle').value.trim() || '자동으로 정해요')}</b></div><div><span>콘셉트</span><b>${conceptLabel(c)}</b></div><div><span>무대 의상</span><b>${esc($('#cbOutfit').selectedOptions[0] ? $('#cbOutfit').selectedOptions[0].text : '')}</b></div>`; cbPredict(); }
     $('.cbsteps').scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
   if (d.cbsolo) { CB.solo = d.cbsolo; $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunitset) { CB.unit = new Set(d.cbunitset.split(',')); $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
@@ -2882,6 +2892,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'cbConcept') { $('#cbOutfit').innerHTML = outfitOptions(e.target.value); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
+  if (e.target.name === 'cbTier') return cbPredict();
   if (e.target.id === 'cbOutfit') { $('#cbPreview').innerHTML = outfitPreview(e.target.value); return; }
   if (e.target.dataset.evwear) { S.eventWear = S.eventWear || {}; S.eventWear[e.target.dataset.evwear] = e.target.value || null; save(); render(); return; }
   if (e.target.id === 'schedAll') { const v = e.target.value; if (v) { S.members.forEach(m => { if (!forcedLabel(m)) m.sched = v; }); save(); render(); } return; }
