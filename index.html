@@ -1004,6 +1004,7 @@ function endWeek() {
   if (S.money < -10000) endGame('bankrupt', '자금이 -1억 아래로 떨어져 회사가 파산했어요.');
   else if (!S.members.length) endGame('disband', '멤버가 모두 떠나 그룹이 해체됐어요.');
   else if (!S.ended && d.m === 12 && d.k === 4 && d.y >= CONTRACT_YEARS) finishContract();
+  if (S.week % 48 === 0 && !S.over) autoBackup();   // 새해 처리까지 다 끝난 상태로 자동 백업
   save(); render(); if (FAST) FAST.push(REP); else showReport(REP);
 }
 
@@ -2937,7 +2938,7 @@ function settings() {
   openDlg(`<h2>설정</h2><p class="muted center" style="margin-top:-4px">게임은 이 브라우저에 자동으로 저장돼요.</p>
 <h3>📱 화면 · 편의</h3><div class="setgrid">${tg('bigtext', '🔠', '글자 크기', bigText(), '크게', '보통')}${tg('quickrep', '⚡', '결과 창 연출', !quickRep(), '보기', '건너뛰기')}${tg('lowfx', '✨', '장면 효과', !lowFx(), '켬', '끔')}${S ? tg('autosched', '🤖', '매주 자동 추천', !!S.autoSched, '켬', '끔') : ''}<button class="setg" data-act="howto"><span>📖</span><b>게임 방법</b><small>다시 보기</small></button></div>
 <h3>💗 우리 그룹</h3><button class="btn sub" data-act="fandom" style="width:100%">${S && S.fandom ? `팬클럽 '${esc(S.fandom)}' · 응원봉 바꾸기` : '팬클럽 이름 · 응원봉 정하기'}</button>
-<h3>💾 저장</h3><div class="setgrid"><button class="setg" data-act="save-out"><span>💾</span><b>내보내기</b><small>백업 코드 복사</small></button><button class="setg" data-act="save-in"><span>📂</span><b>불러오기</b><small>백업 코드 붙여 넣기</small></button></div>
+<h3>💾 저장</h3><div class="setgrid"><button class="setg" data-act="save-out"><span>💾</span><b>내보내기</b><small>백업 코드 복사</small></button><button class="setg" data-act="save-in"><span>📂</span><b>불러오기</b><small>백업 코드 붙여 넣기</small></button><button class="setg" data-act="autobak" style="grid-column:1/-1"><span>⏪</span><b>자동 백업</b><small>새해마다 저장 · 최근 ${autoBaks().length}개</small></button></div>
 <h3>🧰 기타</h3><a class="btn sub" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
 <div class="setgrid"><button class="setg" data-act="res-again"><span>🖼</span><b>그림 다시 받기</b><small>그림이 이상할 때</small></button><button class="setg warn" data-act="reset"><span>🐾</span><b>새 게임</b><small>지금 게임 지우기</small></button></div>
 <button class="btn" data-act="close" style="width:100%;margin-top:12px">닫기</button>`);
@@ -2947,6 +2948,15 @@ function fandomDlg() {
   openDlg(`<h2>💗 팬클럽 · 응원봉</h2><label class="f">팬클럽 이름</label><input type="text" id="fdName" value="${esc(S.fandom || '')}" maxlength="12" placeholder="${esc(pick(FANDOMS))}" style="width:100%">
 <label class="f">응원봉 색 (콘서트 빛 색이 바뀌어요)</label><div class="chips">${LIGHTS.map(([c, l]) => `<button class="chip lightc${lightC() === c ? ' on' : ''}" data-light="${c}" style="--lc:${c}">● ${l}</button>`).join('')}</div>
 <button class="btn" data-act="fandom-save" style="width:100%;margin-top:12px">저장</button><button class="btn sub" data-act="settings" style="width:100%;margin-top:8px">◀ 설정으로</button>`);
+}
+// 자동 백업: 새해가 될 때마다 그 직전 상태를 브라우저에 2개까지 보관
+const AB_KEY = 'idol-maker-autobak';
+const autoBaks = () => { try { return JSON.parse(localStorage.getItem(AB_KEY) || '[]'); } catch (e) { return []; } };
+function autoBackup() { try { const l = autoBaks(); l.unshift({ at: Date.now(), w: S.week, name: S.name, S: JSON.stringify(S) }); localStorage.setItem(AB_KEY, JSON.stringify(l.slice(0, 2))); } catch (e) { } }
+function autoBakDlg() {
+  const l = autoBaks();
+  openDlg(`<h2>⏪ 자동 백업</h2><p class="muted center">새해가 될 때마다 자동으로 저장해 둬요 (최근 2개).<br>되돌리면 그 시점부터 다시 해요.</p>${l.length ? `<div class="glist">${l.map((b, i) => `<div class="gi"><span>💾</span><div><b>${esc(b.name)} · ${dateStr(b.w)}</b><small>${new Date(b.at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} 저장</small></div><button class="btn sub small" data-abload="${i}" style="margin-left:auto;flex:none">되돌리기</button></div>`).join('')}</div>` : '<p class="center">아직 자동 백업이 없어요. 새해가 되면 생겨요.</p>'}
+<button class="btn sub" data-act="settings" style="width:100%;margin-top:10px">◀ 설정으로</button>`);
 }
 function saveOut() {
   const code = btoa(unescape(encodeURIComponent(JSON.stringify({ app: 'idol-maker', at: Date.now(), S, META }))));
@@ -3007,6 +3017,8 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.abload) { const b = autoBaks()[+d.abload]; if (!b || !confirm(`${dateStr(b.w)} 상태로 되돌릴까요?
+지금 진행한 내용은 사라져요.`)) return; S = JSON.parse(b.S); save(); closeDlg(); TAB = 'plan'; render(); return toast('되돌렸어요!'); }
   if (d.fac) return buildFac(d.fac);
   if (d.light) { if (S && !document.getElementById('suName')) { const nm = $('#fdName') ? $('#fdName').value : ''; S.light = d.light; save(); fandomDlg(); if ($('#fdName')) $('#fdName').value = nm; return; } SU.light = d.light; document.querySelectorAll('[data-light]').forEach(b => b.classList.toggle('on', b === t)); return; }
   if (d.mini) return miniPick(d.mini);
@@ -3035,6 +3047,7 @@ document.addEventListener('click', e => {
     case 'next-popup': return nextPopup();
     case 'settings': return settings();
     case 'howto': return howTo();
+    case 'autobak': return autoBakDlg();
     case 'brag': { const e = ENDINGS.find(x => x.id === S.endingId) || {}; const t = `🐾 아이돌 메이커 · ${S.name}\n${e.icon || ''} 엔딩: ${e.title || '게임 끝'}\n${dateStr(S.week)} · 팬 ${num(S.fans)}명 · 음방 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장${S.awards.length ? ` · 시상식 ${S.awards.map(a => a.award).join('·')}` : ''}\n${location.origin + location.pathname}`;
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('결과를 복사했어요! 친구에게 붙여 넣어 자랑해 보세요'), () => prompt('아래 글을 복사하세요', t)); return; }
     case 'bigtext': { try { localStorage.setItem('idol-maker-big', bigText() ? '0' : '1'); } catch (e) { } document.documentElement.classList.toggle('bigtext', bigText()); return settings(); }
