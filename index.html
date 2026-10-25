@@ -575,7 +575,7 @@ function newMember(name, low = 15, high = 40, gender = S ? S.gender : SU.gender,
   const st = {};
   for (const [k] of STATS) st[k] = ri(low, high);
   st.person = ri(30, 75); st.health = ri(55, 80);
-  return { id: uid(), name, age, hue: ri(0, 359), look: makeLook(gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null, variety: null };
+  return { id: uid(), name, age, bday: ri(0, 47), hue: ri(0, 359), look: makeLook(gender), stats: st, fatigue: 0, pop: 0, busy: null, sched: 'vocal', ad: null, drama: null, variety: null };
 }
 function newGame(cfg) {
   S = {
@@ -859,6 +859,15 @@ function endWeek() {
       else { REP.scene = 'dorm'; if (resting.length) REP.crew.dorm = resting.map(m => m.id); }
     } }
 
+  // 생일: 그 주가 생일인 멤버는 팬들이 축하 (데뷔 후 팬이 조금 늘고 인기↑)
+  for (const m of S.members) {
+    if (m.bday == null) m.bday = ri(0, 47);
+    if (m.bday === w % 48) {
+      const f = debuted() ? Math.round(80 + S.fans * 0.004 + m.pop * 20) : 0; S.fans += f; m.pop += debuted() ? 1 : 0;
+      news('win', `🎂 오늘은 ${m.name}의 생일! ${debuted() ? `팬들이 생일 축하 광고를 걸었어요 · 팬 +${num(f)}` : '멤버들이 깜짝 파티를 열어 줬어요'}`);
+      REP.lines.push(`🎂 ${m.name} 생일${f ? ` · 팬 +${num(f)}` : ''}`); REP.bday = m.name;
+    }
+  }
   // 고정 지출·기본 수입
   spend(staffCost(), '직원 인건비'); spend(dormOf().cost, `숙소 (${dormOf().name})`);
   for (const k in VENDORS) { const c = S.contracts[k]; if (c) { const v = VENDORS[k].list.find(x => x.id === c.id); spend(v.cost, v.name); } }
@@ -1321,7 +1330,7 @@ function makeOffers() {
     if (c.length) {
       const m = wpick(c, m => 5 + m.stats.visual + m.pop);
       const fee = Math.round((600 + S.fame * 50 + m.stats.visual * 8 + m.pop * 5) / 10) * 10;
-      S.offers.push({ id: uid(), type: 'ad', mid: m.id, brand: pick(BRANDS.filter(b => (m.age || 18) >= 19 || !adultBrand(b))), fee, expire: S.week + 2 });
+      S.offers.push({ id: uid(), type: 'ad', mid: m.id, brand: pick((l => l.length ? l : BRANDS.filter(b => (m.age || 18) >= 19 || !adultBrand(b)))(BRANDS.filter(b => ((m.age || 18) >= 19 || !adultBrand(b)) && !S.members.some(x => x.ad && x.ad.brand === b) && !S.offers.some(o => o.brand === b)))), fee, expire: S.week + 2 });
       news('offer', `${m.name}에게 광고 제의가 왔어요!`);
     }
   }
@@ -2388,10 +2397,13 @@ function planHTML() {
 }
 const MOPEN = new Set();   // 멤버 탭에서 능력치를 펼친 멤버
 const topSkills = m => STATS.filter(([k]) => k !== 'health' && k !== 'person').sort((a, b) => m.stats[b[0]] - m.stats[a[0]]).slice(0, 2);
+let MSORT = 'base';
+const MSORTS = [['base', '기본'], ['perf', '실력'], ['pop', '인기'], ['fat', '피로']];
 function membersHTML() {
   const perf = avg(S.members.map(perfOf)), allOpen = S.members.every(m => MOPEN.has(m.id));
   return `<h2>멤버 ${S.members.length}인조</h2><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="muted">그룹 무대 실력 <b style="color:var(--ink)">${Math.round(perf)}</b></span><button class="btn sub small" data-mtog="ALL">${allOpen ? '모두 접기 ▲' : '모두 펼치기 ▼'}</button></div>
-${S.members.map(m => { const open = MOPEN.has(m.id); return `<div class="card mc"><div class="mcard"><span class="who" data-member="${m.id}" title="눌러서 자세히">${avatar(m, 60, true)}</span><div class="minfo">
+<div class="chips" style="margin:-2px 0 10px"><span class="muted" style="align-self:center;font-size:13px">정렬</span>${MSORTS.map(([k, l]) => `<button class="chip${MSORT === k ? ' on' : ''}" data-msort="${k}">${l}</button>`).join('')}</div>
+${(MSORT === 'base' ? S.members : S.members.slice().sort((a, b) => MSORT === 'perf' ? perfOf(b) - perfOf(a) : MSORT === 'pop' ? b.pop - a.pop : b.fatigue - a.fatigue)).map(m => { const open = MOPEN.has(m.id); return `<div class="card mc"><div class="mcard"><span class="who" data-member="${m.id}" title="눌러서 자세히">${avatar(m, 60, true)}</span><div class="minfo">
 <div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
 <div class="mtop">💪 ${topSkills(m).map(([k, l]) => `${l} <b>${Math.round(m.stats[k])}</b>`).join(' · ')}</div>
 <div class="mstat"><span>만 ${m.age || 18}세</span><span>실력 <b>${Math.round(perfOf(m))}</b></span><span>인기 <b>${Math.round(m.pop)}</b></span><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span></div>
@@ -2557,7 +2569,7 @@ function memberDetail(id, pick = null) {   // pick: 'cloth'(옷 갈아입기) / 
   const sw = (f, list, cur) => `<div class="sw">${list.map((c, i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:${f}:${i}" aria-label="색 ${i + 1}"></button>`).join('')}</div>`;
   openDlg(`<div class="pcard"><div class="pcard-art">${avatar(m, 170, true)}${gradeBadge(gradeOf(m))}</div>
 <div class="pcard-name"><b>${esc(m.name)}</b><small>무대 실력 ${Math.round(perfOf(m))} · 그룹 ${rank}등 · 인기 ${Math.round(m.pop)}</small></div></div>
-<p class="muted center">만 ${m.age || 18}세 · 이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
+<p class="muted center">만 ${m.age || 18}세${m.bday != null ? ` · 🎂 ${Math.floor(m.bday / 4) + 1}월 ${m.bday % 4 + 1}주` : ''} · 이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
 ${forcedLabel(m) ? '' : `<div class="row" style="justify-content:center;gap:8px;margin-bottom:6px"><button class="btn sub small" data-schpick="${m.id}">📋 스케줄 바꾸기</button>${recSched(m) !== m.sched ? `<button class="btn small" data-recone="${m.id}">✨ 추천: ${esc(SCHED[recSched(m)].label.replace(/ \(.*\)/, ''))}</button>` : ''}</div>`}
 <h3>능력치</h3>${statBars(m)}
 <div class="stat"><span>피로</span><div class="bar"><i style="width:${m.fatigue}%;--c:#f0a04b"></i></div><b>${Math.round(m.fatigue)}</b></div>
@@ -2636,7 +2648,7 @@ const FAN_TALK = {
   prep: ['컴백 언제 와요… 기다리는 중', '티저 언제 나와요?!'], dorm: ['오늘은 푹 쉬어요!', '쉬는 모습도 귀여워'],
   practice: ['연습하는 거 보기만 해도 든든', '이번 컴백 기대돼요'], vocal: ['고음 연습 영상 풀어 주세요', '노래 실력 날로 늘어'],
 };
-function fanTalk(r) { if (r.fan === undefined) { const l = FAN_TALK[r.scene] || (TRAIN_SCENES.includes(r.scene) ? FAN_TALK.practice : null); r.fan = l && debuted() ? pick(l) : ''; } return r.fan; }
+function fanTalk(r) { if (r.fan === undefined && r.bday && debuted()) r.fan = pick([`${r.bday} 생일 축하해!!`, `세상에서 제일 귀여운 ${r.bday} 생일 축하해`, `${r.bday}, 태어나 줘서 고마워`]); if (r.fan === undefined) { const l = FAN_TALK[r.scene] || (TRAIN_SCENES.includes(r.scene) ? FAN_TALK.practice : null); r.fan = l && debuted() ? pick(l) : ''; } return r.fan; }
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
   const d0 = dateOf(S.week - 1), d1 = dateOf(S.week);
@@ -2783,6 +2795,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.msort) { MSORT = d.msort; return render(); }
   if (d.fold) { FOLD.has(d.fold) ? FOLD.delete(d.fold) : FOLD.add(d.fold); return render(); }
   if (d.newsf) { NEWSF = d.newsf; NEWSN = 30; return render(); }
   if (d.accept) return acceptOffer(d.accept);
