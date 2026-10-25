@@ -2485,7 +2485,7 @@ function managerLine() {
   if (S.money < 5000) return [S.money < 0 ? `자금이 마이너스예요! -1억 아래로 떨어지면 회사가 파산해요. 광고 제의를 받거나 비싼 숙소·업체를 줄여요.` : `자금이 ${money(S.money)}밖에 안 남았어요. 컴백·콘서트는 돈이 많이 들어요. 조심해요!`, TAB !== 'contract' ? go('contract', '🏠 비용 줄이러 가기') : ''];
   const tired = S.members.filter(m => !m.busy && m.fatigue >= 70);
   if (tired.length) return [`${tired.map(m => esc(m.name)).join(', ')} 멤버가 많이 지쳤어요. 휴식을 시켜 주세요.`, ''];
-  if (!debuted()) return ['아직 데뷔 전이에요. 데뷔를 준비해 볼까요?', TAB !== 'act' ? go('act', '🎤 데뷔 준비하러 가기') : ''];
+  if (!debuted()) { const pf = Math.round(avg(S.members.map(perfOf))); return [pf < 40 ? `아직 데뷔 전이에요. 무대 실력 평균이 40쯤 되면 데뷔하기 좋아요. (지금 평균 ${pf})` : '아직 데뷔 전이에요. 실력이 충분해요! 데뷔를 준비해 볼까요?', TAB !== 'act' ? go('act', '🎤 데뷔 준비하러 가기') : '']; }
   if (S.offers.length && TAB !== 'act') return [`광고·드라마·예능 제의가 ${S.offers.length}건 와 있어요!`, go('act', '💌 제의 보러 가기')];
   if (S.festival && S.week <= S.festival.until) return [`${S.festival.name} 출연 제의가 왔어요. 그룹 일정에서 고를 수 있어요.`, ''];
   const gap = S.week - S.lastPromoEnd;
