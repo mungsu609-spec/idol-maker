@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.glist .gi>div>small.eprog{color:var(--pinkd);font-weight:700}
 .setgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .setg{display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 6px;border-radius:14px;border:2px solid #efd9b4;background:#fffdf8;font:inherit;color:var(--ink);cursor:pointer;box-shadow:0 2px 0 #ead2a6}
 .setg span{font-size:20px;line-height:1}.setg b{font-size:14px}.setg small{font-size:12px;color:var(--sub)}
@@ -1357,6 +1358,10 @@ function endFx(id) {
 }
 const endScene = id => `<div class="st3host${END_BG[id] ? ' dim' : ''}" id="endstage">${END_BG[id] ? `<img class="bgimg" src="art/bg/${END_BG[id] === 'dorm' ? dormBg() : END_BG[id]}.webp${CATV}" alt=""><div class="vig"></div>` : bgHTML('end_' + id)}${endFx(id)}</div>`;
 function mountEnd(id) { const h = $('#endstage'); if (h && S.members.length) mount2d(h, S.members, 'end_' + id); }
+// 엔딩 진행도 (엔딩 탭에 '지금 ○ / ○')
+const END_PROG = { legend: () => `대상 ${awardN('대상')} / 3 · 1위 ${S.trophies} / 20`, daesang: () => `대상 ${awardN('대상')} / 1`, world: () => `팬 ${num(S.fans)} / 50만 · 외국어 평균 ${Math.round(avgLang())} / 60`,
+  chart: () => `1위 ${S.trophies} / 15`, actor: () => `드라마·영화 ${cnt('drama') + cnt('movie')} / 4`, variety: () => `예능 ${cnt('variety') + cnt('varietyReg')} / 8`, cf: () => `광고 ${cnt('ad')} / 8`,
+  stage: () => `콘서트 ${cnt('concert')} / 6`, steady: () => `1위 ${S.trophies} · 수상 ${S.awards.length}` };
 function endGame(id, text) {
   S.over = text; S.endingId = id; S.pending = [];
   if (!META.endings[id]) META.endings[id] = { g: S.name, w: S.week };
@@ -1409,7 +1414,7 @@ function goalsDlg(tab) {
     h = `<p class="muted center">업적은 새 게임을 해도 남아요. (${n} / ${ACH.length})</p><div class="glist">${ACH.map(([id, ic, l]) => `<div class="gi${META.ach[id] ? '' : ' off'}"><span>${META.ach[id] ? ic : '🔒'}</span><div><b>${esc(l)}</b>${META.ach[id] ? `<small>${esc(META.ach[id].g)} · ${dateStr(META.ach[id].w)}</small>` : achProg(id) ? `<small>지금 ${achProg(id)}</small>` : ''}</div></div>`).join('')}</div>`; }
   else { const n = ENDINGS.filter(e => META.endings[e.id]).length;
     h = `<p class="muted center">${CONTRACT_YEARS}년 계약이 끝나면 기록에 따라 엔딩이 정해져요. 위에 있는 엔딩일수록 먼저 골라져요. (${n} / ${ENDINGS.length})</p><div class="glist">${ENDINGS.map(e => { const seen = META.endings[e.id];
-      return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small></div>${seen && S && S.members.length ? `<button class="btn sub small" data-endview="${e.id}" style="margin-left:auto;flex:none">보기</button>` : ''}</div>`; }).join('')}</div>`; }
+      return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small>${S && END_PROG[e.id] && !S.over ? `<small class="eprog">지금 ${END_PROG[e.id]()}</small>` : ''}</div>${seen && S && S.members.length ? `<button class="btn sub small" data-endview="${e.id}" style="margin-left:auto;flex:none">보기</button>` : ''}</div>`; }).join('')}</div>`; }
   openDlg(`<h2>목표</h2><div class="chips gtabs">${tabs.map(([k, l]) => `<button class="chip${GTAB === k ? ' on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>${h}<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
 }
 
@@ -2675,7 +2680,7 @@ const fanSpark = () => spark(S.fh, `💗 팬 수 변화 (최근 ${(S.fh || []).l
 function recordHTML() {
   const best = S.albums.filter(a => a.best < 99).reduce((b, a) => Math.min(b, a.best), 99), d = S.debutYear;
   const aw = ['대상', '본상', '신인상'].map(a => [a, S.awards.filter(x => x.award === a).length]).filter(x => x[1]);
-  const rows = [['💗 팬클럽', `${esc(fandom())} · 응원봉 <span style="color:${lightC()}">●</span>`], ['📅 데뷔', d ? `${d}년차` : '아직 데뷔 전'], ['💿 앨범', `${S.albums.length}장${best < 99 ? ` · 최고 ${best}위` : ''}`], ['🏆 음악 방송 1위', `${S.trophies}번`],
+  const rows = [['💗 팬클럽', `${esc(fandom())} · 응원봉 <span style="color:${lightC()}">●</span>`], ['📅 데뷔', d ? `${d}년차` : '아직 데뷔 전'], ['💿 앨범', `${S.albums.length}장${best < 99 ? ` · 최고 ${best}위` : ''}`], ['🏆 음악 방송 1위', `${S.trophies}번`], ...(S.albums.length ? (a => [['🌟 최고 앨범', `「${esc(a.title)}」 ${a.best < 99 ? `최고 ${a.best}위` : ''}${a.wins ? ` · 1위 ${a.wins}번` : ''}`]])(S.albums.slice().sort((x, y) => (y.wins - x.wins) || (x.best - y.best))[0]) : []),
     ['🏅 연말 시상식', aw.length ? aw.map(([a, n]) => `${a} ${n}번`).join(' · ') : '아직 없어요'], ['💗 최고 팬 수', `${num(Math.max(S.maxFans || 0, S.fans))}명`],
     ['🎆 단독 콘서트', `${cnt('concert')}번`], ['✍️ 팬싸인회', `${cnt('fansign')}번`], ['📢 광고', `${cnt('ad')}건`], ['🎬 드라마', `${cnt('drama')}편`], ['🎥 영화', `${cnt('movie')}편${cnt('tenM') ? ` (천만 ${cnt('tenM')})` : ''}`],
     ['📺 예능', `${cnt('variety') + cnt('varietyReg')}번`], ['📋 매니저 미션 성공', `${cnt('missionOk')}번`], ['🚨 논란', `${cnt('scandal')}번`]];
