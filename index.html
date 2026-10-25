@@ -182,6 +182,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.ctable em{font-style:normal;font-size:11px;font-weight:800}.ctable em.up{color:var(--good)}.ctable em.dn{color:var(--bad)}
 .gtabs{justify-content:center;flex-wrap:nowrap;gap:5px}.gtabs .chip{padding:5px 9px;font-size:13.5px;white-space:nowrap}
 .pvjump{position:sticky;top:0;z-index:5;margin:0 -16px 10px;padding:8px 16px;background:rgba(255,240,246,.94);backdrop-filter:blur(4px);flex-wrap:nowrap;overflow-x:auto}
 .pvjump .chip{flex:none;padding:4px 10px;font-size:13.5px}
@@ -696,6 +697,12 @@ function yearRecap() {
   return { y, fans: S.fans - a.fans, fansNow: S.fans, wins: S.trophies - a.trophies, money: S.money - a.money, albums: S.albums.length - a.albums, award: (S.awards.find(x => x.y === y) || {}).award || '',
     concert: d('concert'), fansign: d('fansign'), ad: d('ad'), drama: d('drama'), movie: d('movie'), variety: d('variety') + d('varietyReg'), scandal: d('scandal'), mission: d('missionOk') };
 }
+function albumDoneHTML(a) {
+  const c = CONCEPTS.find(x => x.id === a.concept), talk = a.wins >= 2 ? `1위를 ${a.wins}번이나 했어요! 정말 대단한 활동이었어요.` : a.wins ? '1위를 해냈어요! 모두 정말 고생 많았어요.' : a.best <= 3 ? `최고 ${a.best}위! 다음엔 1위도 할 수 있어요.` : a.best < 99 ? '수고 많았어요. 다음 활동은 더 잘할 수 있어요!' : '짧은 활동이었지만 수고 많았어요!';
+  const rows = [['🎵 콘셉트', c ? conceptLabel(c) : '-'], ['📺 활동 기간', `${a.weeks}주`], ['📈 최고 순위', a.best < 99 ? `${a.best}위` : '순위 없음'], ['🏆 1위', `${a.wins}번`], ['💗 활동 동안 늘어난 팬', `${a.fans >= 0 ? '+' : ''}${num(a.fans)}명`]];
+  return `<h2>💿 「${esc(a.title)}」 활동 마무리</h2><p class="muted center">${esc(a.who)}${a.debut ? ' · 데뷔곡' : ''}</p>${managerHTML(talk)}<div class="money-list" style="margin-top:10px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
+<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">확인</button>`;
+}
 function recapHTML(r) {
   const talk = r.award === '대상' ? `${r.y}년차는 대상까지 받은 최고의 한 해였어요! 정말 고생 많았어요.` : r.wins >= 3 ? `1위를 ${r.wins}번이나 했어요! 이 기세로 내년도 달려 봐요.` : r.fans > 0 ? `팬이 ${num(r.fans)}명 늘었어요. 차근차근 잘 크고 있어요!` : `조금 힘든 한 해였지만, 내년엔 더 잘할 수 있어요!`;
   const rows = [['💗 늘어난 팬', `${r.fans >= 0 ? '+' : ''}${num(r.fans)}명 (지금 ${num(r.fansNow)}명)`], ['🏆 음악 방송 1위', `${r.wins}번`], ['💿 낸 앨범', `${r.albums}장`], ['🏅 연말 시상식', r.award || '없음'],
@@ -780,7 +787,8 @@ function endWeek() {
       const list = first ? null : chartList(st, P.wk, promoWho(P));
       REP.crew.stage = availP.filter(m => !m.busy).map(m => m.id);
       const rank = first ? 0 : list.findIndex(x => x.me) + 1;
-      REP.chart = first ? null : { list, rank, stage: st }; setScene(rank === 1 ? 'win' : 'stage');
+      REP.chart = first ? null : { list, rank, stage: st, prev: P.lastRank || 0 }; setScene(rank === 1 ? 'win' : 'stage'); if (!first) P.lastRank = rank;
+      if (P.fans0 == null) P.fans0 = S.fans;
       const lang = avg(availP.map(m => m.stats.lang));
       const bonus = [5000, 2500, 1500, 800, 400, 200, 100][rank - 1] || 0;
       const kmul = P.kind === 'solo' ? 0.6 : P.kind === 'unit' ? 0.8 : 1;
@@ -799,6 +807,7 @@ function endWeek() {
       if (P.left <= 0) {
         S.albums.push({ title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P), mids: P.mids || null });
         news('promo', `${promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P) : ''}「${P.title}」 활동 마무리 · ${P.best < 99 ? `최고 ${P.best}위` : '순위 없음'}${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
+        S.albumDone = { title: P.title, who: promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P).trim() : S.name, concept: P.concept, best: P.best, wins: P.wins, weeks: P.weeks, fans: S.fans - (P.fans0 ?? S.fans), debut: P.debut };
         S.promo = null; S.lastPromoEnd = w;
       }
     }
@@ -2416,6 +2425,7 @@ ${(MSORT === 'base' ? S.members : S.members.slice().sort((a, b) => MSORT === 'pe
 <div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
 <div class="mtop">💪 ${topSkills(m).map(([k, l]) => `${l} <b>${Math.round(m.stats[k])}</b>`).join(' · ')}</div>
 <div class="mstat"><span>만 ${m.age || 18}세</span><span>실력 <b>${Math.round(perfOf(m))}</b></span><span>인기 <b>${Math.round(m.pop)}</b></span><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span></div>
+<div class="muted" style="font-size:13px">📅 이번 주: ${esc((forcedLabel(m) || (SCHED[m.sched] || SCHED.rest).label).replace(/ \(.*\)/, ''))}</div>
 ${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.movie ? `<div class="muted">🎥 영화 ${esc(m.movie.title)} ${m.movie.role}</div>` : ''}${m.variety ? `<div class="muted">📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음</div>` : ''}</div>
 <button class="mtog" data-mtog="${m.id}" aria-label="능력치 ${open ? '접기' : '펼치기'}">${open ? '▲' : '▼'}</button></div>${open ? statBars(m, true) : ''}</div>`; }).join('')}
 <div class="card"><b class="name">연습생 영입</b><p class="muted">연습생을 만나 보고 영입을 제안해요.<br>거절할 수도 있어요 · 최대 7명<br>이번 달 연습생 보기 남은 횟수: <b>${rcLeft()}</b> / ${RC_MAX}</p><button class="btn small" data-act="recruit"${S.members.length >= 7 || (rcLeft() <= 0 && !(RC && RC.mo === Math.floor(S.week / 4))) ? ' disabled' : ''}>영입하기</button></div>`;
@@ -2666,7 +2676,7 @@ function showReport(r) {
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
-  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}${x.hot ? ' 🔥' : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
+  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위${x.me && r.chart.prev ? (r.chart.prev > i + 1 ? `<em class="up"> ▲${r.chart.prev - i - 1}</em>` : r.chart.prev < i + 1 ? `<em class="dn"> ▼${i + 1 - r.chart.prev}</em>` : ' -') : ''}</td><td>${esc(x.name)}${x.hot ? ' 🔥' : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
   if (r.award) h += `<h3>연말 시상식 점수</h3><table class="ctable">${r.award.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table><p class="muted" style="font-size:12px">대상은 1위 그룹 (인지도 60 이상), 본상은 3위 안 (인지도 40 이상)</p>`;
   if (r.deltas.length) h += `<h3>멤버 변화</h3><div class="dlist">${r.deltas.map(([m, t]) => `<div class="dl">${avatar(m, 36)}<div><b>${esc(m.name)}</b><small>${esc(t).replace(/([가-힣]+) ([+-])(\d+)/g, (_, k, sg, v) => `${k} <em class="${(sg === '+') !== (k === '피로') ? 'up' : 'dn'}">${sg}${v}</em>`)}</small></div></div>`).join('')}</div>`;
   h += `<details class="moneyfold"><summary><b>💰 돈</b><span class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)} <i>자세히 ▼</i></span></summary><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
@@ -2720,6 +2730,7 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
     mount2d($('#st3host'), [m], scBg);
     return;
   }
+  if (S && S.albumDone && !S.over) { const a = S.albumDone; S.albumDone = null; save(); return openDlg(albumDoneHTML(a)); }
   if (S && S.recap && !S.over) { const r = S.recap; S.recap = null; save(); return openDlg(recapHTML(r)); }
   closeDlg(); render();
 }
