@@ -726,7 +726,6 @@ function doSched(m, s) {
       m.stats.visual = clamp(m.stats.visual + rand(10, 18) * (1 - m.stats.visual / 150), 0, 100);
       REP.lines.push(`💉 ${m.name} 성형 → 3주 동안 회복해요`);
     }
-    if (S.fame >= 20 && Math.random() < 0.15) addScandal(m, '외모');
     return;
   }
   addFat(m, s.fat < 0 ? s.fat * dormComfort() : s.fat);
@@ -1407,7 +1406,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=29';
+const CATV = '?v=30';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1471,9 +1470,9 @@ const catImg = (coat, kind) => `art/cat/${coat}-${kind}.png${CATV}`;
 let PIXIP = null;
 const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
-const MODE2 = { vocal: 'sing', camera: 'wave', act: 'sing', lang: 'idle', person: 'idle', diet: 'dance', adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
+const MODE2 = { dating: 'sad', stalker: 'sad', vocal: 'sing', camera: 'wave', act: 'sing', lang: 'idle', person: 'idle', diet: 'dance', adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
 // AI로 만든 배경 그림 (8장 무료 FLUX, 나머지 제미나이). 숙소는 6종류마다 다른 그림
-const BGS = ['stage', 'practice', 'vocal', 'camera', 'act', 'lang', 'person', 'diet', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'campus', 'adshoot', 'variety'];
+const BGS = ['dating', 'stalker', 'stage', 'practice', 'vocal', 'camera', 'act', 'lang', 'person', 'diet', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'campus', 'adshoot', 'variety'];
 const BG_ALIAS = { win: 'stage' };   // 1위 = 음악 방송 무대 + 빛 효과 (예전 win 그림은 연습실이라 안 씀)
 const DORM_BG = { d1: 'dorm_old', d2: 'dorm', d3: 'dorm_two', d6: 'dorm_house', d4: 'dorm_office', d5: 'dorm_lux' };   // 숙소 6종 모두 다른 그림
 const dormBg = () => DORM_BG[(S && S.dorm ? dormOf() : DORMS[1]).id] || 'dorm';
@@ -1484,6 +1483,7 @@ function bgHTML(kind) {
 }
 // 장면별 조명: 고양이 색을 배경 빛에 맞추기 [빨강·초록·파랑 곱하기, 밝기 더하기], 무대는 바닥 조명(스포트라이트)
 const LIGHT = {
+  dating: [[1, .92, 1.02], -.04, null], stalker: [[.9, .93, 1.08], -.08, null],
   vocal: [[1.04, .98, .92], .02, null], camera: [[1.04, .98, .92], .03, null], act: [[1.04, .97, .92], .02, null], lang: [[1.03, .99, .93], .02, null], person: [[1.03, 1, .92], .02, null], diet: [[.97, 1.01, 1.05], .03, null],
   stage: [[1, .9, 1.05], .02, 0xff7ad9], concert: [[1, .88, 1.05], 0, 0xffa0e0], yearend: [[1.05, .95, .88], .02, 0xffd27a], win: [[1.06, .98, .86], .04, 0xffe08a],
   festival: [[1.02, 1, .96], .03, null], adshoot: [[1.03, .99, .97], .04, null], variety: [[1.02, .96, 1.02], .02, 0xffb0e0], campus: [[1.04, .98, .92], .02, 0xffd28a], practice: [[1.04, .98, .92], .02, null], live: [[1.04, .96, .94], .01, null], fansign: [[1.04, .97, .96], .03, null],
@@ -1491,7 +1491,7 @@ const LIGHT = {
   scandal: [[1.04, .9, .9], -.05, null], clinic: [[1, 1, 1], 0, null],
 };
 // 배경마다 벽과 바닥이 만나는 높이 (화면 높이 비율, 그림을 재서 정함). 뒷줄 발끝이 이 선보다 아래 바닥 위에 오게
-const FLOOR = { vocal: .72, camera: .72, act: .72, lang: .72, person: .70, diet: .66, adshoot: .74, variety: .72, campus: .78, stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
+const FLOOR = { dating: .68, stalker: .7, vocal: .72, camera: .72, act: .72, lang: .72, person: .70, diet: .66, adshoot: .74, variety: .72, campus: .78, stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
 // 뒷줄 자리: 앞줄 고양이 사이사이 틈 중에서 고르게 (앞줄 가운데가 0, 한 칸 = 앞줄 간격)
 function backSlots(nf, nb) {
   const gaps = Array.from({ length: nf - 1 }, (_, i) => i - (nf - 2) / 2);
@@ -2024,19 +2024,20 @@ function nextPopup() {
     const sc = S.pending[0], m = S.members.find(x => x.id === sc.mid);
     if (!m) { S.pending.shift(); save(); return nextPopup(); }
     if (sc.kind === '사생') {
-      openDlg(`<div class="st3host" id="st3host">${bgHTML('scandal')}</div><h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
+      openDlg(`<div class="st3host" id="st3host">${bgHTML('stalker')}</div><h2>👁 사생팬 등장</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div></div></div>
 <p class="muted">어떻게 할까요?</p>
 <button class="choice" data-sc="guard"><b>🛡 경호 강화</b><small>비용 500만. 가장 안전해요.</small></button>
 <button class="choice" data-sc="police"><b>🚓 경찰 신고·공식 대응</b><small>돈은 안 들어요. 멤버가 조금 지쳐요.</small></button>
 <button class="choice" data-sc="ignore"><b>🙈 무시하기</b><small>멤버가 불안해하고, 숙소 침입이 생길 수 있어요.</small></button>`);
-      mount2d($('#st3host'), [m], 'scandal');
+      mount2d($('#st3host'), [m], 'stalker');
       return;
     }
     const extra = [];
     if (m.ad) extra.push(`광고 ${m.ad.brand} 계약 중 (심각하면 위약금 ${money(m.ad.fee * 2)})`);
     if (m.drama) extra.push(`드라마 ${m.drama.title} 촬영 중`);
     if (m.variety) extra.push(`예능 ${m.variety.title} 고정 출연 중 (논란이 크면 하차)`);
-    openDlg(`<div class="st3host" id="st3host">${bgHTML('scandal')}</div><h2>🚨 논란 발생</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
+    const scBg = sc.kind === '열애' ? 'dating' : 'scandal';   // 인성·실력·말실수는 기존 논란 배경
+    openDlg(`<div class="st3host" id="st3host">${bgHTML(scBg)}</div><h2>${sc.kind === '열애' ? '💑 열애설' : '🚨 논란 발생'}</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
 ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <p class="muted">어떻게 대처할까요?</p>
 <button class="choice" data-sc="apologize"><b>📝 사과문 올리기</b><small>팬이 조금 떠나요. 심각도 '보통' 이상이면 광고가 해지돼요.</small></button>
@@ -2044,7 +2045,7 @@ ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
 <button class="choice" data-sc="pause"><b>⏸ 활동 중단</b><small>${3 + sc.sev * 2}주 쉬어요. 팬은 덜 떠나지만 드라마는 하차해요.</small></button>
 ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 인정하기</b><small>팬이 조금 떠나지만 논란이 빨리 끝나요. 심각하면 광고가 해지돼요.</small></button>` : ''}
 <button class="choice" data-sc="leave"><b>🚪 그룹 탈퇴</b><small>멤버가 그룹을 떠나요. 광고 위약금과 드라마 하차가 따라와요.</small></button>`);
-    mount2d($('#st3host'), [m], 'scandal');
+    mount2d($('#st3host'), [m], scBg);
     return;
   }
   closeDlg(); render();
@@ -2171,7 +2172,7 @@ ${PV.scene === 'dorm' ? `<label class="f">숙소 종류</label><select class="fu
 ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악 방송·1위 장면 옷)</label><select class="full" data-pvsel="concept">${CONCEPTS.map(c => `<option value="${c.id}"${PV.concept === c.id ? ' selected' : ''}>${conceptLabel(c)}</option>`).join('')}</select>` : ''}
 <label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
 </div>
-<h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['외모', '💄 외모 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
+<h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
 <p class="muted" style="font-size:12px">옷을 누르면 크게 볼 수 있어요.</p><div class="pvgrid">${items.map(([k, n]) => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
 ${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그룹이면 위 옷 대신 이걸 입어요)</label><div class="pvgrid">${boyItems.map(k => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(BOY_NAME[k])}</small></div>`).join('')}</div>`}</div>`;
