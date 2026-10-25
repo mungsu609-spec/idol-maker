@@ -138,6 +138,8 @@ nav button{flex:1;border:0;background:none;padding:5px 0 7px;font-family:"Jua",s
 nav .ti{display:block;width:44px;height:40px;margin:0 auto 1px;border-radius:14px;padding:1px 4px;transition:transform .15s}
 nav .ti svg,nav .ti img{width:100%;height:100%;object-fit:contain;display:block}
 nav button.on{color:var(--pinkd)}
+nav .ti{position:relative}
+nav .nbadge{position:absolute;top:-3px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef3f6e;color:#fff;font:700 11px/18px sans-serif;font-style:normal;text-align:center;box-shadow:0 0 0 2px #fffaf0}
 nav button.on .ti{background:radial-gradient(circle,#fff 35%,#ffd6e6);box-shadow:0 0 0 2px var(--pinkl);transform:translateY(-5px)}
 .talk{position:relative;display:flex;gap:10px;align-items:center;margin-top:12px;padding:10px 14px 12px 10px;border-radius:16px;background:#fff6f9;border:2px solid #f6b9cf;box-shadow:0 3px 0 #f0a3bf;color:var(--ink)}
 .talk-face{flex:none;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#fff,#ffe1ec);border:2.5px solid #fff;overflow:hidden;box-shadow:0 0 0 2px #f6b9cf}
@@ -254,8 +256,8 @@ body.lowfx .efx,body.lowfx .hearts,body.lowfx .livefx,body.lowfx .scfx,body.lowf
 .goalcard .gl{display:flex;gap:10px;align-items:center;padding:6px 0}
 .goalcard .gl+.gl{border-top:2px dashed var(--line)}
 .goalcard .gl>span,.glist .gi>span{flex:none;font-size:20px;width:26px;text-align:center}
-.goalcard .gl b,.glist .gi b{display:block;font-size:14.5px}
-.goalcard .gl small,.glist .gi small{display:block;color:var(--sub);font-size:12.5px}
+.goalcard .gl>div>b,.glist .gi>div>b{display:block;font-size:14.5px}
+.goalcard .gl>div>small,.glist .gi>div>small{display:block;color:var(--sub);font-size:12.5px}
 .goalcard .more{display:block;text-align:right;color:var(--pinkd);font-size:12px;margin-top:2px}
 .glist .gi{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:2px dashed var(--line)}
 .glist .gi:first-child{border-top:0}
@@ -576,11 +578,12 @@ function newGame(cfg) {
     npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null, log: {}, goal: 0, mission: null,
   };
   newMission();
+  setTimeout(() => { try { if (!localStorage.getItem('idol-maker-howto')) { localStorage.setItem('idol-maker-howto', '1'); howTo(); } } catch (e) { } }, 300);
   S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; m.cat = CATS[(lookOf(m).ch - 1) % CATS.length][0]; });
   news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
   save(); TAB = 'plan'; render();
 }
-function news(type, text) { S.news.unshift({ w: S.week, type, text }); if (S.news.length > 200) S.news.length = 200; }
+function news(type, text) { S.news.unshift({ w: S.week, type, text }); if (S.news.length > 200) S.news.length = 200; S.newsN = (S.newsN || 0) + 1; }
 const debuted = () => S.albums.length > 0 || (S.promo && S.promo.phase === 'on');
 
 // ===== 능력치 변화 =====
@@ -933,8 +936,8 @@ function doSched(m, s) {
 }
 function tickBusy(m) {
   const t = m.busy.type;
-  if (t === 'drama') { gain(m, 'act', 2.5); gain(m, 'camera', 1); addFat(m, 10); earn(m.drama.feeW, `${m.name} 드라마 출연료`); S.fame = clamp(S.fame + 0.3, 0, 100); }
-  else if (t === 'movie') { gain(m, 'act', 3); gain(m, 'camera', 1); addFat(m, 12); setScene('movie'); (REP.crew.movie = REP.crew.movie || []).push(m.id); }
+  if (t === 'drama') { gain(m, 'act', 2.5); gain(m, 'camera', 1); addFat(m, m.fatigue >= 70 ? 3 : 10); earn(m.drama.feeW, `${m.name} 드라마 출연료`); S.fame = clamp(S.fame + 0.3, 0, 100); }
+  else if (t === 'movie') { gain(m, 'act', 3); gain(m, 'camera', 1); addFat(m, m.fatigue >= 70 ? 3 : 12); setScene('movie'); (REP.crew.movie = REP.crew.movie || []).push(m.id); }
   else if (t === 'adshoot') { gain(m, 'camera', 1); addFat(m, 6); setScene('adshoot'); (REP.crew.adshoot = REP.crew.adshoot || []).push(m.id); }
   else if (t === 'variety') { gain(m, 'camera', 1.5); gain(m, 'person', .5); addFat(m, 8); earn(m.busy.fee || 0, `${m.name} 예능 게스트 출연료`); setScene('variety'); (REP.crew.variety = REP.crew.variety || []).push(m.id); varietyAir(m, m.busy.title, true); }
   else if (t === 'surgery') addFat(m, -10);
@@ -2305,6 +2308,12 @@ function managerLine() {
 }
 function managerBox() { const [t, b] = managerLine(); return managerHTML(t, b); }
 
+// 아래 메뉴 알림: 활동 = 답할 제의 수, 소식 = 안 읽은 소식 수
+function navBadge(id) {
+  if (id === 'news') { if (TAB === 'news' || S.newsSeen == null) S.newsSeen = S.newsN || 0; const k = (S.newsN || 0) - S.newsSeen; return k > 0 ? (k > 99 ? '99+' : k) : ''; }
+  if (id === 'act') return S.offers.length || '';
+  return '';
+}
 function render() {
   setTimeout(warmUp, 0);
   const app = $('#app');
@@ -2319,7 +2328,7 @@ function render() {
 <div class="kpis">${kpi.map(([i, l, v, neg]) => `<div class="kpi">${i}<div><small>${l}</small><b class="${neg ? 'neg' : ''}">${v}</b></div></div>`).join('')}</div>
 </header>${body}
 ${TAB !== 'plan' ? '' : '<div class="go"><button class="btn" data-act="end-week">한 주 진행 ▶</button></div>'}
-<nav><div>${tabs.map(([id, l]) => `<button class="${TAB === id ? 'on' : ''}" data-tab="${id}"><span class="ti">${TABICON[id]}</span>${l}</button>`).join('')}</div></nav>`;
+<nav><div>${tabs.map(([id, l]) => { const b = navBadge(id); return `<button class="${TAB === id ? 'on' : ''}" data-tab="${id}"><span class="ti">${TABICON[id]}${b ? `<i class="nbadge">${b}</i>` : ''}</span>${l}</button>`; }).join('')}</div></nav>`;
 }
 function planHTML() {
   const opts = gaOptions(); if (opts[0].fixed) S.ga = opts[0].id; else if (!opts.some(o => o.id === S.ga && o.ok !== false)) S.ga = 'none';
@@ -2632,10 +2641,21 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
   }
   closeDlg(); render();
 }
+function howTo() {
+  const rows = [['📅', '한 주씩 진행해요', '멤버마다 스케줄을 고르고 아래 <b>한 주 진행</b>을 눌러요. 모르겠으면 <b>✨ 추천 스케줄</b>을 눌러 보세요.'],
+    ['😴', '피로를 조심해요', '피로가 70을 넘으면 연습 효과가 반으로 줄고, 너무 지치면 쓰러져요. 쉬게 하면 피로가 풀려요.'],
+    ['🎤', '데뷔하고 컴백해요', '<b>활동</b> 탭에서 곡과 콘셉트를 정해 데뷔·컴백해요. 음악 방송에서 1위를 노려 보세요.'],
+    ['💌', '제의를 골라 받아요', '광고·드라마·영화·예능 제의가 와요. 카드의 <b>위험</b> 표시를 보고 받을지 정해요.'],
+    ['📋', '목표와 미션', '일정 탭 목표 카드에서 다음 목표와 이번 달 매니저 미션을 확인해요. 이루면 보상이 있어요.'],
+    ['📜', '7년 계약', '7년차 연말 무대가 끝나면 그동안의 기록으로 <b>엔딩</b>이 정해져요. 엔딩 12가지를 모아 보세요!']];
+  openDlg(`<h2>게임 방법</h2>${managerHTML('안녕하세요, 매니저예요! 우리 그룹을 최고의 아이돌로 키워 봐요.')}<div class="glist" style="margin-top:10px">${rows.map(([i, t, d]) => `<div class="gi"><span>${i}</span><div><b>${t}</b><small>${d}</small></div></div>`).join('')}</div>
+<button class="btn" data-act="close" style="width:100%;margin-top:10px">시작해요!</button>`);
+}
 const lowFx = () => { try { return localStorage.getItem('idol-maker-lowfx') === '1'; } catch (e) { return false; } };
 function settings() {
   openDlg(`<h2>설정</h2><p class="muted center">게임은 이 브라우저에 자동으로 저장돼요.</p>
 <a class="btn" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
+<button class="btn sub" data-act="howto" style="width:100%;margin-bottom:8px">📖 게임 방법</button>
 <button class="btn sub" data-act="lowfx" style="width:100%;margin-bottom:8px">✨ 장면 효과: ${lowFx() ? '끔 (켜기)' : '켬 (끄기)'}</button>
 <button class="btn sub" data-act="save-out" style="width:100%;margin-bottom:8px">💾 저장 데이터 내보내기 (백업)</button>
 <button class="btn sub" data-act="save-in" style="width:100%;margin-bottom:8px">📂 저장 데이터 불러오기</button>
@@ -2721,6 +2741,7 @@ document.addEventListener('click', e => {
     case 'week-go': closeDlg(); return endWeek();
     case 'next-popup': return nextPopup();
     case 'settings': return settings();
+    case 'howto': return howTo();
     case 'lowfx': { try { localStorage.setItem('idol-maker-lowfx', lowFx() ? '0' : '1'); } catch (e) { } document.body.classList.toggle('lowfx', lowFx()); return settings(); }
     case 'save-out': return saveOut();
     case 'save-in': return saveIn();
