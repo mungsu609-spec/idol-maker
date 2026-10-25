@@ -183,6 +183,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.schint{margin:6px 0;padding:7px 10px;border-radius:10px;background:#f1f6ff;font-size:13px;color:var(--sub)}
+.sparkw{margin-top:10px}.sparkw small{display:flex;justify-content:space-between;color:var(--sub);font-size:11.5px}.sparkw svg{display:block;width:100%;height:64px}
 .tag.pos{background:#f3ecff;color:#7a4fc0;border-color:#dccdfa}
 .goalcard .pbar{display:block;height:5px;margin-top:4px;border-radius:3px;background:var(--bar);overflow:hidden;max-width:220px}.goalcard .pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ffa8cb,#ef5c96)}
 .fflist{max-height:46vh;overflow:auto}.ffl{padding:5px 0;border-top:1px dashed var(--line);font-size:14px}.ffl:first-child{border-top:0}.ffl small{display:block;color:var(--sub);font-size:11.5px}
@@ -970,7 +972,7 @@ function endWeek() {
   }
   if (S.money < 0) S.wasDebt = true;
   progress(true);
-  S.maxFans = Math.max(S.maxFans || 0, S.fans);
+  S.maxFans = Math.max(S.maxFans || 0, S.fans); (S.fh = S.fh || []).push(S.fans); if (S.fh.length > 400) S.fh.splice(0, S.fh.length - 400);
   REP.dFans = S.fans - fans0; REP.dFame = Math.round(S.fame - fame0);
   if (S.money < -10000) endGame('bankrupt', '자금이 -1억 아래로 떨어져 회사가 파산했어요.');
   else if (!S.members.length) endGame('disband', '멤버가 모두 떠나 그룹이 해체됐어요.');
@@ -2614,6 +2616,12 @@ ${on ? `<button class="btn sub small" data-term="${kind}">해지</button>` : `<b
 // 소식: 종류별로 거르기, 30개씩 더 보기. 위에는 그룹 기록(통계)
 let NEWSF = 'all', NEWSN = 30, RECOPEN = false;
 const NEWS_KINDS = [['all', '전체'], ['win', '🏆 좋은 일'], ['promo', '🎤 활동'], ['offer', '💌 제의'], ['scandal', '🚨 사건'], ['info', '✨ 기타']];
+// 팬 수 그래프 (주마다 기록, 최근 400주)
+function fanSpark() {
+  const h = S.fh || []; if (h.length < 3) return '';
+  const mx = Math.max(...h), mn = Math.min(...h), W = 300, H = 60, pts = h.map((v, i) => `${(i / (h.length - 1) * W).toFixed(1)},${(H - 4 - (mx === mn ? 0.5 : (v - mn) / (mx - mn)) * (H - 8)).toFixed(1)}`).join(' ');
+  return `<div class="sparkw"><small><span>💗 팬 수 변화 (최근 ${h.length}주)</span><span>최고 ${num(mx)}</span></small><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline points="0,${H} ${pts} ${W},${H}" fill="rgba(239,92,150,.12)" stroke="none"/><polyline points="${pts}" fill="none" stroke="#ef5c96" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg></div>`;
+}
 function recordHTML() {
   const best = S.albums.filter(a => a.best < 99).reduce((b, a) => Math.min(b, a.best), 99), d = S.debutYear;
   const aw = ['대상', '본상', '신인상'].map(a => [a, S.awards.filter(x => x.award === a).length]).filter(x => x[1]);
@@ -2621,7 +2629,7 @@ function recordHTML() {
     ['🏅 연말 시상식', aw.length ? aw.map(([a, n]) => `${a} ${n}번`).join(' · ') : '아직 없어요'], ['💗 최고 팬 수', `${num(Math.max(S.maxFans || 0, S.fans))}명`],
     ['🎆 단독 콘서트', `${cnt('concert')}번`], ['✍️ 팬싸인회', `${cnt('fansign')}번`], ['📢 광고', `${cnt('ad')}건`], ['🎬 드라마', `${cnt('drama')}편`], ['🎥 영화', `${cnt('movie')}편${cnt('tenM') ? ` (천만 ${cnt('tenM')})` : ''}`],
     ['📺 예능', `${cnt('variety') + cnt('varietyReg')}번`], ['📋 매니저 미션 성공', `${cnt('missionOk')}번`], ['🚨 논란', `${cnt('scandal')}번`]];
-  return `<div class="card"><button class="rechead" data-act="rec-toggle"><b>📊 그룹 기록</b><span>${RECOPEN ? '접기 ▲' : '펼치기 ▼'}</span></button>${RECOPEN ? `<div class="money-list" style="margin-top:8px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>` : ''}</div>`;
+  return `<div class="card"><button class="rechead" data-act="rec-toggle"><b>📊 그룹 기록</b><span>${RECOPEN ? '접기 ▲' : '펼치기 ▼'}</span></button>${RECOPEN ? `${fanSpark()}<div class="money-list" style="margin-top:8px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>` : ''}</div>`;
 }
 function newsHTML() {
   const list = S.news.filter(n => NEWSF === 'all' || n.type === NEWSF || (NEWSF === 'info' && !NEWSICON[n.type])), shown = list.slice(0, NEWSN);
@@ -2791,6 +2799,13 @@ function showReport(r) {
   };
   setTimeout(REVEAL, reduce ? 0 : 2300);
 }
+// 논란 힌트: 사실일 가능성 (실제 판정과 같은 확률식)
+function scTruthHint(sc, m) {
+  if (sc.kind === '사생') return '';
+  const p = sc.kind === '열애' ? 0.55 : sc.kind === '인성' ? clamp(0.15 + (60 - m.stats.person) / 80, 0.1, 0.9) : sc.kind === '실력' ? 0.85 : 1;
+  const lv = p >= 0.75 ? '높음' : p >= 0.4 ? '보통' : '낮음';
+  return `<p class="schint">💡 사실일 가능성: <b>${lv}</b> (약 ${Math.round(p * 100)}%)${sc.kind === '인성' ? ` · ${esc(m.name)} 인성 ${Math.round(m.stats.person)}` : ''}<br>사실이 아니면 해명이 잘 통하고, 사실이면 해명했다가 더 커질 수 있어요.</p>`;
+}
 function nextPopup() {
   if (S && S.pending.length) {
     const sc = S.pending[0], m = S.members.find(x => x.id === sc.mid);
@@ -2812,6 +2827,7 @@ function nextPopup() {
     const scBg = sc.kind === '열애' ? 'dating' : 'scandal';   // 인성·실력·말실수는 기존 논란 배경
     openDlg(`<div class="st3host" id="st3host">${bgHTML(scBg)}</div><h2>${sc.kind === '열애' ? '💑 열애설' : '🚨 논란 발생'}</h2><div class="row">${avatar(m, 52)}<div><b>${esc(m.name)}</b><div class="neg">${esc(sc.head)}</div><div class="muted">종류: ${sc.kind === '말실수' ? '인성' : sc.kind} · 심각도: ${SEV[sc.sev]}</div></div></div>
 ${extra.length ? `<p class="muted">${extra.map(esc).join('<br>')}</p>` : ''}
+${scTruthHint(sc, m)}
 <p class="muted">어떻게 대처할까요?</p>
 <button class="choice" data-sc="apologize"><b>📝 사과문 올리기</b><small>팬이 조금 떠나요. 심각도 '보통' 이상이면 광고가 해지돼요.</small></button>
 <button class="choice" data-sc="deny"><b>🙅 사실이 아니라고 해명하기</b><small>사실이 아니면 잘 풀리지만, 사실이면 더 커질 수 있어요.</small></button>
