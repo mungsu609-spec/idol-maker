@@ -2815,7 +2815,7 @@ function showReport(r) {
   const body = $('#dlgBody'); body.classList.add('intro');
   [...body.querySelectorAll('.rep-body > *')].forEach((el, i) => el.style.setProperty('--i', i));
   const fmt = { '💗 팬': n => (n >= 0 ? '+' : '') + num(n), '💰 자금': n => (n >= 0 ? '+' : '') + money(n), '⭐ 인지도': n => (n >= 0 ? '+' : '') + n };
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || quickRep();
   let done = false;
   REVEAL = () => {
     if (done) return; done = true; body.classList.remove('intro'); body.classList.add('shown');
@@ -2881,6 +2881,7 @@ function howTo() {
 <button class="btn" data-act="close" style="width:100%;margin-top:10px">시작해요!</button>`);
 }
 const bigText = () => { try { return localStorage.getItem('idol-maker-big') === '1'; } catch (e) { return false; } };
+const quickRep = () => { try { return localStorage.getItem('idol-maker-quick') === '1'; } catch (e) { return false; } };
 const lowFx = () => { try { return localStorage.getItem('idol-maker-lowfx') === '1'; } catch (e) { return false; } };
 function settings() {
   openDlg(`<h2>설정</h2><p class="muted center">게임은 이 브라우저에 자동으로 저장돼요.</p>
@@ -2888,6 +2889,7 @@ function settings() {
 <button class="btn sub" data-act="howto" style="width:100%;margin-bottom:8px">📖 게임 방법</button>
 <button class="btn sub" data-act="fandom" style="width:100%;margin-bottom:8px">💗 팬클럽 '${esc(fandom())}' · 응원봉 바꾸기</button>
 <button class="btn sub" data-act="bigtext" style="width:100%;margin-bottom:8px">🔠 글자 크기: ${bigText() ? '크게 (보통으로)' : '보통 (크게)'}</button>
+<button class="btn sub" data-act="quickrep" style="width:100%;margin-bottom:8px">⚡ 결과 창 연출: ${quickRep() ? '건너뜀 (보기)' : '보기 (건너뛰기)'}</button>
 <button class="btn sub" data-act="lowfx" style="width:100%;margin-bottom:8px">✨ 장면 효과: ${lowFx() ? '끔 (켜기)' : '켬 (끄기)'}</button>
 <button class="btn sub" data-act="save-out" style="width:100%;margin-bottom:8px">💾 저장 데이터 내보내기 (백업)</button>
 <button class="btn sub" data-act="save-in" style="width:100%;margin-bottom:8px">📂 저장 데이터 불러오기</button>
@@ -2990,6 +2992,7 @@ document.addEventListener('click', e => {
     case 'brag': { const e = ENDINGS.find(x => x.id === S.endingId) || {}; const t = `🐾 아이돌 메이커 · ${S.name}\n${e.icon || ''} 엔딩: ${e.title || '게임 끝'}\n${dateStr(S.week)} · 팬 ${num(S.fans)}명 · 음방 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장${S.awards.length ? ` · 시상식 ${S.awards.map(a => a.award).join('·')}` : ''}\n${location.origin + location.pathname}`;
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('결과를 복사했어요! 친구에게 붙여 넣어 자랑해 보세요'), () => prompt('아래 글을 복사하세요', t)); return; }
     case 'bigtext': { try { localStorage.setItem('idol-maker-big', bigText() ? '0' : '1'); } catch (e) { } document.documentElement.classList.toggle('bigtext', bigText()); return settings(); }
+    case 'quickrep': { try { localStorage.setItem('idol-maker-quick', quickRep() ? '0' : '1'); } catch (e) { } return settings(); }
     case 'lowfx': { try { localStorage.setItem('idol-maker-lowfx', lowFx() ? '0' : '1'); } catch (e) { } document.body.classList.toggle('lowfx', lowFx()); return settings(); }
     case 'save-out': return saveOut();
     case 'save-in': return saveIn();
