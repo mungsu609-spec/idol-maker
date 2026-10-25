@@ -182,6 +182,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.shwarn{margin:0 4px 8px;padding:6px 10px;border-radius:10px;background:#fff1e6;color:#b4552b;font-size:13px;text-align:center}
+.sopt em.rec{font-style:normal;font-size:11px;font-weight:800;color:#fff;background:var(--pink);border-radius:8px;padding:1px 6px;margin-left:4px;vertical-align:1px}
 .ctable em{font-style:normal;font-size:11px;font-weight:800}.ctable em.up{color:var(--good)}.ctable em.dn{color:var(--bad)}
 .gtabs{justify-content:center;flex-wrap:nowrap;gap:5px}.gtabs .chip{padding:5px 9px;font-size:13.5px;white-space:nowrap}
 .pvjump{position:sticky;top:0;z-index:5;margin:0 -16px 10px;padding:8px 16px;background:rgba(255,240,246,.94);backdrop-filter:blur(4px);flex-wrap:nowrap;overflow-x:auto}
@@ -2803,8 +2805,8 @@ function openSchedSheet(id) {
   let el = document.getElementById('sheet');
   if (!el) { el = document.createElement('div'); el.id = 'sheet'; document.body.appendChild(el); el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); }); }
   el.innerHTML = `<div class="sh"><div class="grab"></div><h4>${all ? '모두의 스케줄' : esc(m.name) + '의 스케줄'}</h4>
-${m ? `<p class="muted center" style="margin:0 0 8px">피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)}</p>` : '<p class="muted center" style="margin:0 0 8px">촬영·회복 중인 멤버는 빼고 바꿔요</p>'}
-${Object.entries(SCHED).map(([k, sc]) => `<button class="sopt${m && m.sched === k ? ' on' : ''}" data-schset="${id}:${k}"><span class="si">${SCHED_ICON[k]}</span><span><b>${sc.label}</b><small class="${k === 'diet' || k === 'surgery' ? 'warn' : ''}">${schedFx(k)}</small></span><span class="cost">${sc.cost ? money(sc.cost) : '무료'}</span></button>`).join('')}</div>`;
+${m ? `<p class="muted center" style="margin:0 0 8px">피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)}${m.slump ? ' · 🌧 슬럼프' : ''}</p>${m.fatigue >= 70 || m.slump || m.stats.health < 35 ? `<p class="shwarn">${m.fatigue >= 70 ? '피로가 70을 넘어서 연습 효과가 반으로 줄어요.' : m.slump ? '슬럼프라서 연습 효과가 크게 줄어요. 휴식이나 인성 교육을 하면 빨리 나아요.' : '건강이 낮아서 쓰러질 수 있어요.'}</p>` : ''}${recSched(m) !== m.sched ? `<button class="btn small" data-schset="${id}:${recSched(m)}" style="display:block;margin:0 auto 10px">✨ 추천 스케줄로: ${esc(SCHED[recSched(m)].label.replace(/ \(.*\)/, ''))}</button>` : ''}` : '<p class="muted center" style="margin:0 0 8px">촬영·회복 중인 멤버는 빼고 바꿔요</p>'}
+${Object.entries(SCHED).map(([k, sc]) => `<button class="sopt${m && m.sched === k ? ' on' : ''}" data-schset="${id}:${k}"><span class="si">${SCHED_ICON[k]}</span><span><b>${sc.label}${m && recSched(m) === k ? ' <em class="rec">✨ 추천</em>' : ''}</b><small class="${k === 'diet' || k === 'surgery' ? 'warn' : ''}">${schedFx(k)}</small></span><span class="cost">${sc.cost ? money(sc.cost) : '무료'}</span></button>`).join('')}</div>`;
   el.classList.add('open');
 }
 
