@@ -977,6 +977,7 @@ function endWeek() {
     news('offer', `${S.festival.name} 출연 제의가 왔어요! 이번 달 안에 그룹 일정에서 고를 수 있어요.`);
   }
   S.ga = 'none';
+  if (S.autoSched) autoSched();   // 설정 '매주 자동 추천'
   { const tired = S.members.filter(m => m.fatigue >= 70 && !forcedLabel(m) && m.sched !== 'rest');
     tired.forEach(m => { m.sched = 'rest'; }); }
   for (const m of S.members) {
@@ -2517,7 +2518,7 @@ function planHTML() {
   return `${managerBox()}${goalCard()}
 <h2>그룹 일정</h2><div class="chips">${opts.map(o => o.ok === false ? `<button class="chip lock" disabled>${o.label}<small>🔒 ${esc(o.desc)}</small></button>` : `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}">${o.label}</button>`).join('')}</div>
 <p class="muted">${esc(cur.desc)}</p>
-<h2>멤버별 스케줄</h2><div class="row" style="justify-content:flex-end;margin:-6px 0 10px"><button class="btn sub small" data-act="auto-sched">✨ 추천 스케줄로 채우기</button></div><div class="card fancy"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
+<h2>멤버별 스케줄</h2><div class="row" style="justify-content:flex-end;margin:-6px 0 10px">${S.autoSched ? '<span class="muted" style="font-size:12px;align-self:center;margin-right:8px">🤖 매주 자동 추천 켜짐</span>' : ''}<button class="btn sub small" data-act="auto-sched">✨ 추천 스케줄로 채우기</button></div><div class="card fancy"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
 <p class="muted">이번 주 예상 지출 ${money(total)}<br>(스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted" style="display:flex;gap:4px"><span>💡</span><span>피로가 70을 넘으면 훈련 효과가 반으로 줄고,<br>80을 넘으면 건강이 깎여요.</span></p>`;
 }
@@ -2894,7 +2895,7 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
   closeDlg(); render();
 }
 function howTo() {
-  const rows = [['📅', '한 주씩 진행해요', '멤버마다 스케줄을 고르고 아래 <b>한 주 진행</b>을 눌러요. 모르겠으면 <b>✨ 추천 스케줄</b>을 눌러 보세요. <b>⏩ 4주</b> 버튼으로 한꺼번에 진행할 수도 있어요.'],
+  const rows = [['📅', '한 주씩 진행해요', '멤버마다 스케줄을 고르고 아래 <b>한 주 진행</b>을 눌러요. 모르겠으면 <b>✨ 추천 스케줄</b>을 눌러 보세요. <b>⏩ 4주</b> 버튼으로 한꺼번에 진행할 수도 있어요. 설정의 <b>🤖 매주 자동 추천</b>을 켜면 스케줄도 알아서 맞춰져요.'],
     ['😴', '피로를 조심해요', '피로가 70을 넘으면 연습 효과가 반으로 줄고, 너무 지치면 쓰러져요. 쉬게 하면 피로가 풀려요.'],
     ['🎤', '데뷔하고 컴백해요', '<b>활동</b> 탭에서 곡과 콘셉트를 정해 데뷔·컴백해요. 음악 방송에서 1위를 노려 보세요.'],
     ['💌', '제의를 골라 받아요', '광고·드라마·영화·예능 제의가 와요. 카드의 <b>위험</b> 표시를 보고 받을지 정해요.'],
@@ -2909,7 +2910,7 @@ const lowFx = () => { try { return localStorage.getItem('idol-maker-lowfx') === 
 function settings() {
   const tg = (act, ic, label, on, onT, offT) => `<button class="setg${on ? ' on' : ''}" data-act="${act}"><span>${ic}</span><b>${label}</b><small>${on ? onT : offT}</small></button>`;
   openDlg(`<h2>설정</h2><p class="muted center" style="margin-top:-4px">게임은 이 브라우저에 자동으로 저장돼요.</p>
-<h3>📱 화면 · 편의</h3><div class="setgrid">${tg('bigtext', '🔠', '글자 크기', bigText(), '크게', '보통')}${tg('quickrep', '⚡', '결과 창 연출', !quickRep(), '보기', '건너뛰기')}${tg('lowfx', '✨', '장면 효과', !lowFx(), '켬', '끔')}<button class="setg" data-act="howto"><span>📖</span><b>게임 방법</b><small>다시 보기</small></button></div>
+<h3>📱 화면 · 편의</h3><div class="setgrid">${tg('bigtext', '🔠', '글자 크기', bigText(), '크게', '보통')}${tg('quickrep', '⚡', '결과 창 연출', !quickRep(), '보기', '건너뛰기')}${tg('lowfx', '✨', '장면 효과', !lowFx(), '켬', '끔')}${S ? tg('autosched', '🤖', '매주 자동 추천', !!S.autoSched, '켬', '끔') : ''}<button class="setg" data-act="howto"><span>📖</span><b>게임 방법</b><small>다시 보기</small></button></div>
 <h3>💗 우리 그룹</h3><button class="btn sub" data-act="fandom" style="width:100%">${S && S.fandom ? `팬클럽 '${esc(S.fandom)}' · 응원봉 바꾸기` : '팬클럽 이름 · 응원봉 정하기'}</button>
 <h3>💾 저장</h3><div class="setgrid"><button class="setg" data-act="save-out"><span>💾</span><b>내보내기</b><small>백업 코드 복사</small></button><button class="setg" data-act="save-in"><span>📂</span><b>불러오기</b><small>백업 코드 붙여 넣기</small></button></div>
 <h3>🧰 기타</h3><a class="btn sub" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
@@ -3011,6 +3012,7 @@ document.addEventListener('click', e => {
     case 'brag': { const e = ENDINGS.find(x => x.id === S.endingId) || {}; const t = `🐾 아이돌 메이커 · ${S.name}\n${e.icon || ''} 엔딩: ${e.title || '게임 끝'}\n${dateStr(S.week)} · 팬 ${num(S.fans)}명 · 음방 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장${S.awards.length ? ` · 시상식 ${S.awards.map(a => a.award).join('·')}` : ''}\n${location.origin + location.pathname}`;
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('결과를 복사했어요! 친구에게 붙여 넣어 자랑해 보세요'), () => prompt('아래 글을 복사하세요', t)); return; }
     case 'bigtext': { try { localStorage.setItem('idol-maker-big', bigText() ? '0' : '1'); } catch (e) { } document.documentElement.classList.toggle('bigtext', bigText()); return settings(); }
+    case 'autosched': S.autoSched = !S.autoSched; if (S.autoSched) autoSched(); save(); render(); return settings();
     case 'quickrep': { try { localStorage.setItem('idol-maker-quick', quickRep() ? '0' : '1'); } catch (e) { } return settings(); }
     case 'lowfx': { try { localStorage.setItem('idol-maker-lowfx', lowFx() ? '0' : '1'); } catch (e) { } document.body.classList.toggle('lowfx', lowFx()); return settings(); }
     case 'save-out': return saveOut();
