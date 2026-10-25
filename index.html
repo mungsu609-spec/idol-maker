@@ -160,7 +160,9 @@ dialog::backdrop{background:rgba(70,30,70,.5)}
 .ctable{width:100%;border-collapse:collapse;font-size:14px}
 .ctable td{padding:5px 6px;border-top:2px dashed var(--line)}
 .ctable tr.me td{color:var(--pinkd);font-family:"Jua",sans-serif;font-size:15.5px;background:#fff0f6}
-.money-list{font-size:14px}
+.money-list{font-size:14.5px}
+.dlist{display:grid;gap:6px}.dl{display:flex;align-items:center;gap:9px;background:#fffdf8;border:1.5px solid #f0dcc0;border-radius:12px;padding:5px 9px}
+.dl b{display:block;font-size:14.5px;font-weight:800}.dl small{display:block;font-size:13px;color:var(--sub)}.dl em{font-style:normal;font-weight:800}.dl em.up{color:var(--good)}.dl em.dn{color:var(--bad)}
 .money-list div{display:flex;justify-content:space-between;padding:2px 0}
 .choice{display:block;width:100%;text-align:left;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#fff1d6);border-radius:14px;padding:10px 12px;margin:8px 0;box-shadow:inset 0 2px 0 #fff,0 3px 0 var(--goldd)}
 .choice b{display:block;font-family:"Jua",sans-serif;font-weight:400;font-size:16px}
@@ -197,6 +199,14 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .swatch.on{box-shadow:0 0 0 3px var(--pink)}
 .preview{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 .mcard{display:flex;gap:12px;align-items:center}
+.mtop{font-size:14px;margin:2px 0 1px}.mtop b{font-weight:800}
+.mstat{flex-wrap:wrap;row-gap:0}
+.mtog{flex:none;align-self:center;width:34px;height:34px;border-radius:50%;border:2px solid #efd9b4;background:#fffaf0;color:var(--goldd);font-size:13px}
+.card.mc .stats2{margin-top:10px;padding-top:8px;border-top:2px dashed var(--line)}
+.cbsteps{display:flex;gap:4px;margin:-2px 0 10px}.cbsteps span{flex:1;text-align:center;font-family:"Jua",sans-serif;font-size:14px;padding:5px 0;border-radius:10px;background:#f4ece0;color:#9b8f88}
+.cbsteps span.on{background:var(--pink);color:#fff}.cbsteps span.done{background:#ffe0ec;color:var(--pinkd)}
+.cbnav{margin-top:14px;justify-content:space-between}.cbnav .btn{min-width:110px}
+.cbsum{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}.cbsum div{background:#fff6f9;border:1.5px solid #f6c7d8;border-radius:12px;padding:6px 9px}.cbsum span{display:block;font-size:12px;color:var(--sub);font-weight:600}.cbsum b{font-size:14.5px;font-weight:800}
 .mcard .minfo{flex:1;min-width:0}
 
 /* ===== 애니메이션 ===== */
@@ -207,9 +217,10 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 @keyframes flipOut{to{transform:rotateX(-90deg)}}
 @keyframes flipIn{to{transform:rotateX(0)}}
 .caption{text-align:center;font-family:"Jua",sans-serif;font-size:17px;color:var(--title);margin:-4px 0 8px;animation:fadeUp .5s ease-out 1s both}
-.sum{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-.sum span{background:linear-gradient(#fffdf6,#ffefcf);border:2px solid var(--gold);border-radius:999px;padding:3px 10px;font-size:13px}
-.sum b{font-family:"Jua",sans-serif;font-weight:400;font-size:15px}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.sum span{display:flex;flex-direction:column;align-items:center;background:#fffdf8;border:2px solid #efd9b4;border-radius:14px;padding:6px 4px;font-size:12.5px;font-weight:600;color:var(--sub)}
+.sum span.neg b{color:var(--bad)}
+.sum b{font-weight:800;font-size:21px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2;white-space:nowrap}
 #dlgBody.intro .rep-body,#dlgBody.intro .sum{display:none}
 #dlgBody:not(.intro) .skip{display:none}
 .skip{text-align:center;animation:fadeUp .4s ease-out 1.4s both}
@@ -1444,8 +1455,8 @@ const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PI
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
 const MODE2 = { adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
 // AI로 만든 배경 그림 (8장 무료 FLUX, 나머지 제미나이). 숙소는 6종류마다 다른 그림
-const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'win', 'campus', 'adshoot', 'variety'];
-const BG_ALIAS = {};
+const BGS = ['stage', 'practice', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'campus', 'adshoot', 'variety'];
+const BG_ALIAS = { win: 'stage' };   // 1위 = 음악 방송 무대 + 빛 효과 (예전 win 그림은 연습실이라 안 씀)
 const DORM_BG = { d1: 'dorm_old', d2: 'dorm', d3: 'dorm_two', d6: 'dorm_house', d4: 'dorm_office', d5: 'dorm_lux' };   // 숙소 6종 모두 다른 그림
 const dormBg = () => DORM_BG[(S && S.dorm ? dormOf() : DORMS[1]).id] || 'dorm';
 function bgHTML(kind) {
@@ -1768,14 +1779,17 @@ function planHTML() {
 <p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고, 80을 넘으면 건강이 깎여요.</p>`;
 }
+const MOPEN = new Set();   // 멤버 탭에서 능력치를 펼친 멤버
+const topSkills = m => STATS.filter(([k]) => k !== 'health' && k !== 'person').sort((a, b) => m.stats[b[0]] - m.stats[a[0]]).slice(0, 2);
 function membersHTML() {
-  const perf = avg(S.members.map(perfOf));
-  return `<h2>멤버 ${S.members.length}인조</h2><p class="muted center">그룹 무대 실력 ${Math.round(perf)} · 멤버를 누르면 자세히 보고 꾸밀 수 있어요</p>
-${S.members.map(m => `<div class="card"><div class="mcard who" data-member="${m.id}">${avatar(m, 64, true)}<div class="minfo">
-<div><span class="name">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</div>
-<div class="muted">만 ${m.age || 18}세 · 인기 ${Math.round(m.pop)} · 피로 ${Math.round(m.fatigue)} · 실력 ${Math.round(perfOf(m))}</div>
-${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음 (논란 시 위약금 ${money(m.ad.fee * 2)})</div>` : ''}
-${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role} · 주당 ${money(m.drama.feeW)}</div>` : ''}${m.variety ? `<div class="muted">📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음 · 주당 ${money(m.variety.feeW)}</div>` : ''}</div></div>${statBars(m, true)}</div>`).join('')}
+  const perf = avg(S.members.map(perfOf)), allOpen = S.members.every(m => MOPEN.has(m.id));
+  return `<h2>멤버 ${S.members.length}인조</h2><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="muted">그룹 무대 실력 <b style="color:var(--ink)">${Math.round(perf)}</b></span><button class="btn sub small" data-mtog="ALL">${allOpen ? '모두 접기 ▲' : '모두 펼치기 ▼'}</button></div>
+${S.members.map(m => { const open = MOPEN.has(m.id); return `<div class="card mc"><div class="mcard"><span class="who" data-member="${m.id}" title="눌러서 자세히">${avatar(m, 60, true)}</span><div class="minfo">
+<div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}</div>
+<div class="mtop">💪 ${topSkills(m).map(([k, l]) => `${l} <b>${Math.round(m.stats[k])}</b>`).join(' · ')}</div>
+<div class="mstat"><span>만 ${m.age || 18}세</span><span>실력 <b>${Math.round(perfOf(m))}</b></span><span>인기 <b>${Math.round(m.pop)}</b></span><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span></div>
+${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.variety ? `<div class="muted">📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음</div>` : ''}</div>
+<button class="mtog" data-mtog="${m.id}" aria-label="능력치 ${open ? '접기' : '펼치기'}">${open ? '▲' : '▼'}</button></div>${open ? statBars(m, true) : ''}</div>`; }).join('')}
 <div class="card"><b class="name">연습생 영입</b><p class="muted">연습생을 만나 보고 영입을 제안해요. 거절할 수도 있어요 · 최대 7명</p><button class="btn small" data-act="recruit"${S.members.length >= 7 ? ' disabled' : ''}>영입하기</button></div>`;
 }
 const outfitOptions = c => catStageOutfits(c).map(k => `<option value="${k}">${outfitName(k, S.gender)}</option>`).join('');
@@ -1816,17 +1830,21 @@ function actHTML() {
     const debut = S.albums.length === 0, c0 = CONCEPTS[0].id, N = S.members.length;
     if (debut || (CB.kind === 'unit' && N < 4)) CB.kind = 'group';
     h += `<h2>${debut ? '데뷔' : '컴백'} 준비</h2><div class="card fancy">
-<label class="f">활동 형태</label><div class="chips">${[['group', '👥 그룹'], ['solo', '🎤 솔로'], ['unit', '✨ 유닛']].map(([k, l]) => `<button class="chip${CB.kind === k ? ' on' : ''}" data-cbkind="${k}"${k !== 'group' && (debut || (k === 'unit' && N < 4)) ? ' disabled' : ''}>${l}</button>`).join('')}</div>
+<div class="cbsteps">${['누가', '어떤 곡', '확인'].map((l, i) => `<span class="${(CB.step || 1) === i + 1 ? 'on' : (CB.step || 1) > i + 1 ? 'done' : ''}">${i + 1}. ${l}</span>`).join('')}</div>
+<div class="cbstep" data-step="1"${(CB.step || 1) === 1 ? '' : ' hidden'}><label class="f">활동 형태</label><div class="chips">${[['group', '👥 그룹'], ['solo', '🎤 솔로'], ['unit', '✨ 유닛']].map(([k, l]) => `<button class="chip${CB.kind === k ? ' on' : ''}" data-cbkind="${k}"${k !== 'group' && (debut || (k === 'unit' && N < 4)) ? ' disabled' : ''}>${l}</button>`).join('')}</div>
 <p class="muted">${debut ? '솔로·유닛은 그룹 데뷔 후에 할 수 있어요.' : CB.kind === 'group' ? '멤버 모두 함께 활동해요.' : CB.kind === 'solo' ? '고른 멤버 혼자 활동하고, 나머지 멤버는 평소 스케줄을 해요. 그 멤버 인기가 크게 올라요.' : '고른 멤버들만 활동하고, 나머지 멤버는 평소 스케줄을 해요.'}${N < 4 && !debut ? ' 유닛은 4명 이상일 때 만들 수 있어요.' : ''}</p>
 <div id="cbWho">${cbWhoHTML()}</div>
-<label class="f">곡 제목</label><div class="row"><input type="text" id="cbTitle" placeholder="비워 두면 자동으로 정해요" maxlength="30" style="flex:1"><button class="btn sub small" data-act="rand-title">🎲</button></div>
+<div class="row cbnav"><span></span><button class="btn" data-cbstep="2">다음 ▶</button></div></div>
+<div class="cbstep" data-step="2"${(CB.step || 1) === 2 ? '' : ' hidden'}><label class="f">곡 제목</label><div class="row"><input type="text" id="cbTitle" placeholder="비워 두면 자동으로 정해요" maxlength="30" style="flex:1"><button class="btn sub small" data-act="rand-title">🎲</button></div>
 <label class="f">콘셉트 (잘 맞는 능력치)</label><select class="full" id="cbConcept">${CONCEPTS.map(c => `<option value="${c.id}">${conceptLabel(c)} — ${c.fav.map(k => SL[k]).join('·')}</option>`).join('')}</select>
 <label class="f">무대 의상</label><select class="full" id="cbOutfit">${outfitOptions(c0)}</select>
 <div class="preview" id="cbPreview">${outfitPreview(catStageOutfits(c0)[0])}</div>
+<div class="row cbnav"><button class="btn sub" data-cbstep="1">◀ 이전</button><button class="btn" data-cbstep="3">다음 ▶</button></div></div>
+<div class="cbstep" data-step="3"${(CB.step || 1) === 3 ? '' : ' hidden'}><div id="cbSum" class="cbsum"></div>
 <label class="f">음악 방송 활동 기간</label><div class="chips">${[1, 2, 3, 4].map(n => `<label class="chip"><input type="radio" name="cbWeeks" value="${n}"${n === 2 ? ' checked' : ''}> ${n}주</label>`).join('')}</div>
 <label class="f">앨범 제작비</label><div class="chips">${TIERS.map((t, i) => `<label class="chip"><input type="radio" name="cbTier" value="${i}"${i === 1 ? ' checked' : ''}> ${t.label} ${money(t.cost)}</label>`).join('')}</div>
 <p class="muted">준비 2주(녹음·안무) 뒤 음악 방송을 해요. 활동이 길수록 팬이 많이 늘지만 피로도 쌓여요.</p>
-<button class="btn" data-act="comeback" style="width:100%">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div>`;
+<div class="row cbnav"><button class="btn sub" data-cbstep="2">◀ 이전</button><button class="btn" data-act="comeback" style="flex:1">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div></div></div>`;
   }
   h += `<h2>행사 의상</h2><div class="card">${Object.entries(EVENT_WEAR).map(([ev, [lab, l]]) => `<div class="evrow"><b>${lab}</b><select data-evwear="${ev}"><option value="">무작위</option>${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${S.eventWear && S.eventWear[ev] === k ? ' selected' : ''}>${boyName(k, n)}</option>`).join('')}</select>${S.members[0] && eventWearNow(ev) ? avatar(S.members[0], 40, true, eventWearNow(ev)) : ''}</div>`).join('')}<p class="muted" style="font-size:12px">무대 의상(컴백 콘셉트)과 따로, 행사 날에는 이 옷을 입어요.</p></div>`;
   h += `<h2>앨범 기록</h2>` + (S.albums.length ? `<div class="card">${S.albums.slice().reverse().map(a => `<div class="news"><span class="ni">💿</span><div><small>${dateStr(a.w)}</small>${a.kind && a.kind !== 'group' ? `<span class="tag blue">${a.kind === 'solo' ? '솔로' : '유닛'} ${esc(a.who || '')}</span> ` : ''}「${esc(a.title)}」 ${a.debut ? '<span class="tag">데뷔곡</span>' : ''} · ${conceptLabel(CONCEPTS.find(c => c.id === a.concept))} · 최고 ${a.best}위${a.wins ? ` · 🏆${a.wins}` : ''}</div></div>`).join('')}</div>` : '<p class="muted center">아직 없어요.</p>');
@@ -1959,7 +1977,7 @@ function showReport(r) {
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
   if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
-  if (r.deltas.length) h += `<h3>멤버 변화</h3>${r.deltas.map(([m, t]) => `<div class="muted"><b>${esc(m.name)}</b> ${esc(t)}</div>`).join('')}`;
+  if (r.deltas.length) h += `<h3>멤버 변화</h3><div class="dlist">${r.deltas.map(([m, t]) => `<div class="dl">${avatar(m, 36)}<div><b>${esc(m.name)}</b><small>${esc(t).replace(/([가-힣]+) ([+-])(\d+)/g, (_, k, sg, v) => `${k} <em class="${(sg === '+') !== (k === '피로') ? 'up' : 'dn'}">${sg}${v}</em>`)}</small></div></div>`).join('')}</div>`;
   h += `<h3>돈</h3><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
 <div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>합계</b><b class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)}</b></div></div>`;
   if (S.pending.length) h += `<p class="neg" style="margin-top:12px"><b>⚠️ 논란이 ${S.pending.length}건 생겼어요!</b></p>`;
@@ -2037,6 +2055,7 @@ document.addEventListener('click', e => {
   if (d.tab) { closeDlg(); TAB = d.tab; render(); window.scrollTo(0, 0); return; }
   if (d.schpick) return openSchedSheet(d.schpick);
   if (d.schset) { const [id, k] = d.schset.split(':'); S.members.forEach(m => { if ((id === 'ALL' || m.id === id) && !forcedLabel(m)) m.sched = k; }); $('#sheet').classList.remove('open'); save(); render(); return; }
+  if (d.mtog) { if (d.mtog === 'ALL') { const all = S.members.every(m => MOPEN.has(m.id)); S.members.forEach(m => all ? MOPEN.delete(m.id) : MOPEN.add(m.id)); } else MOPEN.has(d.mtog) ? MOPEN.delete(d.mtog) : MOPEN.add(d.mtog); render(); return; }
   if (d.member) return memberDetail(d.member);
   if (d.cust) return customize(d.cust);
   if (d.wpick !== undefined) { const [id, pk] = d.wpick.split(':'), top = $('#dlgBody').scrollTop; memberDetail(id, pk || null); $('#dlgBody').scrollTop = top; const l = $('#wpList'); if (l) l.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
@@ -2045,6 +2064,10 @@ document.addEventListener('click', e => {
   if (d.dorm) return moveDorm(d.dorm);
   if (d.such) { const [i, v] = d.such.split(':').map(Number), n = CATS.length; SU.chars[i] = ((SU.chars[i] - 1 + v + n) % n) + 1; return fillNames(true); }
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
+  if (d.cbstep) { CB.step = +d.cbstep; document.querySelectorAll('.cbstep').forEach(el => el.hidden = +el.dataset.step !== CB.step); document.querySelectorAll('.cbsteps span').forEach((el, i) => el.className = CB.step === i + 1 ? 'on' : CB.step > i + 1 ? 'done' : '');
+    if (CB.step === 3) { const c = CONCEPTS.find(x => x.id === $('#cbConcept').value), who = CB.kind === 'group' ? S.name + ' (전원)' : cbMembers().map(m => m.name).join('·') || '아직 안 골랐어요';
+      $('#cbSum').innerHTML = `<div><span>활동</span><b>${esc(who)}</b></div><div><span>곡 제목</span><b>${esc($('#cbTitle').value.trim() || '자동으로 정해요')}</b></div><div><span>콘셉트</span><b>${conceptLabel(c)}</b></div><div><span>무대 의상</span><b>${esc($('#cbOutfit').selectedOptions[0] ? $('#cbOutfit').selectedOptions[0].text : '')}</b></div>`; }
+    $('.cbsteps').scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
   if (d.cbsolo) { CB.solo = d.cbsolo; $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunitset) { CB.unit = new Set(d.cbunitset.split(',')); $('#cbWho').innerHTML = cbWhoHTML(); $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
