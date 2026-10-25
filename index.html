@@ -182,6 +182,12 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.moneyfold{margin-top:12px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:#fffdf8}
+.moneyfold summary{display:flex;justify-content:space-between;align-items:center;list-style:none;cursor:pointer}
+.moneyfold summary::-webkit-details-marker{display:none}
+.moneyfold summary b{font-family:"Jua",sans-serif;font-weight:400;font-size:16px;color:var(--title)}
+.moneyfold summary span{font-weight:800}.moneyfold summary i{font-style:normal;font-weight:600;font-size:12px;color:var(--pinkd);margin-left:4px}
+.moneyfold[open] summary i{visibility:hidden}.moneyfold .money-list{margin-top:6px}
 .foldbtn{display:block;width:100%;margin:-2px 0 12px}
 .rechead{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer}
 .rechead b{font-family:"Jua",sans-serif;font-weight:400;font-size:17px;color:var(--title)}.rechead span{font-size:13px;color:var(--pinkd)}
@@ -1232,12 +1238,23 @@ function contractLeft() {
   const mo = Math.floor(L % 48 / 4);
   return L <= 0 ? '계약 끝' : L >= 48 ? `${Math.floor(L / 48)}년${mo ? ` ${mo}개월` : ''} 남음` : `${Math.ceil(L / 4)}개월 남음`;
 }
+// 다가오는 일: 음악 방송·컴백 준비 남은 주, 연말 무대·페스티벌까지, 다음 콘서트 가능, 은퇴 예정
+function upcoming() {
+  const w = S.week % 48, out = [], P = S.promo, inW = n => n <= 0 ? '이번 주' : `${n}주 뒤`;
+  if (P) out.push(P.phase === 'prep' ? `🎧 ${P.debut ? '데뷔' : '컴백'} 무대 ${inW(P.left)}` : `📺 음악 방송 ${P.left}주 남음`);
+  if (debuted()) out.push(`🎄 연말 무대 ${inW(47 - w)}`);
+  const fest = [16, 28].map(x => x - w).filter(x => x > 0)[0]; if (debuted() && fest && fest <= 8) out.push(`🎪 ${fest + w === 16 ? '대학 축제' : '여름 페스티벌'} 제의 ${inW(fest)}`);
+  const cl = S.week - S.lastConcert; if (debuted() && S.fans >= 20000 && cl < 12) out.push(`🎆 다음 콘서트 ${inW(12 - cl)} 가능`);
+  const old = S.members.filter(m => (m.age || 18) >= RETIRE_AGE - 1); if (old.length) out.push(`🎓 ${old.map(m => esc(m.name)).join('·')} 새해에 은퇴`);
+  return out.slice(0, 3);
+}
 function goalCard() {
   const g = GOALS[S.goal || 0], x = S.mission;
   return `<button class="card goalcard" data-act="goals">
 <div class="gl"><span>📜</span><div><b>${CONTRACT_YEARS}년 계약 · ${S.ended ? '계약 끝, 계속 키우는 중' : contractLeft()}</b><small>${S.ended ? '엔딩 도감은 목표 창에서 볼 수 있어요' : `${CONTRACT_YEARS}년차 연말 무대가 끝나면 엔딩이에요`}</small></div></div>
 <div class="gl"><span>🎯</span><div><b>${g ? esc(g.label) : '큰 목표 모두 달성!'}</b><small>${g ? '다음 목표 · 보상 ' + rewardText(g) : '이제 엔딩을 모아 보세요'}</small></div></div>
 ${x ? `<div class="gl"><span>📋</span><div><b>${esc(x.label)}</b><small>이번 달 매니저 미션 · ${missionState(x)}</small></div></div>` : ''}
+${upcoming().length ? `<div class="gl"><span>🗓</span><div><b>다가오는 일</b><small>${upcoming().join(' · ')}</small></div></div>` : ''}
 <small class="more">눌러서 목표·업적·엔딩 보기 ▶</small></button>`;
 }
 let GTAB = 'goal';
@@ -2390,6 +2407,9 @@ function cbWhoHTML() {
   }
   return '';
 }
+// 콘셉트가 활동 멤버와 얼마나 잘 맞는지: 잘 맞는 능력치 두 개의 평균 → ★1~3
+const conceptFit = c => { const ms = cbMembers().length ? cbMembers() : S.members, v = avg(ms.map(m => (m.stats[c.fav[0]] + m.stats[c.fav[1]]) / 2)); return v >= 65 ? 3 : v >= 45 ? 2 : 1; };
+const conceptOptions = sel => CONCEPTS.map(c => `<option value="${c.id}"${sel === c.id ? ' selected' : ''}>${'★'.repeat(conceptFit(c))}${'☆'.repeat(3 - conceptFit(c))} ${conceptLabel(c)} — ${c.fav.map(k => SL[k]).join('·')}</option>`).join('');
 function actHTML() {
   let h = managerBox();
   h += `<h2>들어온 제의</h2>`;
@@ -2409,7 +2429,7 @@ function actHTML() {
 <div id="cbWho">${cbWhoHTML()}</div>
 <div class="row cbnav"><span></span><button class="btn" data-cbstep="2">다음 ▶</button></div></div>
 <div class="cbstep" data-step="2"${(CB.step || 1) === 2 ? '' : ' hidden'}><label class="f">곡 제목</label><div class="row"><input type="text" id="cbTitle" placeholder="비워 두면 자동으로 정해요" maxlength="30" style="flex:1"><button class="btn sub small" data-act="rand-title">🎲</button></div>
-<label class="f">콘셉트 (잘 맞는 능력치)</label><select class="full" id="cbConcept">${CONCEPTS.map(c => `<option value="${c.id}">${conceptLabel(c)} — ${c.fav.map(k => SL[k]).join('·')}</option>`).join('')}</select>
+<label class="f">콘셉트 (잘 맞는 능력치)</label><select class="full" id="cbConcept">${conceptOptions()}</select><p class="muted" style="font-size:12px;margin-top:4px">★이 많을수록 활동할 멤버들과 잘 맞는 콘셉트예요.</p>
 <label class="f">무대 의상</label><select class="full" id="cbOutfit">${outfitOptions(c0)}</select>
 <div class="preview" id="cbPreview">${outfitPreview(catStageOutfits(c0)[0])}</div>
 <div class="row cbnav"><button class="btn sub" data-cbstep="1">◀ 이전</button><button class="btn" data-cbstep="3">다음 ▶</button></div></div>
@@ -2594,8 +2614,8 @@ function showReport(r) {
   if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}${x.hot ? ' 🔥' : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
   if (r.award) h += `<h3>연말 시상식 점수</h3><table class="ctable">${r.award.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table><p class="muted" style="font-size:12px">대상은 1위 그룹 (인지도 60 이상), 본상은 3위 안 (인지도 40 이상)</p>`;
   if (r.deltas.length) h += `<h3>멤버 변화</h3><div class="dlist">${r.deltas.map(([m, t]) => `<div class="dl">${avatar(m, 36)}<div><b>${esc(m.name)}</b><small>${esc(t).replace(/([가-힣]+) ([+-])(\d+)/g, (_, k, sg, v) => `${k} <em class="${(sg === '+') !== (k === '피로') ? 'up' : 'dn'}">${sg}${v}</em>`)}</small></div></div>`).join('')}</div>`;
-  h += `<h3>돈</h3><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
-<div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>합계</b><b class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)}</b></div></div>`;
+  h += `<details class="moneyfold"><summary><b>💰 돈</b><span class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)} <i>자세히 ▼</i></span></summary><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
+<div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>합계</b><b class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)}</b></div></div></details>`;
   if (S.pending.length) h += `<p class="neg" style="margin-top:12px"><b>⚠️ 논란이 ${S.pending.length}건 생겼어요!</b></p>`;
   h += `<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`;
   openDlg(top + `<div class="rep-body">${h}</div><p class="skip muted">눌러서 바로 보기</p>`);
@@ -2719,7 +2739,7 @@ document.addEventListener('click', e => {
   if (d.dorm) return moveDorm(d.dorm);
   if (d.such) { const [i, v] = d.such.split(':').map(Number), n = CATS.length; SU.chars[i] = ((SU.chars[i] - 1 + v + n) % n) + 1; return fillNames(true); }
   if (d.cbkind) { CB.kind = d.cbkind; render(); return; }
-  if (d.cbstep) { CB.step = +d.cbstep; document.querySelectorAll('.cbstep').forEach(el => el.hidden = +el.dataset.step !== CB.step); document.querySelectorAll('.cbsteps span').forEach((el, i) => el.className = CB.step === i + 1 ? 'on' : CB.step > i + 1 ? 'done' : '');
+  if (d.cbstep) { CB.step = +d.cbstep; if (CB.step === 2 && $('#cbConcept')) $('#cbConcept').innerHTML = conceptOptions($('#cbConcept').value); document.querySelectorAll('.cbstep').forEach(el => el.hidden = +el.dataset.step !== CB.step); document.querySelectorAll('.cbsteps span').forEach((el, i) => el.className = CB.step === i + 1 ? 'on' : CB.step > i + 1 ? 'done' : '');
     if (CB.step === 3) { const c = CONCEPTS.find(x => x.id === $('#cbConcept').value), who = CB.kind === 'group' ? S.name + ' (전원)' : cbMembers().map(m => m.name).join('·') || '아직 안 골랐어요';
       $('#cbSum').innerHTML = `<div><span>활동</span><b>${esc(who)}</b></div><div><span>곡 제목</span><b>${esc($('#cbTitle').value.trim() || '자동으로 정해요')}</b></div><div><span>콘셉트</span><b>${conceptLabel(c)}</b></div><div><span>무대 의상</span><b>${esc($('#cbOutfit').selectedOptions[0] ? $('#cbOutfit').selectedOptions[0].text : '')}</b></div>`; }
     $('.cbsteps').scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
