@@ -14,16 +14,17 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.4.4/lib/three-vrm.module.min.js"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <style>
 :root{
   color-scheme:light;
-  --paper:#fffaf0; --gold:#e3ad4a; --gold2:#f7dc96; --goldd:#b9822a; --ink:#4a2f3c; --sub:#8a6f7a; --line:#f0dcc0;
+  --paper:#fffaf0; --gold:#e3ad4a; --gold2:#f7dc96; --goldd:#b9822a; --ink:#3d2632; --sub:#6b5260; --line:#f0dcc0;
   --pink:#ef5c96; --pinkl:#ff9cc2; --pinkd:#c23c74; --title:#8a3a62; --good:#2e9e6a; --bad:#d64545; --warn:#e0912a; --bar:#f3e6d2;
   --star:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1.5l3 7 7.8.8-5.9 5.2 1.8 7.8L12 18.2l-6.7 4.1 1.8-7.8L1.2 9.3l7.8-.8z' fill='%23ffd84a' stroke='%23c9902a' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
   --pstar:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1.5l3 7 7.8.8-5.9 5.2 1.8 7.8L12 18.2l-6.7 4.1 1.8-7.8L1.2 9.3l7.8-.8z' fill='%23ff7aa8' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 *{box-sizing:border-box}
-html,body{margin:0;color:var(--ink);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;line-height:1.45}
+html,body{margin:0;color:var(--ink);font-family:"Pretendard Variable",Pretendard,system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;line-height:1.5;letter-spacing:-.01em}
 body{background-color:#fdf0f5;background-image:radial-gradient(circle,#fff 1.5px,transparent 2.5px),radial-gradient(circle,#ffd9ea 1.5px,transparent 2.5px),linear-gradient(180deg,#e6efff 0,#fdeef6 45%,#fff5e4 100%);background-size:36px 36px,52px 52px,100% 100%;background-position:0 0,18px 26px,0 0;background-attachment:fixed}
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -34,14 +35,14 @@ header{position:sticky;top:0;z-index:5;padding:10px 0 10px;background:linear-gra
 .cal{display:flex;align-items:baseline;gap:1px;margin-left:auto;font-family:"Jua",sans-serif}
 .cal b{font-weight:400;font-size:32px;line-height:1;color:#ffd84a;text-shadow:1.5px 0 #7a4a1a,-1.5px 0 #7a4a1a,0 1.5px #7a4a1a,0 -1.5px #7a4a1a,1.5px 1.5px #7a4a1a,-1.5px -1.5px #7a4a1a,1.5px -1.5px #7a4a1a,-1.5px 1.5px #7a4a1a,0 3px 0 #7a4a1a}
 .cal span{font-size:17px;color:#7a4a1a}
-.cal small{font-size:11px;color:var(--sub);line-height:1.15;margin-left:5px;font-family:system-ui,sans-serif}
+.cal small{font-size:12.5px;font-weight:600;color:var(--sub);line-height:1.15;margin-left:5px;font-family:system-ui,sans-serif}
 .icon-btn{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd);font-size:17px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
 .kpi{display:flex;align-items:center;gap:5px;background:linear-gradient(180deg,#fffdf7,#fff0d2);border:2px solid var(--gold);border-radius:12px;padding:4px 6px;box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd);min-width:0}
 .kpi svg{width:22px;height:22px;flex:none}
 .kpi div{min-width:0}
-.kpi small{display:block;font-size:10.5px;color:var(--sub);line-height:1.1;white-space:nowrap}
-.kpi b{display:block;font-family:"Jua",sans-serif;font-weight:400;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.kpi small{display:block;font-size:12px;font-weight:600;color:var(--sub);line-height:1.1;white-space:nowrap}
+.kpi b{display:block;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
 .neg{color:var(--bad)}
 h2{font-family:"Jua",sans-serif;font-weight:400;font-size:18px;color:var(--title);margin:20px 0 10px;display:flex;align-items:center;gap:10px}
 h2::before,h2::after{content:"";height:2px;flex:1;background:linear-gradient(90deg,transparent,var(--gold))}
@@ -51,7 +52,7 @@ h3::before{content:"✦ ";color:var(--gold)}
 .card{position:relative;background:var(--paper);border:3px solid var(--gold);border-radius:18px;padding:12px 14px;margin-bottom:14px;box-shadow:inset 0 0 0 2px #fffaf0,inset 0 0 0 3.5px var(--gold2),0 3px 0 var(--goldd),0 8px 16px rgba(170,110,60,.12)}
 .card::before,.card::after{content:"";position:absolute;top:-10px;width:20px;height:20px;background:var(--star) center/contain no-repeat}
 .card::before{left:-9px}.card::after{right:-9px}
-.muted{color:var(--sub);font-size:13px}
+.muted{color:var(--sub);font-size:14px}
 .center{text-align:center}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .namerow{flex-wrap:nowrap;margin-bottom:6px}.namerow .chip{flex:0 1 auto;min-width:0;padding:5px 10px}
@@ -68,8 +69,30 @@ h3::before{content:"✦ ";color:var(--gold)}
 .name{font-family:"Jua",sans-serif;font-weight:400;font-size:16.5px}
 .mrow select,select.full{border:2px solid var(--gold);background:#fffdf6;border-radius:12px;padding:7px 8px}
 .mrow select{max-width:48%}
+.schbtn{flex:none;width:50%;display:flex;align-items:center;gap:6px;text-align:left;border:2px solid var(--gold);background:#fffdf6;border-radius:14px;padding:6px 9px;box-shadow:0 2px 0 var(--goldd)}
+.schbtn .si{flex:none;font-size:18px;line-height:1}
+.schbtn span:not(.si){min-width:0}
+.schbtn b{display:block;font-size:14px;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.schbtn small{display:block;font-size:12.5px;color:var(--sub);line-height:1.25}
+
+.schbtn:disabled{background:#f4ece0;box-shadow:none;cursor:default}.schbtn:disabled::after{content:""}
+.mstat{display:flex;gap:10px;font-size:13.5px;color:var(--sub);white-space:nowrap;margin-top:2px}.mstat b{color:var(--ink);font-weight:800}
+.mstat .hot,.mstat .hot b{color:var(--bad)}
+#sheet{position:fixed;inset:0;z-index:30;display:none;background:rgba(70,30,70,.45);align-items:flex-end;justify-content:center}
+#sheet.open{display:flex}
+#sheet .sh{width:100%;max-width:640px;max-height:82vh;overflow:auto;background:var(--paper);border-radius:22px 22px 0 0;border-top:4px solid var(--gold);padding:10px 14px calc(16px + env(safe-area-inset-bottom));animation:shup .18s ease-out}
+@keyframes shup{from{transform:translateY(40px);opacity:.4}}
+#sheet .grab{width:44px;height:5px;border-radius:3px;background:#e2cba4;margin:0 auto 8px}
+#sheet h4{font-family:"Jua",sans-serif;font-weight:400;font-size:18px;color:var(--title);margin:0 0 8px;text-align:center}
+.sopt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:2px solid var(--line);background:#fff;border-radius:14px;padding:9px 12px;margin-bottom:7px}
+.sopt.on{border-color:var(--pink);background:#fff0f6}
+.sopt .si{font-size:24px;flex:none;width:30px;text-align:center}
+.sopt b{display:block;font-size:15.5px;font-weight:800}
+.sopt small{display:block;font-size:13px;color:var(--sub)}
+.sopt .cost{margin-left:auto;flex:none;text-align:right;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+.sopt small.warn{color:var(--bad)}
 select.full{width:100%}
-.tag{display:inline-block;font-size:11px;border-radius:8px;padding:1px 7px;background:#ffe0ec;color:var(--pinkd);margin-left:5px;vertical-align:2px;border:1px solid #ffc2d8}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:1px 7px;background:#ffe0ec;color:var(--pinkd);margin-left:5px;vertical-align:2px;border:1px solid #ffc2d8}
 .tag.blue{background:#e8e4ff;color:#5a4aa8;border-color:#cfc6f5}
 .tag.red{background:#ffe3e3;color:var(--bad);border-color:#f5c0c0}
 .fbar{height:7px;border-radius:4px;background:var(--bar);overflow:hidden;margin-top:4px;max-width:150px;border:1px solid #ead6b6}
@@ -88,13 +111,13 @@ select.full{width:100%}
 @media (prefers-reduced-motion:reduce){.blink:not(.shut){animation:none}}
 .avbox.off img{filter:grayscale(1);opacity:.6}
 .avbox.off svg{filter:grayscale(1);opacity:.6}
-.stat{display:grid;grid-template-columns:46px 1fr 26px;align-items:center;gap:7px;font-size:13px;margin:4px 0}
-.stat span{font-family:"Jua",sans-serif;font-size:14px}
+.stat{display:grid;grid-template-columns:46px 1fr 28px;align-items:center;gap:7px;font-size:13px;margin:4px 0}
+.stat span{font-weight:700;font-size:13.5px}
 .stat .bar{height:12px;border-radius:7px;background:var(--bar);border:1.5px solid #e6cfa6;overflow:hidden}
 .stat .bar i{display:block;height:100%;border-radius:6px;background:var(--c,#ef5c96);box-shadow:inset 0 3px 0 rgba(255,255,255,.45)}
-.stat b{text-align:right;font-family:"Jua",sans-serif;font-weight:400;font-size:15px}
+.stat b{text-align:right;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
 .stats2{display:grid;grid-template-columns:1fr 1fr;column-gap:14px;margin-top:8px}
-.stats2 .stat{grid-template-columns:42px 1fr 24px;gap:5px}
+.stats2 .stat{grid-template-columns:44px 1fr 26px;gap:5px}
 .btn{font-family:"Jua",sans-serif;font-size:16px;border:2px solid var(--pinkd);border-radius:14px;padding:8px 16px;background:linear-gradient(180deg,#ffa8cb,#ef5c96);color:#fff;text-shadow:0 1.5px 0 var(--pinkd);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 3px 0 var(--pinkd)}
 .btn:active{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 1px 0 var(--pinkd)}
 .btn.sub{background:linear-gradient(180deg,#fffdf6,#ffe9b8);border-color:var(--gold);color:var(--ink);text-shadow:none;box-shadow:inset 0 2px 0 #fff,0 3px 0 var(--goldd)}
@@ -115,13 +138,13 @@ nav button.on .ti{background:radial-gradient(circle,#fff 35%,#ffd6e6);box-shadow
 .talk-face svg{display:block}
 .talk-body{flex:1;min-width:0}
 .talk-body b{font-family:"Jua",sans-serif;font-weight:400;font-size:14px;background:#5a66c0;padding:1px 10px;border-radius:8px}
-.talk-body p{margin:5px 0 0;font-size:14px;text-shadow:0 1px 0 rgba(60,70,160,.55)}
+.talk-body p{margin:5px 0 0;font-size:15px;font-weight:600;text-shadow:0 1px 0 rgba(60,70,160,.55)}
 .talk-body .btn{margin-top:7px}
 .talk-star{position:absolute;right:6px;bottom:5px;width:22px;height:22px;background:var(--pstar) center/contain no-repeat}
-.news{padding:8px 0;border-top:2px dashed var(--line);font-size:14px;display:flex;gap:8px;align-items:flex-start}
+.news{padding:8px 0;border-top:2px dashed var(--line);font-size:15px;display:flex;gap:8px;align-items:flex-start}
 .news:first-child{border-top:0}
 .news .ni{flex:none;font-size:16px}
-.news small{color:var(--sub);display:block;font-size:11px}
+.news small{color:var(--sub);display:block;font-size:12.5px}
 .news.scandal{color:var(--bad)}
 .news.win{color:var(--pinkd)}
 dialog{border:0;padding:0;width:min(560px,calc(100% - 28px));background:transparent;color:var(--ink);max-height:88vh;overflow:visible}
@@ -325,6 +348,9 @@ const SCHED = {
   surgery: { label: '성형 (3주 회복)', cost: 1500, fat: 0, gain: {} },
   rest: { label: '휴식', cost: 0, fat: -35, gain: { health: 2 } },
 };
+const SCHED_ICON = { vocal: '🎤', dance: '💃', camera: '📸', act: '🎬', lang: '🌏', person: '😇', health: '💪', diet: '🥗', surgery: '💉', rest: '🛌' };
+const schedFx = k => { const s = SCHED[k]; if (k === 'surgery') return '외모 크게↑ · 3주 쉬어요 · 부작용 위험'; if (k === 'diet') return `외모 +${s.gain.visual} · 건강 ${s.gain.health} · 쓰러질 수 있어요`;
+  return [...Object.entries(s.gain).map(([g, v]) => `${SL[g]} ${v > 0 ? '+' : ''}${v}`), `피로 ${s.fat > 0 ? '+' : ''}${s.fat}`].join(' · '); };
 const BUSY = { drama: '드라마 촬영', adshoot: '광고 촬영', variety: '예능 촬영', surgery: '성형 회복', pause: '활동 중단', sick: '건강 회복' };
 const CONCEPTS = [
   { id: 'fresh', label: '청량', fav: ['dance', 'camera'] },
@@ -1347,7 +1373,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=26';
+const CATV = '?v=27';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1723,16 +1749,17 @@ function planHTML() {
   const rows = S.members.map(m => {
     const fl = forcedLabel(m);
     if (!fl) train += (SCHED[m.sched] || SCHED.rest).cost;
-    const sel = fl ? `<select disabled><option>${fl}</option></select>`
-      : `<select data-sched="${m.id}">${Object.entries(SCHED).map(([k, s]) => `<option value="${k}"${m.sched === k ? ' selected' : ''}>${s.label}${s.cost ? ` · ${money(s.cost)}` : ''}</option>`).join('')}</select>`;
+    const s = SCHED[m.sched] || SCHED.rest;
+    const sel = fl ? `<button class="schbtn" disabled><span class="si">⏳</span><span><b>${esc(fl.replace(/ \(.*\)/, ''))}</b><small>${esc((fl.match(/\((.*)\)/) || ['', '바꿀 수 없어요'])[1])}</small></span></button>`
+      : `<button class="schbtn" data-schpick="${m.id}"><span class="si">${SCHED_ICON[m.sched] || '🛌'}</span><span><b>${s.label.replace(/ \(.*\)/, '')}</b><small>${s.cost ? money(s.cost) : '무료'}</small></span></button>`;
     return `<div class="mrow"><div class="who" data-member="${m.id}" title="눌러서 능력치 보기">${avatar(m, 48)}<div class="info"><div class="name">${esc(m.name)}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}</div>
-<div class="fbar" title="피로"><i style="width:${m.fatigue}%"></i></div><div class="muted">피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)}</div></div></div>${sel}</div>`;
+<div class="fbar" title="피로"><i style="width:${m.fatigue}%"></i></div><div class="mstat"><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span><span class="${m.stats.health < 35 ? 'hot' : ''}">건강 <b>${Math.round(m.stats.health)}</b></span></div></div></div>${sel}</div>`;
   }).join('');
   const total = train + fixedCost() + contractCost() + (S.ga === 'concert' ? 5000 : 0);
   return `${managerBox()}
 <h2>그룹 일정</h2><div class="chips">${opts.map(o => `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}"${o.ok === false ? ' disabled' : ''}>${o.label}</button>`).join('')}</div>
 <p class="muted">${esc(cur.desc)}${opts.find(o => o.id === 'concert' && o.ok === false) ? ` · 콘서트: ${concertWhy()}` : ''}</p>
-<h2>멤버별 스케줄</h2><div class="card"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에 바꾸기</div></div></div><select id="schedAll"><option value="">골라 주세요</option>${Object.entries(SCHED).map(([k, s]) => `<option value="${k}">${s.label}${s.cost ? ` · ${money(s.cost)}` : ''}</option>`).join('')}</select></div>${rows}</div>
+<h2>멤버별 스케줄</h2><div class="card"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
 <p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고, 80을 넘으면 건강이 깎여요.</p>`;
 }
@@ -1986,12 +2013,25 @@ function settings() {
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
 
+// ===== 스케줄 선택 창 (아래에서 올라옴) =====
+function openSchedSheet(id) {
+  const all = id === 'ALL', m = all ? null : S.members.find(x => x.id === id); if (!all && !m) return;
+  let el = document.getElementById('sheet');
+  if (!el) { el = document.createElement('div'); el.id = 'sheet'; document.body.appendChild(el); el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); }); }
+  el.innerHTML = `<div class="sh"><div class="grab"></div><h4>${all ? '모두의 스케줄' : esc(m.name) + '의 스케줄'}</h4>
+${m ? `<p class="muted center" style="margin:0 0 8px">피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)}</p>` : '<p class="muted center" style="margin:0 0 8px">촬영·회복 중인 멤버는 빼고 바꿔요</p>'}
+${Object.entries(SCHED).map(([k, sc]) => `<button class="sopt${m && m.sched === k ? ' on' : ''}" data-schset="${id}:${k}"><span class="si">${SCHED_ICON[k]}</span><span><b>${sc.label}</b><small class="${k === 'diet' || k === 'surgery' ? 'warn' : ''}">${schedFx(k)}</small></span><span class="cost">${sc.cost ? money(sc.cost) : '무료'}</span></button>`).join('')}</div>`;
+  el.classList.add('open');
+}
+
 // ===== 이벤트 =====
 document.addEventListener('click', e => {
   if (REVEAL && $('#dlgBody').classList.contains('intro') && e.target.closest('#dlg')) { REVEAL(); return; }
   const t = e.target.closest('button,[data-gender],[data-count],[data-member]'); if (!t) return;
   const d = t.dataset;
   if (d.tab) { closeDlg(); TAB = d.tab; render(); window.scrollTo(0, 0); return; }
+  if (d.schpick) return openSchedSheet(d.schpick);
+  if (d.schset) { const [id, k] = d.schset.split(':'); S.members.forEach(m => { if ((id === 'ALL' || m.id === id) && !forcedLabel(m)) m.sched = k; }); $('#sheet').classList.remove('open'); save(); render(); return; }
   if (d.member) return memberDetail(d.member);
   if (d.cust) return customize(d.cust);
   if (d.wpick !== undefined) { const [id, pk] = d.wpick.split(':'), top = $('#dlgBody').scrollTop; memberDetail(id, pk || null); $('#dlgBody').scrollTop = top; const l = $('#wpList'); if (l) l.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
