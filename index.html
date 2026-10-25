@@ -182,6 +182,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.foldbtn{display:block;width:100%;margin:-2px 0 12px}
 .rechead{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer}
 .rechead b{font-family:"Jua",sans-serif;font-weight:400;font-size:17px;color:var(--title)}.rechead span{font-size:13px;color:var(--pinkd)}
 body.lowfx .efx,body.lowfx .hearts,body.lowfx .livefx,body.lowfx .scfx,body.lowfx .stfx{display:none}
@@ -2418,32 +2419,37 @@ function actHTML() {
 <p class="muted">준비 2주(녹음·안무) 뒤 음악 방송을 해요. 활동이 길수록 팬이 많이 늘지만 피로도 쌓여요.</p>
 <div class="row cbnav"><button class="btn sub" data-cbstep="2">◀ 이전</button><button class="btn" data-act="comeback" style="flex:1">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div></div></div>`;
   }
-  h += `<h2>행사 의상</h2><div class="card">${Object.entries(EVENT_WEAR).map(([ev, [lab, l]]) => `<div class="evrow"><b>${lab}</b><select data-evwear="${ev}"><option value="">무작위</option>${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${S.eventWear && S.eventWear[ev] === k ? ' selected' : ''}>${boyName(k, n)}</option>`).join('')}</select>${S.members[0] && eventWearNow(ev) ? avatar(S.members[0], 40, true, eventWearNow(ev)) : ''}</div>`).join('')}<p class="muted" style="font-size:12px">무대 의상(컴백 콘셉트)과 따로, 행사 날에는 이 옷을 입어요.</p></div>`;
-  h += `<h2>앨범 기록</h2>` + (S.albums.length ? `<div class="card">${S.albums.slice().reverse().map(a => `<div class="news"><span class="ni">💿</span><div><small>${dateStr(a.w)}</small>${a.kind && a.kind !== 'group' ? `<span class="tag blue">${a.kind === 'solo' ? '솔로' : '유닛'} ${esc(a.who || '')}</span> ` : ''}「${esc(a.title)}」 ${a.debut ? '<span class="tag">데뷔곡</span>' : ''} · ${conceptLabel(CONCEPTS.find(c => c.id === a.concept))} · 최고 ${a.best}위${a.wins ? ` · 🏆${a.wins}` : ''}</div></div>`).join('')}</div>` : '<p class="muted center">아직 없어요.</p>');
+  h += `<h2>행사 의상</h2>` + (!FOLD.has('evwear') ? `<p class="muted center">행사 날(연말 무대·페스티벌·축제·콘서트)에 입을 옷을 골라요.</p>${foldBtn('evwear', '행사 의상 고르기')}` : `${foldBtn('evwear', '')}<div class="card">${Object.entries(EVENT_WEAR).map(([ev, [lab, l]]) => `<div class="evrow"><b>${lab}</b><select data-evwear="${ev}"><option value="">무작위</option>${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${S.eventWear && S.eventWear[ev] === k ? ' selected' : ''}>${boyName(k, n)}</option>`).join('')}</select>${S.members[0] && eventWearNow(ev) ? avatar(S.members[0], 40, true, eventWearNow(ev)) : ''}</div>`).join('')}<p class="muted" style="font-size:12px">무대 의상(컴백 콘셉트)과 따로, 행사 날에는 이 옷을 입어요.</p></div>`);
+  const alb = S.albums.slice().reverse(), albShow = FOLD.has('albums') ? alb : alb.slice(0, 3);
+  h += `<h2>앨범 기록</h2>` + (S.albums.length ? `<div class="card">${albShow.map(a => `<div class="news"><span class="ni">💿</span><div><small>${dateStr(a.w)}</small>${a.kind && a.kind !== 'group' ? `<span class="tag blue">${a.kind === 'solo' ? '솔로' : '유닛'} ${esc(a.who || '')}</span> ` : ''}「${esc(a.title)}」 ${a.debut ? '<span class="tag">데뷔곡</span>' : ''} · ${conceptLabel(CONCEPTS.find(c => c.id === a.concept))} · ${a.best < 99 ? `최고 ${a.best}위` : '순위 없음'}${a.wins ? ` · 🏆${a.wins}` : ''}</div></div>`).join('')}</div>${alb.length > 3 ? foldBtn('albums', `앨범 모두 보기 (${alb.length}장)`) : ''}` : '<p class="muted center">아직 없어요.</p>');
   if (S.awards.length) h += `<h2>수상</h2><div class="card">${S.awards.map(a => `<div class="news"><span class="ni">🏅</span><div>${a.y}년차 ${a.award}</div></div>`).join('')}</div>`;
   h += `<p class="muted">💡 12월 4주에는 연말 무대가 있어요 (인지도 25 이상). 5월·8월엔 페스티벌 제의가 와요.</p>`;
   return h;
 }
+// 접기·펼치기 (긴 목록은 지금 쓰는 것만 먼저 보이게)
+const FOLD = new Set();
+const foldBtn = (id, more) => `<button class="btn sub small foldbtn" data-fold="${id}">${FOLD.has(id) ? '접기 ▲' : more + ' ▼'}</button>`;
 function dormHTML() {
   const cur = dormOf(), n = S.members.length;
   return `<h2>숙소</h2><p class="muted center">지금 숙소: <b>${cur.name}</b> · 1인당 ${(cur.size / n).toFixed(1)}평 · ${dormSpace() < 3 ? '<span class="neg">좁아요!</span>' : '괜찮아요'}</p>
-${DORMS.map(d => { const on = d.id === cur.id, per = d.size / n, warn = [];
+${DORMS.filter(d => d.id === cur.id || FOLD.has('dorm')).map(d => { const on = d.id === cur.id, per = d.size / n, warn = [];
   if (per < 3) warn.push('좁음: 피로↑ 인성↓ 다툼'); if (d.clean < 40) warn.push('비위생: 건강↓ 병'); if (!d.isNew) warn.push('구축: 가끔 수리비·보안 약함'); else warn.push('신축: 보안 좋음');
   return `<div class="card offer"><span class="vicon">${d.isNew ? '🏢' : '🏚'}<i>${d.size}평</i></span><div class="info"><b class="name">${d.name}</b>${on ? '<span class="tag">거주 중</span>' : ''}
 <div class="muted">주당 ${money(d.cost)} · ${d.size}평(1인당 ${per.toFixed(1)}평) · 청결도 ${d.clean} · ${d.isNew ? '신축' : '구축'}</div><div class="muted" style="font-size:12px">${warn.join(' · ')}</div>
 ${on ? `<div class="muted">입주 ${S.week - (S.dorm ? S.dorm.since : 0)}주째${dormPenalty() ? ` · 지금 나가면 위약금 ${money(dormPenalty())}` : ''}</div>` : ''}</div>
 ${on ? '' : `<button class="btn small" data-dorm="${d.id}">이사</button>`}</div>`; }).join('')}
+${foldBtn('dorm', `다른 숙소 보기 (${DORMS.length - 1}곳)`)}
 <p class="muted">💡 넓고 깨끗한 숙소일수록 휴식 효과가 좋아지고, 영입 제안도 잘 받아들여요. 이사 비용 500만.</p>`;
 }
 function contractHTML() {
   return dormHTML() + Object.entries(VENDORS).map(([kind, V]) => {
     const c = S.contracts[kind];
-    return `<h2>${V.label}</h2>${V.list.map((v, i) => {
-      const on = c && c.id === v.id;
+    return `<h2>${V.label}</h2>${c ? '' : '<p class="muted center">아직 계약한 업체가 없어요.</p>'}${V.list.map((v, i) => {
+      const on = c && c.id === v.id; if (!on && !FOLD.has(kind)) return '';
       return `<div class="card offer"><span class="vicon">${kind === 'costume' ? '👗' : '💄'}<i>${'★'.repeat(i + 1)}</i></span><div class="info"><b class="name">${v.name}</b>${on ? '<span class="tag">계약 중</span>' : ''}<div class="muted">주당 ${money(v.cost)} · 무대 점수 +${v.bonus}</div>
 ${on ? `<div class="muted">계약 ${S.week - c.since}주째 · ${penaltyOf(kind) ? `지금 해지하면 위약금 ${money(penaltyOf(kind))}` : '위약금 없이 해지 가능'}</div>` : ''}</div>
 ${on ? `<button class="btn sub small" data-term="${kind}">해지</button>` : `<button class="btn small" data-sign="${kind}:${v.id}">${c ? '바꾸기' : '계약'}</button>`}</div>`;
-    }).join('')}`;
+    }).join('')}${foldBtn(kind, c ? '다른 업체로 바꾸기' : `업체 고르기 (${V.list.length}곳)`)}`;
   }).join('') + `<p class="muted">💡 최소 계약 기간은 ${MIN_CONTRACT}주예요. 그 전에 해지하면 남은 주만큼 위약금을 내요.</p>`;
 }
 // 소식: 종류별로 거르기, 30개씩 더 보기. 위에는 그룹 기록(통계)
@@ -2722,6 +2728,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.fold) { FOLD.has(d.fold) ? FOLD.delete(d.fold) : FOLD.add(d.fold); return render(); }
   if (d.newsf) { NEWSF = d.newsf; NEWSN = 30; return render(); }
   if (d.accept) return acceptOffer(d.accept);
   if (d.decline) return declineOffer(d.decline);
