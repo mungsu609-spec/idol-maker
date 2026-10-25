@@ -1,25 +1,23 @@
 // ===== 2D 고양이 아이돌 (그림을 휘고 늘리는 메시 애니메이션, PixiJS) =====
 // 부위 그림(몸통·팔·꼬리·표정)을 격자 모양 메시로 붙이고, 꼭짓점을 움직여서 이음새 없이 휘게 만듦.
-const ART = new URL('art/cat/', import.meta.url).href, VER = '?v=20';   // 고치면 숫자 올리기 (브라우저 저장본 대신 새 파일)
+const ART = new URL('art/cat/', import.meta.url).href, VER = new URL(import.meta.url).search || '?v=20';   // 게임이 붙인 ?v= 번호를 그대로 (그림 고치면 index.html의 CATV만 올리면 됨)
 const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); return [cx + (x - cx) * c - (y - cy) * s, cy + (x - cx) * s + (y - cy) * c]; };
 
 export async function loadCat(PIXI, name) {
   const info = await (await fetch(ART + name + '.json' + VER)).json();
-  const tex = {};
-  for (const k of ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy', 'face-sad', 'face-sleep']) {
-    if (k !== 'body' && !info.parts[k]) continue;
-    tex[k] = await PIXI.Assets.load(ART + `${name}-${k}.png` + VER);
-  }
+  const tex = {}, keys = ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy', 'face-sad', 'face-sleep'].filter(k => k === 'body' || info.parts[k]);
+  await Promise.all(keys.map(async k => { tex[k] = await PIXI.Assets.load(ART + `${name}-${k}.png` + VER); }));   // 한꺼번에 받기 (하나씩 기다리면 폰에서 느림)
   return { info, tex };
 }
 // 옷·소품 (모든 고양이 공통, 치즈 고양이 자세 기준 좌표)
-let ITEMS = null;
-export async function loadItems(PIXI) {
-  if (!ITEMS) ITEMS = (async () => { const info = await (await fetch(ART + 'items.json' + VER)).json(), tex = {};
-    for (const k in info) tex[k] = await PIXI.Assets.load(ART + `item-${k}.png` + VER);
-    return { info, tex }; })();
-  return ITEMS;
+let ITEMS = null; const ITEM_P = {};
+// keys를 주면 그 옷·소품 그림만 받음 (예전엔 100장 넘게 하나씩 다 받아서 첫 장면이 늦었음). keys 없으면 전부
+export async function loadItems(PIXI, keys) {
+  if (!ITEMS) ITEMS = (async () => ({ info: await (await fetch(ART + 'items.json' + VER)).json(), tex: {} }))();
+  const it = await ITEMS, want = (keys || Object.keys(it.info)).filter(k => it.info[k]);
+  await Promise.all(want.map(k => ITEM_P[k] || (ITEM_P[k] = PIXI.Assets.load(ART + `item-${k}.png` + VER).then(t => { it.tex[k] = t; }))));
+  return it;
 }
 
 export function makeCat(PIXI, data, opt = {}) {
