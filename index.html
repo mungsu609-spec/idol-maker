@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.overbtns{display:grid;gap:8px;max-width:300px;margin:4px auto 30px}
 .schint{margin:6px 0;padding:7px 10px;border-radius:10px;background:#f1f6ff;font-size:13px;color:var(--sub)}
 .sparkw{margin-top:10px}.sparkw small{display:flex;justify-content:space-between;color:var(--sub);font-size:11.5px}.sparkw svg{display:block;width:100%;height:64px}
 .tag.pos{background:#f3ecff;color:#7a4fc0;border-color:#dccdfa}
@@ -2653,7 +2654,7 @@ function overHTML() {
   const e = ENDINGS.find(x => x.id === S.endingId), n = ENDINGS.filter(x => META.endings[x.id]).length;
   return `<div class="over"><div class="logo"><h1>${e && !e.over ? `${CONTRACT_YEARS}년 계약 끝` : '게임 끝'}</h1></div>${e ? endScene(e.id) + endingCard(e, S.over) : `<p>${esc(S.over)}</p>`}<div class="card" style="text-align:left">
 <div>그룹: ${esc(S.name)} · ${dateStr(S.week)}</div><div>최고 기록: 팬 ${num(S.fans)} · 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장 · 수상 ${S.awards.length}번</div><div>📖 엔딩 도감 ${n} / ${ENDINGS.length}</div></div>
-${e && !e.over ? '<button class="btn" data-act="keep-going" style="margin-bottom:8px">계속 키우기</button><br>' : ''}<button class="btn sub" data-act="brag" style="margin-bottom:8px">📋 결과 자랑하기</button><br><button class="btn sub" data-act="goals-ending" style="margin-bottom:8px">📖 엔딩 도감</button><br><button class="btn" data-act="reset">새 게임</button></div>`;
+<div class="overbtns">${e && !e.over ? '<button class="btn" data-act="keep-going">▶ 계속 키우기</button>' : ''}<button class="btn sub" data-act="brag">📋 결과 자랑하기</button><button class="btn sub" data-act="goals-ending">📖 엔딩 도감</button><button class="btn ${e && !e.over ? 'sub' : ''}" data-act="reset">🐾 새 게임</button></div></div>`;
 }
 let SU = { gender: 'girl', count: 5, chars: [1, 2, 3, 4, 5, 6, 7] };
 function fillNames(keep) {
