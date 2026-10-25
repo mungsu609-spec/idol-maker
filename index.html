@@ -879,6 +879,7 @@ function endWeek() {
         if (a < 40 && Math.random() < (40 - a) * 0.006) addScandal(m, '실력');
       }
       if (P.left <= 0) {
+        promoMembers().forEach(m => { (m.rec = m.rec || {}).album = (m.rec.album || 0) + 1; if (P.wins) m.rec.win = (m.rec.win || 0) + P.wins; });
         S.albums.push({ title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P), mids: P.mids || null });
         news('promo', `${promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P) : ''}「${P.title}」 활동 마무리 · ${P.best < 99 ? `최고 ${P.best}위` : '순위 없음'}${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
         S.albumDone = { title: P.title, who: promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P).trim() : S.name, concept: P.concept, best: P.best, wins: P.wins, weeks: P.weeks, fans: S.fans - (P.fans0 ?? S.fans), debut: P.debut };
@@ -1497,7 +1498,7 @@ function acceptOffer(id) {
   const m = S.members.find(x => x.id === o.mid);
   if (!m) { S.offers = S.offers.filter(x => x !== o); render(); return; }
   if (m.busy) { alert(`${josa(m.name, '은', '는')} 지금 ${BUSY[m.busy.type]} 중이라 받을 수 없어요.`); return; }
-  tally('offer'); tally(o.type === 'variety' && o.regular ? 'varietyReg' : o.type); if (o.type === 'drama' && o.role === '주연') tally('lead'); if (o.type === 'movie' && o.role === '주연') tally('movieLead');
+  tally('offer'); tally(o.type === 'variety' && o.regular ? 'varietyReg' : o.type); (m.rec = m.rec || {})[o.type] = (m.rec[o.type] || 0) + 1; if (o.type === 'drama' && o.role === '주연') tally('lead'); if (o.type === 'movie' && o.role === '주연') tally('movieLead');
   if (o.type === 'ad') {
     m.ad = { brand: o.brand, fee: o.fee, left: AD_WEEKS }; m.busy = { type: 'adshoot', left: 1 };
     S.money += o.fee; m.pop += 3;
@@ -2780,6 +2781,7 @@ ${forcedLabel(m) ? '' : `<div class="row" style="justify-content:center;gap:8px;
 <div>💪 잘하는 것: ${sorted.slice(0, 2).map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
 <div>📉 부족한 것: ${sorted.slice(-2).reverse().map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</div>
 <div>🎵 잘 맞는 콘셉트: ${fit.map(([c]) => conceptLabel(c)).join(', ')}</div>
+${m.rec ? `<div>📒 활동 기록: ${[['album', '💿 앨범'], ['win', '🏆 1위'], ['drama', '🎬 드라마'], ['movie', '🎥 영화'], ['ad', '📢 광고'], ['variety', '📺 예능']].filter(([k]) => m.rec[k]).map(([k, l]) => `${l} ${m.rec[k]}`).join(' · ') || '아직 없어요'}</div>` : ''}
 ${m.ad ? `<div>📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주&nbsp;남음</div>` : ''}${m.drama ? `<div>🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.movie ? `<div>🎥 영화 ${esc(m.movie.title)} ${m.movie.role}</div>` : ''}${m.variety ? `<div>📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주&nbsp;남음</div>` : ''}
 ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br>')}</p>` : ''}
 <h3>옷·소품</h3>
