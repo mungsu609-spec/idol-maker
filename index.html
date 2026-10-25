@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.tag.pos{background:#f3ecff;color:#7a4fc0;border-color:#dccdfa}
 .goalcard .pbar{display:block;height:5px;margin-top:4px;border-radius:3px;background:var(--bar);overflow:hidden;max-width:220px}.goalcard .pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ffa8cb,#ef5c96)}
 .fflist{max-height:46vh;overflow:auto}.ffl{padding:5px 0;border-top:1px dashed var(--line);font-size:14px}.ffl:first-child{border-top:0}.ffl small{display:block;color:var(--sub);font-size:11.5px}
 .shwarn{margin:0 4px 8px;padding:6px 10px;border-radius:10px;background:#fff1e6;color:#b4552b;font-size:13px;text-align:center}
@@ -2455,6 +2456,15 @@ function planHTML() {
 }
 const MOPEN = new Set();   // 멤버 탭에서 능력치를 펼친 멤버
 const topSkills = m => STATS.filter(([k]) => k !== 'health' && k !== 'person').sort((a, b) => m.stats[b[0]] - m.stats[a[0]]).slice(0, 2);
+// 포지션: 그룹 안에서 가장 뛰어난 멤버에게 자동으로 (리더=최연장, 막내=최연소, 센터=인기 1등)
+function positions() {
+  const ms = S.members; if (ms.length < 2) return {};
+  const top = f => ms.slice().sort((a, b) => f(b) - f(a))[0].id, out = {}, add = (id, t) => (out[id] = out[id] || []).push(t);
+  add(top(m => (m.age || 18) * 100 - ms.indexOf(m)), '리더'); add(top(m => m.stats.vocal), '메인보컬'); add(top(m => m.stats.dance), '메인댄서');
+  add(top(m => m.stats.visual), '비주얼'); add(top(m => m.pop + perfOf(m) / 100), '센터'); add(top(m => -(m.age || 18) * 100 - ms.indexOf(m)), '막내');
+  return out;
+}
+const posTags = m => (positions()[m.id] || []).map(t => `<span class="tag pos">${t}</span>`).join('');
 let MSORT = 'base';
 const MSORTS = [['base', '기본'], ['perf', '실력'], ['pop', '인기'], ['fat', '피로']];
 function membersHTML() {
@@ -2462,7 +2472,7 @@ function membersHTML() {
   return `<h2>멤버 ${S.members.length}인조</h2><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="muted">그룹 무대 실력 <b style="color:var(--ink)">${Math.round(perf)}</b></span><button class="btn sub small" data-mtog="ALL">${allOpen ? '모두 접기 ▲' : '모두 펼치기 ▼'}</button></div>
 <div class="chips" style="margin:-2px 0 10px"><span class="muted" style="align-self:center;font-size:13px">정렬</span>${MSORTS.map(([k, l]) => `<button class="chip${MSORT === k ? ' on' : ''}" data-msort="${k}">${l}</button>`).join('')}</div>
 ${(MSORT === 'base' ? S.members : S.members.slice().sort((a, b) => MSORT === 'perf' ? perfOf(b) - perfOf(a) : MSORT === 'pop' ? b.pop - a.pop : b.fatigue - a.fatigue)).map(m => { const open = MOPEN.has(m.id); return `<div class="card mc"><div class="mcard"><span class="who" data-member="${m.id}" title="눌러서 자세히">${avatar(m, 60, true)}</span><div class="minfo">
-<div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
+<div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${posTags(m)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
 <div class="mtop">💪 ${topSkills(m).map(([k, l]) => `${l} <b>${Math.round(m.stats[k])}</b>`).join(' · ')}</div>
 <div class="mstat"><span>만 ${m.age || 18}세</span><span>실력 <b>${Math.round(perfOf(m))}</b></span><span>인기 <b>${Math.round(m.pop)}</b></span><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span></div>
 <div class="muted" style="font-size:13px">📅 이번 주: ${esc((forcedLabel(m) || (SCHED[m.sched] || SCHED.rest).label).replace(/ \(.*\)/, ''))}</div>
@@ -2638,7 +2648,7 @@ function memberDetail(id, pick = null) {   // pick: 'cloth'(옷 갈아입기) / 
   const arrows = (f, label) => `<button class="arrow" data-cust="${m.id}:${f}:-1" aria-label="이전">◀</button><b>${label}</b><button class="arrow" data-cust="${m.id}:${f}:1" aria-label="다음">▶</button>`;
   const sw = (f, list, cur) => `<div class="sw">${list.map((c, i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:${f}:${i}" aria-label="색 ${i + 1}"></button>`).join('')}</div>`;
   openDlg(`<div class="pcard"><div class="pcard-art">${avatar(m, 170, true)}${gradeBadge(gradeOf(m))}</div>
-<div class="pcard-name"><b>${esc(m.name)}</b><small>무대 실력 ${Math.round(perfOf(m))} · 그룹 ${rank}등 · 인기 ${Math.round(m.pop)}</small></div></div>
+<div class="pcard-name"><b>${esc(m.name)}</b><small>무대 실력 ${Math.round(perfOf(m))} · 그룹 ${rank}등 · 인기 ${Math.round(m.pop)}</small></div></div>${posTags(m) ? `<p class="center" style="margin:-4px 0 6px">${posTags(m)}</p>` : ''}
 <p class="muted center">만 ${m.age || 18}세${m.bday != null ? ` · 🎂 ${Math.floor(m.bday / 4) + 1}월 ${m.bday % 4 + 1}주` : ''} · 이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
 ${forcedLabel(m) ? '' : `<div class="row" style="justify-content:center;gap:8px;margin-bottom:6px"><button class="btn sub small" data-schpick="${m.id}">📋 스케줄 바꾸기</button>${recSched(m) !== m.sched ? `<button class="btn small" data-recone="${m.id}">✨ 추천: ${esc(SCHED[recSched(m)].label.replace(/ \(.*\)/, ''))}</button>` : ''}</div>`}
 <h3>능력치</h3>${statBars(m)}
