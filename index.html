@@ -235,6 +235,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .avbox img.a3{background:transparent}
 .st3host .vig{z-index:1;position:absolute;left:3px;top:3px;right:3px;bottom:3px;border-radius:11px;pointer-events:none;-webkit-backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);backdrop-filter:blur(1.3px) brightness(.9) saturate(.92);background:radial-gradient(ellipse 75% 70% at 50% 55%,transparent 55%,rgba(20,10,40,.38) 100%)}
 .evrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed #f0d8c0}.evrow b{flex:none;width:96px;font-size:13px}.evrow select{flex:1;min-width:0}.evrow .avbox{flex:none}
+.pvbig{display:flex;justify-content:center}.pvgrid>div[data-pvbig]{cursor:pointer}
 .pvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:8px}.pvgrid>div{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}.pvgrid small{font-size:11px;line-height:1.2}
 .allrow{background:#fff6fb;border-radius:12px;margin-bottom:4px}
 .allico{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:#ffe3f0;border:2.5px solid #fff;box-shadow:0 0 0 2px var(--gold)}
@@ -1346,7 +1347,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=22';
+const CATV = '?v=23';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -2065,7 +2066,8 @@ function pvRender() {
   S.members = pvMembers();
   const chip = (attr, v, cur, l) => `<button class="chip${String(cur) === String(v) ? ' on' : ''}" data-${attr}="${v}">${l}</button>`;
   const items = [...WEAR_CLOTH.filter(x => x[0]), ...Object.values(STAGE_WEAR).flat(), ...Object.values(EVENT_WEAR).flatMap(e => e[1]), ...WEAR_ACC.filter(x => x[0]), ['headset', '헤드셋 마이크 (무대 자동)']].filter(([k]) => ITEMINFO[k]);
-  const boyItems = Object.keys(BOY_NAME).filter(k => ITEMINFO[k]);   // 보이그룹 전용 옷 (걸그룹 화면에서도 보이게)
+  const boyItems = Object.keys(BOY_NAME).filter(k => ITEMINFO[k]);
+  PV.big = [...items.map(([k, n]) => [k, boyName(k, n)]), ...(S.gender === 'boy' ? [] : boyItems.map(k => [k, BOY_NAME[k]]))];   // 크게 보기 넘기기 순서   // 보이그룹 전용 옷 (걸그룹 화면에서도 보이게)
   const gm = { id: 'g', cat: PV.gal, stats: { person: 50 }, wear: {}, hue: 300 };
   $('#app').innerHTML = `<header><div class="top"><div class="ribbon">🔍 미리보기</div><a class="btn sub small" href="./" style="margin-left:auto">게임으로 ▶</a></div></header>
 <p class="muted center">게임을 하지 않고 장면·인원·옷·동작을 바로 골라 볼 수 있어요. 여기서 바꾼 건 저장되지 않아요.</p>
@@ -2083,13 +2085,16 @@ ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악
 </div>
 <h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['외모', '💄 외모 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
-<div class="pvgrid">${items.map(([k, n]) => `<div>${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
-${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그룹이면 위 옷 대신 이걸 입어요)</label><div class="pvgrid">${boyItems.map(k => `<div>${avatar(gm, 84, true, k)}<small>${esc(BOY_NAME[k])}</small></div>`).join('')}</div>`}</div>`;
+<p class="muted" style="font-size:12px">옷을 누르면 크게 볼 수 있어요.</p><div class="pvgrid">${items.map(([k, n]) => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
+${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그룹이면 위 옷 대신 이걸 입어요)</label><div class="pvgrid">${boyItems.map(k => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(BOY_NAME[k])}</small></div>`).join('')}</div>`}</div>`;
   if (PV.scene !== 'clinic' && !dlg.open) mount2d($('#pvstage'), S.members, PV.scene);   // 이벤트 창이 열려 있으면 그 창 무대를 그대로 둠
 }
 document.addEventListener('click', e => {
-  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg]'); if (!t) return;
+  if (!window.PV) return; const t = e.target.closest('[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg],[data-pvbig],[data-pvbigcat],[data-pvbigi]'); if (!t) return;
   const d = t.dataset;
+  if (d.pvbig) return pvBig(PV.big.findIndex(x => x[0] === d.pvbig));
+  if (d.pvbigi) return pvBig(+d.pvbigi);
+  if (d.pvbigcat) { PV.bigCat = d.pvbigcat; return pvBig(PV.bigI); }
   if (d.pvev) {   // 논란·사생팬 창 띄우기 (게임과 같은 창)
     const m = S.members[0], k = d.pvev; if (!m) return;
     const head = k === '사생' ? pick(['숙소 앞까지 따라온 사생팬', '이동 차량을 쫓아온 사생팬']) : pick(HEAD[k]);
@@ -2102,6 +2107,16 @@ document.addEventListener('click', e => {
   if (d.pvshuffle) PV.cats = PV.cats.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
   pvRender();
 });
+// 도감 옷 크게 보기: 고양이 바꾸기, ◀ ▶로 다음 옷
+function pvBig(i) {
+  const L = PV.big, n = L.length; if (!n) return; i = (i + n) % n; PV.bigI = i;
+  const [k, name] = L[i], cat = PV.bigCat || PV.gal, gm = { id: 'g', cat, stats: { person: 50 }, wear: {}, hue: 300 };
+  openDlg(`<h2 style="margin-bottom:4px">${esc(name)}</h2><p class="muted center" style="margin:0 0 6px">${i + 1} / ${n}</p>
+<div class="pvbig">${avatar(gm, 250, true, k)}</div>
+<div class="row" style="justify-content:space-between;margin:8px 0"><button class="btn sub small" data-pvbigi="${i - 1}">◀ 이전</button><button class="btn sub small" data-pvbigi="${i + 1}">다음 ▶</button></div>
+<div class="chips" style="justify-content:center">${CATS.map(([c, l]) => `<button class="chip${c === cat ? ' on' : ''}" data-pvbigcat="${c}">${l}</button>`).join('')}</div>
+<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
+}
 document.addEventListener('change', e => { if (!window.PV || !e.target.dataset.pvsel) return; PV[e.target.dataset.pvsel] = e.target.value; pvRender(); });
 const IS_PV = new URLSearchParams(location.search).has('preview');
 if (IS_PV) pvStart(); else {
