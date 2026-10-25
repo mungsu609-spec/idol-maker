@@ -132,6 +132,7 @@ select.full{width:100%}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .go{position:fixed;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom));z-index:6;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
 .go .btn{pointer-events:auto;width:100%;max-width:608px;padding:11px;font-size:20px;letter-spacing:1px}
+.go{gap:8px}.go .ffbtn{flex:none;width:auto;padding:6px 12px;font-size:18px;line-height:1;display:flex;flex-direction:column;align-items:center}.go .ffbtn small{font-size:11px;letter-spacing:0}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:linear-gradient(180deg,#fffaf0,#ffefd2);border-top:3px solid var(--gold);box-shadow:0 -4px 14px rgba(170,110,60,.15);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
 nav div{display:flex;width:100%;max-width:640px}
 nav button{flex:1;border:0;background:none;padding:5px 0 7px;font-family:"Jua",sans-serif;font-size:13px;color:#9a7a6a}
@@ -182,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.fflist{max-height:46vh;overflow:auto}.ffl{padding:5px 0;border-top:1px dashed var(--line);font-size:14px}.ffl:first-child{border-top:0}.ffl small{display:block;color:var(--sub);font-size:11.5px}
 .shwarn{margin:0 4px 8px;padding:6px 10px;border-radius:10px;background:#fff1e6;color:#b4552b;font-size:13px;text-align:center}
 .sopt em.rec{font-style:normal;font-size:11px;font-weight:800;color:#fff;background:var(--pink);border-radius:8px;padding:1px 6px;margin-left:4px;vertical-align:1px}
 .ctable em{font-style:normal;font-size:11px;font-weight:800}.ctable em.up{color:var(--good)}.ctable em.dn{color:var(--bad)}
@@ -940,7 +942,7 @@ function endWeek() {
   if (S.money < -10000) endGame('bankrupt', '자금이 -1억 아래로 떨어져 회사가 파산했어요.');
   else if (!S.members.length) endGame('disband', '멤버가 모두 떠나 그룹이 해체됐어요.');
   else if (!S.ended && d.m === 12 && d.k === 4 && d.y >= CONTRACT_YEARS) finishContract();
-  save(); render(); showReport(REP);
+  save(); render(); if (FAST) FAST.push(REP); else showReport(REP);
 }
 
 // 추천 스케줄: 지치면 휴식, 건강 낮으면 건강 관리, 인성 낮으면 인성 교육, 아니면 가장 부족한 실력
@@ -953,6 +955,27 @@ function recSched(m) {
 }
 function autoSched() { let n = 0; for (const m of S.members) { if (forcedLabel(m)) continue; const k = recSched(m); if (m.sched !== k) { m.sched = k; n++; } } return n; }
 // 한 주 진행 전: 많이 지쳤거나 건강이 위험한데 연습하는 멤버가 있으면 한 번 물어봄
+let FAST = null;
+const FF_KEEP = /^(🏆|🎯|📋|🏅|🚨|🎂|🎉|💿|🎆|🎄|🎬|🎥|📢|🔥|🌧|🚑|📜|🦠|💉)/;
+function fastForward(n) {
+  if (S.over) return;
+  if (S.pending.length || S.albumDone || S.recap) return nextPopup();   // 아직 못 본 창이 있으면 먼저
+  const f0 = S.fans, m0 = S.money, fa0 = S.fame, w0 = S.week; FAST = [];
+  for (let i = 0; i < n; i++) {
+    S.members.forEach(m => { if (!forcedLabel(m) && !['rest', 'health'].includes(m.sched) && (m.fatigue >= 80 || m.stats.health < 25)) m.sched = 'rest'; });   // 너무 지친 멤버는 쉬게
+    endWeek();
+    if (S.over || S.pending.length || S.albumDone || S.recap) break;
+  }
+  const reps = FAST; FAST = null;
+  const lines = reps.flatMap(r => r.lines.filter(l => FF_KEEP.test(l)).map(l => `<div class="ffl"><small>${esc(r.title.replace(' 결과', ''))}</small>${esc(l)}</div>`));
+  const gap = S.week - S.lastPromoEnd; if (!S.promo && S.albums.length && gap > GAP.free) lines.push(`<div class="ffl"><small>지금</small>💔 공백기 ${gap}주째라 팬이 계속 떠나고 있어요. 컴백을 준비해 보세요!</div>`);
+  const stop = S.over ? '게임이 끝났어요.' : S.pending.length ? '⚠️ 논란이 생겨서 멈췄어요.' : S.albumDone ? '💿 활동이 끝나서 멈췄어요.' : S.recap ? '🎉 새해가 되어 멈췄어요.' : '';
+  const d = [['💗 팬', S.fans - f0, v => (v >= 0 ? '+' : '') + num(v)], ['💰 자금', S.money - m0, v => (v >= 0 ? '+' : '') + money(v)], ['⭐ 인지도', Math.round(S.fame - fa0), v => (v >= 0 ? '+' : '') + v]];
+  openDlg(`<h2>⏩ ${reps.length}주 진행 결과</h2><p class="muted center">${dateStr(w0)} → ${dateStr(S.week)}</p>
+<div class="sum">${d.map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b>${f(v)}</b></span>`).join('')}</div>
+${stop ? `<p class="center"><b>${stop}</b></p>` : ''}${lines.length ? `<h3>주요 소식</h3><div class="fflist">${lines.slice(0, 14).join('')}</div>` : '<p class="muted center">큰 일 없이 지나갔어요.</p>'}
+<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`);
+}
 function checkBeforeWeek() {
   const risky = S.members.filter(m => !forcedLabel(m) && !['rest', 'health'].includes(m.sched) && (m.fatigue >= 80 || m.stats.health < 25));
   if (!risky.length) return endWeek();
@@ -2400,7 +2423,7 @@ function render() {
 <div class="top"><div class="ribbon">${esc(S.name)}</div><div class="cal"><b>${d.m}</b><span>월</span><small>${d.y}년차<br>${d.k}주</small></div><button class="icon-btn" data-act="settings" aria-label="설정">⚙</button></div>
 <div class="kpis">${kpi.map(([i, l, v, neg], k) => `<button class="kpi" data-kpi="${k}">${i}<div><small>${l}</small><b class="${neg ? 'neg' : ''}">${v}</b></div></button>`).join('')}</div>
 </header>${body}
-${TAB !== 'plan' ? '' : '<div class="go"><button class="btn" data-act="end-week">한 주 진행 ▶</button></div>'}
+${TAB !== 'plan' ? '' : '<div class="go"><button class="btn" data-act="end-week">한 주 진행 ▶</button><button class="btn sub ffbtn" data-act="ff" aria-label="4주 한꺼번에 진행">⏩<small>4주</small></button></div>'}
 <nav><div>${tabs.map(([id, l]) => { const b = navBadge(id); return `<button class="${TAB === id ? 'on' : ''}" data-tab="${id}"><span class="ti">${TABICON[id]}${b ? `<i class="nbadge">${b}</i>` : ''}</span>${l}</button>`; }).join('')}</div></nav>`;
 }
 function planHTML() {
@@ -2854,6 +2877,7 @@ document.addEventListener('click', e => {
   }
   switch (d.act) {
     case 'end-week': return checkBeforeWeek();
+    case 'ff': return fastForward(4);
     case 'auto-sched': { const n = autoSched(); save(); render(); return toast(n ? `✨ ${n}명의 스케줄을 추천대로 바꿨어요` : '지금 스케줄이 이미 추천과 같아요'); }
     case 'week-rest': { (window.RISKY || []).forEach(m => { m.sched = 'rest'; }); closeDlg(); save(); return endWeek(); }
     case 'week-go': closeDlg(); return endWeek();
