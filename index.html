@@ -2721,7 +2721,7 @@ function recordHTML() {
   const rows = [['💗 팬클럽', `${esc(fandom())} · 응원봉 <span style="color:${lightC()}">●</span>`], ['📅 데뷔', d ? `${d}년차` : '아직 데뷔 전'], ['💿 앨범', `${S.albums.length}장${best < 99 ? ` · 최고 ${best}위` : ''}`], ['🏆 음악 방송 1위', `${S.trophies}번`], ...(S.albums.length ? (a => [['🌟 최고 앨범', `「${esc(a.title)}」 ${a.best < 99 ? `최고 ${a.best}위` : ''}${a.wins ? ` · 1위 ${a.wins}번` : ''}`]])(S.albums.slice().sort((x, y) => (y.wins - x.wins) || (x.best - y.best))[0]) : []),
     ['🏅 연말 시상식', aw.length ? aw.map(([a, n]) => `${a} ${n}번`).join(' · ') : '아직 없어요'], ['💗 최고 팬 수', `${num(Math.max(S.maxFans || 0, S.fans))}명`],
     ['🎆 단독 콘서트', `${cnt('concert')}번`], ['✍️ 팬싸인회', `${cnt('fansign')}번`], ['📢 광고', `${cnt('ad')}건`], ['🎬 드라마', `${cnt('drama')}편`], ['🎥 영화', `${cnt('movie')}편${cnt('tenM') ? ` (천만 ${cnt('tenM')})` : ''}`],
-    ['📺 예능', `${cnt('variety') + cnt('varietyReg')}번`], ['📋 매니저 미션 성공', `${cnt('missionOk')}번`], ['🚨 논란', `${cnt('scandal')}번`]];
+    ['📺 예능', `${cnt('variety') + cnt('varietyReg')}번`], ['📋 매니저 미션 성공', `${cnt('missionOk')}번`], ...(FAC.some(f => facLv(f[0])) ? [['🏢 회사 시설', FAC.filter(f => facLv(f[0])).map(f => `${f[1]}${'★'.repeat(facLv(f[0]))}`).join(' ')]] : []), ['🚨 논란', `${cnt('scandal')}번`]];
   return `<div class="card"><button class="rechead" data-act="rec-toggle"><b>📊 그룹 기록</b><span>${RECOPEN ? '접기 ▲' : '펼치기 ▼'}</span></button>${RECOPEN ? `${fanSpark()}<div class="money-list" style="margin-top:8px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>` : ''}</div>`;
 }
 function newsHTML() {
