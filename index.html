@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>아이돌 메이커</title>
 <meta name="theme-color" content="#eaf0ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -273,6 +273,13 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .scfx .fl{width:46px;height:46px;transform:translate(-50%,-50%) scale(.3);opacity:0;border-radius:50%;background:radial-gradient(circle,#fff 0 12%,rgba(255,255,255,.75) 22%,rgba(255,235,220,.25) 45%,transparent 70%),conic-gradient(from 0deg,transparent 0 40deg,rgba(255,255,255,.55) 45deg,transparent 50deg 130deg,rgba(255,255,255,.55) 135deg,transparent 140deg 220deg,rgba(255,255,255,.55) 225deg,transparent 230deg 310deg,rgba(255,255,255,.55) 315deg,transparent 320deg);will-change:transform,opacity;animation:camflash var(--t) linear var(--d) infinite}
 @keyframes camflash{0%,62%,100%{opacity:0;transform:translate(-50%,-50%) scale(.3)}68%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}76%{opacity:.2;transform:translate(-50%,-50%) scale(.8)}82%{opacity:.85;transform:translate(-50%,-50%) scale(1)}}
 @media (prefers-reduced-motion:reduce){.scfx{display:none}}
+.livefx{z-index:3;position:absolute;inset:3px;border-radius:12px;overflow:hidden;pointer-events:none}
+.livefx i.r span{left:auto;right:0;border-radius:10px 10px 2px 10px}
+.livefx i{position:absolute;top:0;height:100%;font-style:normal;will-change:transform;transform:translate3d(0,10%,0);animation:heartup var(--t) linear var(--d) infinite}
+.livefx i span{position:absolute;bottom:0;left:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap;font:600 11px/1.3 Pretendard,sans-serif;color:#5a3a4a;background:rgba(255,255,255,.88);padding:3px 8px;border-radius:10px 10px 10px 2px;box-shadow:0 1px 3px rgba(90,40,60,.18);opacity:.92;will-change:opacity;animation:livefade var(--t) linear var(--d) infinite}
+@keyframes livefade{0%{opacity:0}8%{opacity:1}70%{opacity:1}92%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.livefx{display:none}}
+html,body,button,a,input,select,label,canvas{touch-action:manipulation}
 .hearts{z-index:1;position:absolute;inset:3px;border-radius:12px;overflow:hidden;pointer-events:none;filter:blur(1px) saturate(.6) brightness(1.15);opacity:.62}
 .hearts i{position:absolute;top:0;height:100%;font-style:normal;will-change:transform;transform:translate3d(0,14%,0);animation:heartup var(--t) linear var(--d) infinite}
 .hearts i span{position:absolute;bottom:0;left:0;display:block;font-size:calc(20px * var(--s));line-height:1;will-change:transform,opacity;animation:heartsway var(--t) ease-in-out var(--d) infinite}
@@ -480,8 +487,11 @@ function gain(m, k, base) {
   m.stats[k] = clamp(m.stats[k] + d, 0, 100);
 }
 // 연습 장면 배경: 훈련 멤버들 스케줄 다수결 (동률이면 무작위). 춤은 기존 연습실 그림
-const TRAIN_BG = { vocal: 'vocal', dance: 'practice', camera: 'camera', act: 'act', lang: 'lang', person: 'person', diet: 'diet' };
-const TRAIN_SCENES = ['practice', 'vocal', 'camera', 'act', 'lang', 'person', 'diet'];
+const TRAIN_BG = { vocal: 'vocal', dance: 'practice', camera: 'camera', act: 'act', lang: 'lang', person: 'person', diet: 'diet', health: 'health' };
+const TRAIN_SCENES = ['practice', 'vocal', 'camera', 'act', 'lang', 'person', 'diet', 'health'];
+// 휴식·건강 관리·성형 멤버는 무대·행사·라이브 장면에 안 나옴
+const OFF_SCHED = ['rest', 'health', 'surgery'];
+const offDuty = m => m.busy || OFF_SCHED.includes(m.sched);
 const SCENE_ORDER = ['practice', 'live', 'adshoot', 'variety', 'prep', 'drama', 'fansign', 'stage', 'campus', 'festival', 'concert', 'yearend', 'win'];
 function setScene(k) { if (REP && SCENE_ORDER.indexOf(k) > SCENE_ORDER.indexOf(REP.scene)) REP.scene = k; }
 const addFat = (m, v) => { m.fatigue = clamp(m.fatigue + v, 0, 100); };
@@ -520,7 +530,7 @@ function fansignWhy() {
   if (S.week - (S.lastFansign ?? -99) < 4) return `다음 팬싸인회까지 ${4 - (S.week - S.lastFansign)}주`;
   return '';
 }
-const fansignWho = () => (S.promo ? promoMembers() : S.members).filter(m => !m.busy);
+const fansignWho = () => (S.promo ? promoMembers() : S.members.filter(m => !offDuty(m))).filter(m => !m.busy);
 function concertWhy() {
   if (S.promo) return '음악 방송 활동 중';
   if (S.fans < 20000) return '팬 2만 명 필요';
@@ -616,27 +626,28 @@ function endWeek() {
     } else {
       const concept = CONCEPTS.find(c => c.id === P.concept);
       const st = stageScore(availP, concept, TIERS[P.tier].bonus, promoMembers().length);
-      const list = chartList(st, P.wk, promoWho(P));
-      REP.crew.stage = availP.map(m => m.id);
-      const rank = list.findIndex(x => x.me) + 1;
-      REP.chart = { list, rank, stage: st }; setScene(rank === 1 ? 'win' : 'stage');
+      const first = P.wk === 0;   // 첫 주는 순위 집계 전 (순위·1위 없음)
+      const list = first ? null : chartList(st, P.wk, promoWho(P));
+      REP.crew.stage = availP.filter(m => !m.busy).map(m => m.id);
+      const rank = first ? 0 : list.findIndex(x => x.me) + 1;
+      REP.chart = first ? null : { list, rank, stage: st }; setScene(rank === 1 ? 'win' : 'stage');
       const lang = avg(availP.map(m => m.stats.lang));
       const bonus = [5000, 2500, 1500, 800, 400, 200, 100][rank - 1] || 0;
       const kmul = P.kind === 'solo' ? 0.6 : P.kind === 'unit' ? 0.8 : 1;
       const f = Math.round(((st * 12 * (1 + lang / 150) * (1 + S.fame / 60)) + bonus * (1 + S.fame / 100)) * kmul);
       S.fans += f;
       earn(S.fans * 0.025 + ([800, 500, 300, 200, 100][rank - 1] || 0), '음원·음반 수익');
-      S.fame = clamp(S.fame + (Math.max(0, 8 - rank) * 0.4 + st / 50) * (1 - S.fame / 105), 0, 100);
-      REP.lines.push(`📺 음악 방송 ${P.wk + 1}주차 · 무대 점수 ${Math.round(st)} · ${rank}위 · 팬 +${num(f)}`);
+      S.fame = clamp(S.fame + ((first ? 0 : Math.max(0, 8 - rank) * 0.4) + st / 50) * (1 - S.fame / 105), 0, 100);
+      REP.lines.push(`📺 음악 방송 ${P.wk + 1}주차 · 무대 점수 ${Math.round(st)} · ${first ? '첫 주라 순위 집계 전' : rank + '위'} · 팬 +${num(f)}`);
       if (rank === 1) { S.trophies++; S.yearTrophies++; P.wins++; news('win', `🏆 ${promoKindLabel(P) ? promoWho(P) + ' ' : ''}「${P.title}」 음악 방송 1위!`); REP.lines.push('🏆 1위를 했어요!'); }
-      P.best = Math.min(P.best, rank); P.wk++; P.left--;
+      if (!first) P.best = Math.min(P.best, rank); P.wk++; P.left--;
       for (const m of availP) {
         const a = (m.stats.vocal + m.stats.dance) / 2;
         if (a < 40 && Math.random() < (40 - a) * 0.006) addScandal(m, '실력');
       }
       if (P.left <= 0) {
         S.albums.push({ title: P.title, concept: P.concept, outfit: P.outfit, tier: P.tier, weeks: P.weeks, best: P.best, wins: P.wins, w, debut: P.debut, kind: P.kind || 'group', who: promoWho(P), mids: P.mids || null });
-        news('promo', `${promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P) : ''}「${P.title}」 활동 마무리 · 최고 ${P.best}위${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
+        news('promo', `${promoKindLabel(P) ? promoWho(P) + ' ' + promoKindLabel(P) : ''}「${P.title}」 활동 마무리 · ${P.best < 99 ? `최고 ${P.best}위` : '순위 없음'}${P.wins ? ` · 1위 ${P.wins}번` : ''}`);
         S.promo = null; S.lastPromoEnd = w;
       }
     }
@@ -646,9 +657,9 @@ function endWeek() {
   if (ga === 'live') {
     const p = avg(S.members.map(m => m.stats.person)), lang = avg(S.members.map(m => m.stats.lang));
     const f = Math.round((150 + Math.sqrt(S.fans) * 6) * (0.6 + p / 100) * (1 + lang / 200));
-    setScene('live'); REP.crew.live = S.members.filter(m => !m.busy && m.sched !== 'rest' && m.sched !== 'health').map(m => m.id); S.fans += f; REP.lines.push(`📱 팬 소통 라이브 · 팬 +${num(f)}`);
+    REP.crew.live = S.members.filter(m => !m.busy && (!offDuty(m) || forcedLabel(m))).map(m => m.id); if (REP.crew.live.length) setScene('live'); S.fans += f; REP.lines.push(`📱 팬 소통 라이브 · 팬 +${num(f)}`);
   } else if (ga === 'concert') {
-    spend(5000, '콘서트 준비 비용'); setScene('concert');
+    spend(5000, '콘서트 준비 비용'); setScene('concert'); REP.crew.concert = avail.filter(m => !m.busy).map(m => m.id);
     const sold = Math.round(Math.min(S.fans * 0.4, 3000 + S.fame * 300));
     earn(sold * 1.2, '콘서트 티켓·굿즈');
     const f = Math.round(sold * 0.1); S.fans += f; S.fame = clamp(S.fame + 3, 0, 100); S.lastConcert = w;
@@ -663,7 +674,7 @@ function endWeek() {
     for (const m of fsWho) if (m.stats.person < 35 && Math.random() < (35 - m.stats.person) * 0.006) addScandal(m, '말실수');
   } else if (ga === 'festival') {
     const st = stageScore(avail, null, 0);
-    earn(S.festival.fee, S.festival.name + ' 출연료'); setScene(S.festival.name === '대학 축제' ? 'campus' : 'festival');
+    earn(S.festival.fee, S.festival.name + ' 출연료'); setScene(S.festival.name === '대학 축제' ? 'campus' : 'festival'); REP.crew.campus = REP.crew.festival = avail.filter(m => !m.busy).map(m => m.id);
     const f = Math.round(st * 30); S.fans += f; S.fame = clamp(S.fame + 1, 0, 100);
     REP.lines.push(`🎪 ${S.festival.name} 무대 · 점수 ${Math.round(st)} · 팬 +${num(f)}`);
     S.festival = null;
@@ -685,7 +696,7 @@ function endWeek() {
     news('scandal', `👁 ${m.name} 멤버에게 사생팬이 나타났어요!`);
   }
   // 연습실 장면: 실제로 연습한 멤버만 (휴식·건강 관리·성형·바쁜 멤버 제외)
-  { const offPractice = m => m.sched === 'rest' || m.sched === 'health';
+  { const offPractice = m => m.sched === 'rest' || m.sched === 'surgery';
     const trained = S.members.filter(m => !m.busy && !offPractice(m) && !(P && inPromo(m)) && ga !== 'concert' && ga !== 'festival' && ga !== 'yearend');
     REP.crew.practice = trained.map(m => m.id);
     if (REP.scene === 'practice' && trained.length) {   // 다수결로 연습 장면 고르기, 그 스케줄 멤버만 등장
@@ -694,11 +705,11 @@ function endWeek() {
       REP.scene = win; REP.crew[win] = trained.filter(m => (TRAIN_BG[m.sched] || 'practice') === win).map(m => m.id);
     }
     if (REP.scene === 'practice' && !trained.length) {
-      const surg = S.members.filter(m => m.busy && m.busy.type === 'surgery');
+      const surg = S.members.filter(m => m.busy && m.busy.type === 'surgery');   // 휴식 vs 성형 회복 다수결 (동률이면 무작위)
       const resting = S.members.filter(m => !m.busy && offPractice(m));
-      if (resting.length) { REP.scene = 'dorm'; REP.crew.dorm = resting.map(m => m.id); }
-      else if (surg.length) REP.scene = 'clinic';
-      else REP.scene = 'dorm';
+      const clinic = surg.length > resting.length || (surg.length && surg.length === resting.length && Math.random() < .5);
+      if (clinic) REP.scene = 'clinic';
+      else { REP.scene = 'dorm'; if (resting.length) REP.crew.dorm = resting.map(m => m.id); }
     } }
 
   // 고정 지출·기본 수입
@@ -722,6 +733,9 @@ function endWeek() {
     news('offer', `${S.festival.name} 출연 제의가 왔어요! 이번 달 안에 그룹 일정에서 고를 수 있어요.`);
   }
   S.ga = 'none';
+  { const tired = S.members.filter(m => m.fatigue >= 70 && !forcedLabel(m) && m.sched !== 'rest');
+    tired.forEach(m => { m.sched = 'rest'; });
+    if (tired.length) REP.lines.push(`😴 피로 70 이상인 ${tired.map(m => m.name).join(', ')} 멤버는 다음 주 스케줄을 휴식으로 바꿔 뒀어요`); }
   for (const m of S.members) {
     const b = before.get(m.id); if (!b) continue;
     const parts = [];
@@ -800,7 +814,7 @@ function yearEnd(avail) {
   if (S.fame < 25) { news('info', '연말 무대에 초대받지 못했어요. (인지도 25 이상 필요)'); REP.lines.push('🎄 연말 무대 초대 X (인지도 25 필요)'); return; }
   const st = stageScore(avail, null, 0);
   let f = Math.round(st * 40 * (1 + S.fame / 100));
-  earn(1500, '연말 무대 출연료'); setScene('yearend'); REP.crew.yearend = avail.map(m => m.id);
+  earn(1500, '연말 무대 출연료'); setScene('yearend'); REP.crew.yearend = avail.filter(m => !m.busy).map(m => m.id);
   avail.forEach(m => addFat(m, 15));
   let award = null;
   if (S.fame >= 80 && S.yearTrophies >= 3) award = '대상';
@@ -1426,7 +1440,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=31';
+const CATV = '?v=32';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1472,7 +1486,7 @@ function wearFor(m, kind) {   // 이 장면에서 입을 옷·소품
   const ev = kind === 'win' && REP && REP.yearWin ? 'yearend' : kind;   // 연말 시상식 수상 장면은 연말 의상
   if (EVENT_WEAR[ev] && eventWearNow(ev)) cloth = eventWearNow(ev);
   else if (STAGE_KINDS.includes(kind) && curConcept()) cloth = curStageWear() || cloth;
-  else if (!cloth && TRAIN_SCENES.includes(kind)) cloth = 'sport';
+  else if (!cloth && TRAIN_SCENES.includes(kind) && kind !== 'health') cloth = 'sport';
   else if (!cloth && kind === 'dorm') cloth = 'hoodie';
   if (cloth) out.push(cloth); out.push(...hs); if (w.acc) out.push(w.acc);
   return out.filter(k => ITEMINFO[k]).map(gk);
@@ -1490,9 +1504,9 @@ const catImg = (coat, kind) => `art/cat/${coat}-${kind}.png${CATV}`;
 let PIXIP = null;
 const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
-const MODE2 = { dating: 'sad', stalker: 'sad', vocal: 'sing', camera: 'wave', act: 'sing', lang: 'idle', person: 'idle', diet: 'dance', adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
+const MODE2 = { dating: 'sad', stalker: 'sad', vocal: 'sing', camera: 'wave', act: 'sing', lang: 'idle', person: 'idle', diet: 'dance', health: 'idle', adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', dorm: 'sleep', scandal: 'sad' };
 // AI로 만든 배경 그림 (8장 무료 FLUX, 나머지 제미나이). 숙소는 6종류마다 다른 그림
-const BGS = ['dating', 'stalker', 'stage', 'practice', 'vocal', 'camera', 'act', 'lang', 'person', 'diet', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'campus', 'adshoot', 'variety'];
+const BGS = ['dating', 'stalker', 'health', 'stage', 'practice', 'vocal', 'camera', 'act', 'lang', 'person', 'diet', 'concert', 'festival', 'yearend', 'live', 'fansign', 'prep', 'drama', 'dorm', 'dorm_old', 'dorm_lux', 'dorm_two', 'dorm_house', 'dorm_office', 'clinic', 'scandal', 'campus', 'adshoot', 'variety'];
 const BG_ALIAS = { win: 'stage' };   // 1위 = 음악 방송 무대 + 빛 효과 (예전 win 그림은 연습실이라 안 씀)
 const DORM_BG = { d1: 'dorm_old', d2: 'dorm', d3: 'dorm_two', d6: 'dorm_house', d4: 'dorm_office', d5: 'dorm_lux' };   // 숙소 6종 모두 다른 그림
 const dormBg = () => DORM_BG[(S && S.dorm ? dormOf() : DORMS[1]).id] || 'dorm';
@@ -1501,23 +1515,30 @@ const heartsFx = () => `<div class="hearts">${Array.from({ length: 18 }, (_, i) 
 // 사생팬 배경: 깜빡이는 가로등, 덤불 속 반짝이는 눈(왼쪽 2쌍·오른쪽 1쌍), 바닥 안개 (CSS만, 돈 안 듦)
 const STALKER_FX = `<div class="stfx"><b class="lamp"></b><b class="fog"></b><b class="eyes" style="left:9%;top:47%;--d:-.6s"></b><b class="eyes" style="left:24%;top:55%;--d:-2.6s"></b><b class="eyes" style="left:79%;top:56%;--d:-4.4s"></b></div>`;
 // 논란 배경(인성·실력·말실수 공용): 기자들 카메라 플래시가 여기저기 번쩍 (CSS만)
+// 라이브 방송: 양옆에서 댓글 말풍선이 아래에서 위로 올라감
+function liveFx() {
+  const nm = S.members.length ? S.members.map(m => m.name) : ['리더'], who = S.gender === 'boy' ? '오빠' : '언니';
+  const C = [`${who}들 너무 귀여워 😍`, '사랑해요 💕', '노래 한 소절만~ 🎤', '👏👏👏', '다음 컴백 언제예요?', '밥은 먹었어? 🍚', 'ㅋㅋㅋㅋㅋ', '심장 아파요 💘', '방송 켜줘서 고마워!', '1등 댓글 🥇', '오늘 컨디션 최고!', 'Hello from LA 👋', '머리 바꿨어?? 찰떡', '꿈에 나와 주세요 🌙', ...nm.slice(0, 6).map((n, i) => [`${n} 최고!!`, `${n} 손 흔들어 줘 🙌`, `${n} 보러 왔어요`][i % 3])];
+  const pk = shuffle(C);
+  return `<div class="livefx">${Array.from({ length: 10 }, (_, i) => `<i class="${i % 2 ? 'r' : ''}" style="${i % 2 ? 'right' : 'left'}:${2 + (i * 5) % 9}%;--d:-${(i * .83).toFixed(2)}s;--t:${(7 + (i * .7) % 2).toFixed(1)}s"><span>${esc(pk[i % pk.length])}</span></i>`).join('')}</div>`;
+}
 const SCANDAL_FX = `<div class="scfx">${[[13, 42], [22, 55], [31, 44], [39, 52], [47, 40], [55, 47], [63, 41], [71, 50], [80, 38], [88, 46], [27, 36], [60, 56]].map(([x, y], i) => `<b class="fl" style="left:${x}%;top:${y}%;--d:-${((i * .53) % 2).toFixed(2)}s;--t:${(1.6 + (i * .37) % 1.1).toFixed(2)}s"></b>`).join('')}</div>`;
 function bgHTML(kind) {
   if (kind === 'dorm') kind = dormBg();
   const k = BGS.includes(kind) ? kind : BGS.includes(BG_ALIAS[kind]) ? BG_ALIAS[kind] : null;
-  return k ? `<img class="bgimg" src="art/bg/${k}.webp${CATV}" alt=""><div class="vig"></div>${kind === 'win' ? '<div class="winfx"></div>' : ''}${kind === 'dating' ? heartsFx() : ''}${kind === 'stalker' ? STALKER_FX : ''}${kind === 'scandal' ? SCANDAL_FX : ''}` : scene(kind, [], kind !== 'clinic');
+  return k ? `<img class="bgimg" src="art/bg/${k}.webp${CATV}" alt=""><div class="vig"></div>${kind === 'win' ? '<div class="winfx"></div>' : ''}${kind === 'dating' ? heartsFx() : ''}${kind === 'stalker' ? STALKER_FX : ''}${kind === 'scandal' ? SCANDAL_FX : ''}${kind === 'live' ? liveFx() : ''}` : scene(kind, [], kind !== 'clinic');
 }
 // 장면별 조명: 고양이 색을 배경 빛에 맞추기 [빨강·초록·파랑 곱하기, 밝기 더하기], 무대는 바닥 조명(스포트라이트)
 const LIGHT = {
   dating: [[1, .92, 1.02], -.04, null], stalker: [[.9, .93, 1.08], -.08, null],
-  vocal: [[1.04, .98, .92], .02, null], camera: [[1.04, .98, .92], .03, null], act: [[1.04, .97, .92], .02, null], lang: [[1.03, .99, .93], .02, null], person: [[1.03, 1, .92], .02, null], diet: [[.97, 1.01, 1.05], .03, null],
+  vocal: [[1.04, .98, .92], .02, null], camera: [[1.04, .98, .92], .03, null], act: [[1.04, .97, .92], .02, null], lang: [[1.03, .99, .93], .02, null], person: [[1.03, 1, .92], .02, null], diet: [[.97, 1.01, 1.05], .03, null], health: [[.98, 1.01, 1.03], .04, null],
   stage: [[1, .9, 1.05], .02, 0xff7ad9], concert: [[1, .88, 1.05], 0, 0xffa0e0], yearend: [[1.05, .95, .88], .02, 0xffd27a], win: [[1.06, .98, .86], .04, 0xffe08a],
   festival: [[1.02, 1, .96], .03, null], adshoot: [[1.03, .99, .97], .04, null], variety: [[1.02, .96, 1.02], .02, 0xffb0e0], campus: [[1.04, .98, .92], .02, 0xffd28a], practice: [[1.04, .98, .92], .02, null], live: [[1.04, .96, .94], .01, null], fansign: [[1.04, .97, .96], .03, null],
   prep: [[1.04, .97, .9], 0, null], drama: [[1.05, .98, .9], .02, null], dorm: [[1.06, .96, .84], -.02, null], dorm_old: [[1, .95, .86], -.06, null], dorm_lux: [[1.02, .97, .92], 0, null], dorm_two: [[1.04, .98, .92], .02, null], dorm_house: [[1.04, .99, .9], .03, null], dorm_office: [[1.03, .96, .94], 0, null],
   scandal: [[1.04, .9, .9], -.05, null], clinic: [[1, 1, 1], 0, null],
 };
 // 배경마다 벽과 바닥이 만나는 높이 (화면 높이 비율, 그림을 재서 정함). 뒷줄 발끝이 이 선보다 아래 바닥 위에 오게
-const FLOOR = { dating: .68, stalker: .7, vocal: .72, camera: .72, act: .72, lang: .72, person: .70, diet: .66, adshoot: .74, variety: .72, campus: .78, stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
+const FLOOR = { health: .66, dating: .68, stalker: .7, vocal: .72, camera: .72, act: .72, lang: .72, person: .70, diet: .66, adshoot: .74, variety: .72, campus: .78, stage: .72, practice: .72, concert: .84, festival: .76, yearend: .72, win: .72, live: .7, fansign: .71, prep: .69, drama: .72, dorm: .74, dorm_old: .72, dorm_lux: .75, dorm_two: .68, dorm_house: .72, dorm_office: .72, scandal: .78 };
 // 뒷줄 자리: 앞줄 고양이 사이사이 틈 중에서 고르게 (앞줄 가운데가 0, 한 칸 = 앞줄 간격)
 function backSlots(nf, nb) {
   const gaps = Array.from({ length: nf - 1 }, (_, i) => i - (nf - 2) / 2);
@@ -2013,7 +2034,7 @@ const dlg = $('#dlg');
 function openDlg(html) { $('#dlgBody').innerHTML = CREST + html; if (!dlg.open) dlg.showModal(); }
 function closeDlg() { if (dlg.open) dlg.close(); }
 dlg.addEventListener('cancel', e => { if (S && S.pending.length) e.preventDefault(); });
-const CAPTION0 = { vocal: '보컬 연습실에서 고음 연습 중 🎤', camera: '거울 앞에서 표정 연습 중 📸', act: '연기 연습실에서 대본 리딩 중 🎬', lang: '외국어 수업 시간! 열공 중 🌏', person: '상담 센터에서 인성 교육 중 😇', diet: '동네 헬스장에서 땀 흘리며 다이어트 중 🥗', dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', campus: '대학 축제 무대! 함성이 쏟아져요 🏫', adshoot: '광고 촬영 중! 찰칵찰칵 📸', variety: '예능 촬영 중! 웃음이 빵빵 📺', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
+const CAPTION0 = { vocal: '보컬 연습실에서 고음 연습 중 🎤', camera: '거울 앞에서 표정 연습 중 📸', act: '연기 연습실에서 대본 리딩 중 🎬', lang: '외국어 수업 시간! 열공 중 🌏', person: '상담 센터에서 인성 교육 중 😇', diet: '동네 헬스장에서 땀 흘리며 다이어트 중 🥗', health: '병원에서 건강 검진 받고 관리 중 🏥', dorm: '숙소에서 푹 쉬는 중… 💤', clinic: '성형외과에서 회복 중이에요 🏥', practice: '연습실에서 구슬땀을 흘리는 중…', fansign: '팬싸인회! 팬들과 눈 맞추며 사인 중 ✍️', stage: '음악 방송 무대 위로! 🎤', win: '1위 발표… 두근두근! 🏆', concert: '단독 콘서트! 응원봉이 반짝반짝 ✨', festival: '페스티벌 무대에 섰어요! 🎪', campus: '대학 축제 무대! 함성이 쏟아져요 🏫', adshoot: '광고 촬영 중! 찰칵찰칵 📸', variety: '예능 촬영 중! 웃음이 빵빵 📺', yearend: '연말 무대의 주인공! 🎄', live: '팬들과 라이브 방송 중 📱', prep: '녹음실에서 신곡 준비 중 🎧', drama: '드라마 촬영장 🎬' };
 const CAPTION = new Proxy(CAPTION0, { get: (o, k) => (o[k] || '').replace('연습실에서 구슬땀', '연습실에서 꾹꾹이 대신 구슬땀') });
 let REVEAL = null;
 function showReport(r) {
@@ -2163,7 +2184,7 @@ document.addEventListener('change', e => {
 });
 
 // ===== 미리보기 (?preview): 게임을 진행하지 않고 장면·인원·옷·동작을 바로 골라 보기. 저장은 하지 않음 =====
-const PV_SCENES = [['vocal', '🎤 보컬 연습실'], ['camera', '📸 표정 연습실'], ['act', '🎬 연기 연습실'], ['lang', '🌏 외국어 교실'], ['person', '😇 인성 상담실'], ['diet', '🥗 헬스장'], ['adshoot', '📸 광고 촬영'], ['variety', '📺 예능 촬영'], ['stage', '🎤 음악 방송'], ['win', '🏆 1위'], ['concert', '🎆 단독 콘서트'], ['festival', '🎪 여름 페스티벌'], ['campus', '🏫 대학 축제'], ['yearend', '🎄 연말 무대'], ['practice', '💃 연습실'], ['prep', '🎧 녹음실'], ['live', '📱 라이브'], ['fansign', '✍️ 팬싸인회'], ['drama', '🎬 드라마'], ['dorm', '🏠 숙소'], ['scandal', '📸 논란'], ['clinic', '🏥 성형외과(고양이 없음)']];
+const PV_SCENES = [['vocal', '🎤 보컬 연습실'], ['camera', '📸 표정 연습실'], ['act', '🎬 연기 연습실'], ['lang', '🌏 외국어 교실'], ['person', '😇 인성 상담실'], ['diet', '🥗 헬스장'], ['health', '🏥 병원(건강 관리)'], ['adshoot', '📸 광고 촬영'], ['variety', '📺 예능 촬영'], ['stage', '🎤 음악 방송'], ['win', '🏆 1위'], ['concert', '🎆 단독 콘서트'], ['festival', '🎪 여름 페스티벌'], ['campus', '🏫 대학 축제'], ['yearend', '🎄 연말 무대'], ['practice', '💃 연습실'], ['prep', '🎧 녹음실'], ['live', '📱 라이브'], ['fansign', '✍️ 팬싸인회'], ['drama', '🎬 드라마'], ['dorm', '🏠 숙소'], ['scandal', '📸 논란'], ['clinic', '🏥 성형외과(고양이 없음)']];
 const PV_MODES = [['auto', '장면에 맞게'], ['idle', '대기'], ['dance', '춤'], ['cheer', '만세'], ['wave', '손 흔들기'], ['sleep', '졸기'], ['sad', '시무룩']];
 function pvStart() {
   window.PV = { scene: 'stage', dorm: 'd2', n: 5, cats: CATS.map(c => c[0]), mode: 'auto', cloth: 'auto', acc: '', concept: 'cute', gal: 'cheese' };
