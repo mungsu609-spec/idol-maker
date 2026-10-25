@@ -997,7 +997,8 @@ function finishContract() {
 }
 function contractLeft() {
   const L = CONTRACT_YEARS * 48 - S.week;
-  return L <= 0 ? '계약 끝' : L >= 48 ? `${Math.floor(L / 48)}년 ${Math.floor(L % 48 / 4)}달 남음` : `${Math.ceil(L / 4)}달 남음`;
+  const mo = Math.floor(L % 48 / 4);
+  return L <= 0 ? '계약 끝' : L >= 48 ? `${Math.floor(L / 48)}년${mo ? ` ${mo}개월` : ''} 남음` : `${Math.ceil(L / 4)}개월 남음`;
 }
 function goalCard() {
   const g = GOALS[S.goal || 0], x = S.mission;
