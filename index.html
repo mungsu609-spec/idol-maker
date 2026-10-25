@@ -3016,7 +3016,7 @@ ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악
 <label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
 </div>
 <h2 id="pv-ev">이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
-<h2 id="pv-win">새로 생긴 창</h2><div class="card"><p class="muted">게임 중에 뜨는 창을 바로 열어 봐요.</p><div class="chips"><button class="chip" data-pvwin="howto">📖 게임 방법</button><button class="chip" data-pvwin="recap">🎉 새해 결산 (예시)</button><button class="chip" data-pvwin="warn">⚠️ 진행 전 경고 (예시)</button></div></div>
+<h2 id="pv-win">새로 생긴 창</h2><div class="card"><p class="muted">게임 중에 뜨는 창을 바로 열어 봐요.</p><div class="chips"><button class="chip" data-pvwin="howto">📖 게임 방법</button><button class="chip" data-pvwin="recap">🎉 새해 결산 (예시)</button><button class="chip" data-pvwin="warn">⚠️ 진행 전 경고 (예시)</button><button class="chip" data-pvwin="mini">🎲 작은 이벤트 (무작위)</button></div></div>
 <h2 id="pv-mgr">매니저 멘트</h2><div class="card"><p class="muted">게임에서 상황마다 나오는 매니저 말을 모두 모아 봤어요. (이름·제목·숫자는 예시)</p>${(() => { const L = pvManagerLines(); return (PV.mgr ? L : L.slice(0, 2)).map(([l, t, b]) => `<p class="f" style="margin:12px 0 0">${l}</p>${managerHTML(t, b)}`).join('') + `<button class="btn sub small" data-pvmgr="1" style="width:100%;margin-top:10px">${PV.mgr ? '접기 ▲' : `펼치기 ▼ (전체 ${L.length}개)`}</button>`; })()}</div>
 <h2 id="pv-end">엔딩 화면</h2><div class="card"><p class="muted">${CONTRACT_YEARS}년 계약이 끝날 때(또는 게임 오버) 나오는 엔딩이에요. 눌러서 보기.</p><div class="chips">${ENDINGS.map(e => `<button class="chip" data-pvend="${e.id}">${e.icon} ${esc(e.title)}</button>`).join('')}</div></div>
 <h2 id="pv-wear">옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
@@ -3029,6 +3029,7 @@ document.addEventListener('click', e => {
   const d = t.dataset;
   if (d.pvjump) { const el = document.getElementById(d.pvjump); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (d.pvwin === 'howto') return howTo();
+  if (d.pvwin === 'mini') { const i = ri(0, MINI.length - 1); S.mini = { i, mid: S.members[0].id, bid: MINI[i].two && S.members[1] ? S.members[1].id : null }; return openDlg(miniHTML(S.mini)); }
   if (d.pvwin === 'recap') return openDlg(recapHTML({ y: 2, fans: 112000, fansNow: 170000, wins: 3, money: 65240, albums: 2, award: '본상', concert: 2, fansign: 6, ad: 2, drama: 1, movie: 1, variety: 3, scandal: 1, mission: 7 }).replace('data-act="next-popup"', 'data-act="close"'));
   if (d.pvwin === 'warn') { const m = S.members[0]; m.fatigue = 88; m.sched = 'dance'; window.RISKY = [m]; checkBeforeWeek(); $('#dlgBody').querySelectorAll('[data-act=week-rest],[data-act=week-go]').forEach(b => b.dataset.act = 'close'); m.fatigue = 0; return; }
   if (d.pvmgr) { PV.mgr = !PV.mgr; return pvRender(); }
