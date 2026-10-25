@@ -25,11 +25,11 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;color:var(--ink);font-family:"Pretendard Variable",Pretendard,system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:15px;line-height:1.5;letter-spacing:-.01em}
-body{background-color:#fdf0f5;background-image:radial-gradient(circle,#fff 1.5px,transparent 2.5px),radial-gradient(circle,#ffd9ea 1.5px,transparent 2.5px),linear-gradient(180deg,#e6efff 0,#fdeef6 45%,#fff5e4 100%);background-size:36px 36px,52px 52px,100% 100%;background-position:0 0,18px 26px,0 0;background-attachment:fixed}
+body{background-color:#fdf0f5;background-image:radial-gradient(circle,#fff 1.5px,transparent 2.5px),radial-gradient(circle,#ffd9ea 1.5px,transparent 2.5px),linear-gradient(180deg,#fdf0f5 0,#fff3f0 45%,#fff7e8 100%);background-size:36px 36px,52px 52px,100% 100%;background-position:0 0,18px 26px,0 0;background-attachment:fixed}
 button,select,input{font:inherit;color:inherit}
 button{cursor:pointer}
 #app{max-width:640px;margin:0 auto;padding:0 16px calc(170px + env(safe-area-inset-bottom))}
-header{position:sticky;top:0;z-index:5;padding:10px 0 10px;background:linear-gradient(180deg,#eaf0ff 75%,rgba(234,240,255,0))}
+header{position:sticky;top:0;z-index:5;padding:10px 0 10px;background:linear-gradient(180deg,#fdf0f5 75%,rgba(253,240,245,0))}
 .top{display:flex;align-items:center;gap:10px}
 .ribbon{font-family:"Jua",sans-serif;font-size:19px;color:#fff;background:linear-gradient(180deg,#ffa8cb,#ef5c96);padding:4px 18px 5px;border-radius:8px;border:2px solid var(--pinkd);box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 3px 0 var(--pinkd);text-shadow:0 1.5px 0 var(--pinkd);max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal{display:flex;align-items:baseline;gap:1px;margin-left:auto;font-family:"Jua",sans-serif}
@@ -38,7 +38,7 @@ header{position:sticky;top:0;z-index:5;padding:10px 0 10px;background:linear-gra
 .cal small{font-size:12.5px;font-weight:600;color:var(--sub);line-height:1.15;margin-left:5px;font-family:system-ui,sans-serif}
 .icon-btn{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd);font-size:17px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
-.kpi{display:flex;align-items:center;gap:5px;background:linear-gradient(180deg,#fffdf7,#fff0d2);border:2px solid var(--gold);border-radius:12px;padding:4px 6px;box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd);min-width:0}
+.kpi{display:flex;align-items:center;gap:5px;background:#fffdf8;border:2px solid #efd9b4;border-radius:12px;padding:4px 6px;box-shadow:0 2px 0 #e6cc9e;min-width:0}
 .kpi svg{width:22px;height:22px;flex:none}
 .kpi div{min-width:0}
 .kpi small{display:block;font-size:12px;font-weight:600;color:var(--sub);line-height:1.1;white-space:nowrap}
@@ -49,17 +49,20 @@ h2::before,h2::after{content:"";height:2px;flex:1;background:linear-gradient(90d
 h2::after{background:linear-gradient(90deg,var(--gold),transparent)}
 h3{font-family:"Jua",sans-serif;font-weight:400;font-size:16px;color:var(--title);margin:16px 0 6px}
 h3::before{content:"✦ ";color:var(--gold)}
-.card{position:relative;background:var(--paper);border:3px solid var(--gold);border-radius:18px;padding:12px 14px;margin-bottom:14px;box-shadow:inset 0 0 0 2px #fffaf0,inset 0 0 0 3.5px var(--gold2),0 3px 0 var(--goldd),0 8px 16px rgba(170,110,60,.12)}
-.card::before,.card::after{content:"";position:absolute;top:-10px;width:20px;height:20px;background:var(--star) center/contain no-repeat}
-.card::before{left:-9px}.card::after{right:-9px}
+.card{position:relative;background:#fffdf8;border:2px solid #efd9b4;border-radius:16px;padding:12px 14px;margin-bottom:12px;box-shadow:0 2px 0 #ead2a6,0 6px 14px rgba(170,110,60,.08)}
+.card.fancy{background:var(--paper);border:3px solid var(--gold);border-radius:18px;box-shadow:inset 0 0 0 2px #fffaf0,inset 0 0 0 3.5px var(--gold2),0 3px 0 var(--goldd),0 8px 16px rgba(170,110,60,.12)}
+.card.fancy::before,.card.fancy::after{content:"";position:absolute;top:-10px;width:20px;height:20px;background:var(--star) center/contain no-repeat}
+.card.fancy::before{left:-9px}.card.fancy::after{right:-9px}
 .muted{color:var(--sub);font-size:14px}
 .center{text-align:center}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .namerow{flex-wrap:nowrap;margin-bottom:6px}.namerow .chip{flex:0 1 auto;min-width:0;padding:5px 10px}
-.chip{font-family:"Jua",sans-serif;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);border-radius:999px;padding:5px 13px;font-size:14.5px;box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd)}
+.chip{font-family:"Jua",sans-serif;border:2px solid #e9c98a;background:#fffaf0;border-radius:999px;padding:5px 13px;font-size:14.5px;box-shadow:0 2px 0 #e2c48c}
 .chip.on,.chip:has(input:checked){background:linear-gradient(#ffa8cb,#ef5c96);border-color:var(--pinkd);color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 2px 0 var(--pinkd);text-shadow:0 1px 0 var(--pinkd)}
 .chip input{display:none}
-.chip:disabled{opacity:.45;cursor:not-allowed}
+.chip:disabled{background:#f1ece6;border-color:#ddd3c8;color:#9b8f88;box-shadow:none;cursor:not-allowed}
+.chip small{display:block;font-family:"Pretendard Variable",Pretendard,sans-serif;font-size:11.5px;font-weight:600;line-height:1.2;margin-top:1px}
+.chip.lock{border-radius:14px;text-align:center}
 .mrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:2px dashed var(--line)}
 .mrow:first-child{border-top:0}
 .who{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer}
@@ -92,6 +95,7 @@ h3::before{content:"✦ ";color:var(--gold)}
 .sopt .cost{margin-left:auto;flex:none;text-align:right;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
 .sopt small.warn{color:var(--bad)}
 select.full{width:100%}
+.evrow select{border:2px solid var(--gold);background:#fffdf6;border-radius:12px;padding:6px 8px;font-weight:600}
 .tag{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:1px 7px;background:#ffe0ec;color:var(--pinkd);margin-left:5px;vertical-align:2px;border:1px solid #ffc2d8}
 .tag.blue{background:#e8e4ff;color:#5a4aa8;border-color:#cfc6f5}
 .tag.red{background:#ffe3e3;color:var(--bad);border-color:#f5c0c0}
@@ -122,7 +126,7 @@ select.full{width:100%}
 .btn:active{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 1px 0 var(--pinkd)}
 .btn.sub{background:linear-gradient(180deg,#fffdf6,#ffe9b8);border-color:var(--gold);color:var(--ink);text-shadow:none;box-shadow:inset 0 2px 0 #fff,0 3px 0 var(--goldd)}
 .btn.small{padding:4px 11px;font-size:14px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn:disabled{background:#e9e3dc;border-color:#d3c9be;color:#9b8f88;text-shadow:none;box-shadow:none;cursor:not-allowed}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .go{position:fixed;left:0;right:0;bottom:calc(70px + env(safe-area-inset-bottom));z-index:6;display:flex;justify-content:center;padding:0 16px;pointer-events:none}
 .go .btn{pointer-events:auto;width:100%;max-width:608px;padding:11px;font-size:20px;letter-spacing:1px}
@@ -133,12 +137,12 @@ nav .ti{display:block;width:44px;height:40px;margin:0 auto 1px;border-radius:14p
 nav .ti svg,nav .ti img{width:100%;height:100%;object-fit:contain;display:block}
 nav button.on{color:var(--pinkd)}
 nav button.on .ti{background:radial-gradient(circle,#fff 35%,#ffd6e6);box-shadow:0 0 0 2px var(--pinkl);transform:translateY(-5px)}
-.talk{position:relative;display:flex;gap:10px;align-items:center;margin-top:12px;padding:10px 14px 12px 10px;border-radius:16px;background:linear-gradient(180deg,#b6c3f8,#909ff0 55%,#7e8de4);border:2.5px solid #fff;box-shadow:0 0 0 2px #6e7bd6,0 4px 0 2px #5a66c0;color:#fff}
-.talk-face{flex:none;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#f4f6ff,#cdd5fb);border:2.5px solid #fff;overflow:hidden;box-shadow:0 0 0 2px #6e7bd6}
+.talk{position:relative;display:flex;gap:10px;align-items:center;margin-top:12px;padding:10px 14px 12px 10px;border-radius:16px;background:#fff6f9;border:2px solid #f6b9cf;box-shadow:0 3px 0 #f0a3bf;color:var(--ink)}
+.talk-face{flex:none;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#fff,#ffe1ec);border:2.5px solid #fff;overflow:hidden;box-shadow:0 0 0 2px #f6b9cf}
 .talk-face svg{display:block}
 .talk-body{flex:1;min-width:0}
-.talk-body b{font-family:"Jua",sans-serif;font-weight:400;font-size:14px;background:#5a66c0;padding:1px 10px;border-radius:8px}
-.talk-body p{margin:5px 0 0;font-size:15px;font-weight:600;text-shadow:0 1px 0 rgba(60,70,160,.55)}
+.talk-body b{font-family:"Jua",sans-serif;font-weight:400;font-size:13.5px;color:#fff;background:var(--pink);padding:1px 10px;border-radius:8px}
+.talk-body p{margin:5px 0 0;font-size:15px;font-weight:600}
 .talk-body .btn{margin-top:7px}
 .talk-star{position:absolute;right:6px;bottom:5px;width:22px;height:22px;background:var(--pstar) center/contain no-repeat}
 .news{padding:8px 0;border-top:2px dashed var(--line);font-size:15px;display:flex;gap:8px;align-items:flex-start}
@@ -636,12 +640,13 @@ function endWeek() {
     S.pending.push({ mid: m.id, name: m.name, kind: '사생', sev: 1, truth: true, head: pick(['숙소 앞까지 따라온 사생팬', '이동 차량을 쫓아온 사생팬', '개인 연락처로 연락한 사생팬', '숙소 우편함을 뒤진 사생팬']) });
     news('scandal', `👁 ${m.name} 멤버에게 사생팬이 나타났어요!`);
   }
-  // 연습실 장면: 실제로 연습한 멤버만 (휴식·성형·바쁜 멤버 제외)
-  { const trained = S.members.filter(m => !m.busy && !(SCHED[m.sched] === SCHED.rest) && !(P && inPromo(m)) && ga !== 'concert' && ga !== 'festival');
+  // 연습실 장면: 실제로 연습한 멤버만 (휴식·건강 관리·성형·바쁜 멤버 제외)
+  { const offPractice = m => m.sched === 'rest' || m.sched === 'health';
+    const trained = S.members.filter(m => !m.busy && !offPractice(m) && !(P && inPromo(m)) && ga !== 'concert' && ga !== 'festival');
     REP.crew.practice = trained.map(m => m.id);
     if (REP.scene === 'practice' && !trained.length) {
       const surg = S.members.filter(m => m.busy && m.busy.type === 'surgery');
-      const resting = S.members.filter(m => !m.busy && SCHED[m.sched] === SCHED.rest);
+      const resting = S.members.filter(m => !m.busy && offPractice(m));
       if (resting.length) { REP.scene = 'dorm'; REP.crew.dorm = resting.map(m => m.id); }
       else if (surg.length) REP.scene = 'clinic';
       else REP.scene = 'dorm';
@@ -1757,9 +1762,9 @@ function planHTML() {
   }).join('');
   const total = train + fixedCost() + contractCost() + (S.ga === 'concert' ? 5000 : 0);
   return `${managerBox()}
-<h2>그룹 일정</h2><div class="chips">${opts.map(o => `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}"${o.ok === false ? ' disabled' : ''}>${o.label}</button>`).join('')}</div>
-<p class="muted">${esc(cur.desc)}${opts.find(o => o.id === 'concert' && o.ok === false) ? ` · 콘서트: ${concertWhy()}` : ''}</p>
-<h2>멤버별 스케줄</h2><div class="card"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
+<h2>그룹 일정</h2><div class="chips">${opts.map(o => o.ok === false ? `<button class="chip lock" disabled>${o.label}<small>🔒 ${esc(o.desc)}</small></button>` : `<button class="chip${S.ga === o.id ? ' on' : ''}" data-ga="${o.id}">${o.label}</button>`).join('')}</div>
+<p class="muted">${esc(cur.desc)}</p>
+<h2>멤버별 스케줄</h2><div class="card fancy"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
 <p class="muted">이번 주 예상 지출 ${money(total)} (스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
 <p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고, 80을 넘으면 건강이 깎여요.</p>`;
 }
@@ -1800,10 +1805,17 @@ function cbWhoHTML() {
 }
 function actHTML() {
   let h = managerBox();
+  h += `<h2>들어온 제의</h2>`;
+  h += S.offers.length ? S.offers.map(o => {
+    const m = S.members.find(x => x.id === o.mid); if (!m) return '';
+    const what = o.type === 'ad' ? `📢 ${esc(o.brand)} 광고 · 계약금 ${money(o.fee)} · 24주 계약 (1주 촬영)` : o.type === 'variety' ? (o.regular ? `📺 예능 ${esc(o.title)} 고정 출연 · ${o.weeks}주 · 주당 ${money(o.feeW)} (스케줄은 그대로 할 수 있어요)` : `📺 예능 ${esc(o.title)} 게스트 · 1주 촬영 · 출연료 ${money(o.fee)}`) : `🎬 드라마 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 주당 ${money(o.feeW)}`;
+    return `<div class="card offer">${avatar(m, 52)}<div class="info"><b class="name">${esc(m.name)}</b><div class="muted">${what}</div><div class="muted">${o.expire - S.week}주 안에 답해야 해요</div></div>
+<div class="row" style="flex-direction:column"><button class="btn small" data-accept="${o.id}">수락</button><button class="btn sub small" data-decline="${o.id}">거절</button></div></div>`;
+  }).join('') : `<p class="muted center">${debuted() ? '아직 없어요. 인지도가 높을수록 제의가 자주 와요.' : '데뷔하면 광고·드라마·예능 제의가 들어와요.'}</p>`;
   if (!S.promo) {
     const debut = S.albums.length === 0, c0 = CONCEPTS[0].id, N = S.members.length;
     if (debut || (CB.kind === 'unit' && N < 4)) CB.kind = 'group';
-    h += `<h2>${debut ? '데뷔' : '컴백'} 준비</h2><div class="card">
+    h += `<h2>${debut ? '데뷔' : '컴백'} 준비</h2><div class="card fancy">
 <label class="f">활동 형태</label><div class="chips">${[['group', '👥 그룹'], ['solo', '🎤 솔로'], ['unit', '✨ 유닛']].map(([k, l]) => `<button class="chip${CB.kind === k ? ' on' : ''}" data-cbkind="${k}"${k !== 'group' && (debut || (k === 'unit' && N < 4)) ? ' disabled' : ''}>${l}</button>`).join('')}</div>
 <p class="muted">${debut ? '솔로·유닛은 그룹 데뷔 후에 할 수 있어요.' : CB.kind === 'group' ? '멤버 모두 함께 활동해요.' : CB.kind === 'solo' ? '고른 멤버 혼자 활동하고, 나머지 멤버는 평소 스케줄을 해요. 그 멤버 인기가 크게 올라요.' : '고른 멤버들만 활동하고, 나머지 멤버는 평소 스케줄을 해요.'}${N < 4 && !debut ? ' 유닛은 4명 이상일 때 만들 수 있어요.' : ''}</p>
 <div id="cbWho">${cbWhoHTML()}</div>
@@ -1817,13 +1829,6 @@ function actHTML() {
 <button class="btn" data-act="comeback" style="width:100%">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div>`;
   }
   h += `<h2>행사 의상</h2><div class="card">${Object.entries(EVENT_WEAR).map(([ev, [lab, l]]) => `<div class="evrow"><b>${lab}</b><select data-evwear="${ev}"><option value="">무작위</option>${l.filter(([k]) => ITEMINFO[k]).map(([k, n]) => `<option value="${k}"${S.eventWear && S.eventWear[ev] === k ? ' selected' : ''}>${boyName(k, n)}</option>`).join('')}</select>${S.members[0] && eventWearNow(ev) ? avatar(S.members[0], 40, true, eventWearNow(ev)) : ''}</div>`).join('')}<p class="muted" style="font-size:12px">무대 의상(컴백 콘셉트)과 따로, 행사 날에는 이 옷을 입어요.</p></div>`;
-  h += `<h2>들어온 제의</h2>`;
-  h += S.offers.length ? S.offers.map(o => {
-    const m = S.members.find(x => x.id === o.mid); if (!m) return '';
-    const what = o.type === 'ad' ? `📢 ${esc(o.brand)} 광고 · 계약금 ${money(o.fee)} · 24주 계약 (1주 촬영)` : o.type === 'variety' ? (o.regular ? `📺 예능 ${esc(o.title)} 고정 출연 · ${o.weeks}주 · 주당 ${money(o.feeW)} (스케줄은 그대로 할 수 있어요)` : `📺 예능 ${esc(o.title)} 게스트 · 1주 촬영 · 출연료 ${money(o.fee)}`) : `🎬 드라마 ${esc(o.title)} ${o.role} · ${o.weeks}주 촬영 · 주당 ${money(o.feeW)}`;
-    return `<div class="card offer">${avatar(m, 52)}<div class="info"><b class="name">${esc(m.name)}</b><div class="muted">${what}</div><div class="muted">${o.expire - S.week}주 안에 답해야 해요</div></div>
-<div class="row" style="flex-direction:column"><button class="btn small" data-accept="${o.id}">수락</button><button class="btn sub small" data-decline="${o.id}">거절</button></div></div>`;
-  }).join('') : `<p class="muted center">${debuted() ? '아직 없어요. 인지도가 높을수록 제의가 자주 와요.' : '데뷔하면 광고·드라마·예능 제의가 들어와요.'}</p>`;
   h += `<h2>앨범 기록</h2>` + (S.albums.length ? `<div class="card">${S.albums.slice().reverse().map(a => `<div class="news"><span class="ni">💿</span><div><small>${dateStr(a.w)}</small>${a.kind && a.kind !== 'group' ? `<span class="tag blue">${a.kind === 'solo' ? '솔로' : '유닛'} ${esc(a.who || '')}</span> ` : ''}「${esc(a.title)}」 ${a.debut ? '<span class="tag">데뷔곡</span>' : ''} · ${conceptLabel(CONCEPTS.find(c => c.id === a.concept))} · 최고 ${a.best}위${a.wins ? ` · 🏆${a.wins}` : ''}</div></div>`).join('')}</div>` : '<p class="muted center">아직 없어요.</p>');
   if (S.awards.length) h += `<h2>수상</h2><div class="card">${S.awards.map(a => `<div class="news"><span class="ni">🏅</span><div>${a.y}년차 ${a.award}</div></div>`).join('')}</div>`;
   h += `<p class="muted">💡 12월 4주에는 연말 무대가 있어요 (인지도 25 이상). 5월·8월엔 페스티벌 제의가 와요.</p>`;
