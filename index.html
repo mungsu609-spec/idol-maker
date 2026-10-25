@@ -1311,7 +1311,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=20';
+const CATV = '?v=21';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['headset', '헤드셋 마이크'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1362,7 +1362,7 @@ function wearFor(m, kind) {   // 이 장면에서 입을 옷·소품
 const BOY_NAME = { 'dress-b': '파스텔 니트 조끼', 'polka-b': '물방울 셔츠 + 멜빵', 'ballad-b': '흰 린넨 셔츠', 'reddress-b': '빨간 벨벳 재킷 조끼', 'sailor-b': '세일러 칼라 셔츠', 'cape-b': '별빛 망토 + 셔츠',
   'st-fresh1-b': '민트 줄무늬 티 + 반바지', 'st-fresh2-b': '데이지 데님 멜빵', 'st-cute1-b': '노랑 토끼 조끼', 'st-cute2-b': '딸기 셔츠 + 멜빵', 'st-cute3-b': '하트 니트 조끼', 'st-dream1-b': '달빛 시폰 셔츠 조끼', 'st-dream2-b': '나비 장식 재킷 조끼', 'st-dream3-b': '은하수 재킷 조끼',
   'st-retro3-b': '체크 조끼 + 나비넥타이', 'st-hiphop3-b': '네온 바람막이 조끼', 'st-ballad1-b': '네이비 벨벳 정장 조끼', 'st-ballad2-b': '베이지 꽈배기 니트 조끼', 'st-ballad3-b': '진주 실크 셔츠', 'st-sexy1-b': '블랙 시퀸 재킷', 'st-sexy2-b': '와인 벨벳 셔츠', 'st-sexy3-b': '실버 메탈릭 재킷',
-  'ev-yearend1-b': '화이트 골드 턱시도 조끼', 'ev-yearend2-b': '눈꽃 벨벳 재킷 조끼', 'ev-yearend3-b': '퍼 장식 레드 윈터 재킷', 'ev-festival3-b': '네온 메시 민소매', 'ev-campus2-b': '응원단 조끼', 'ev-campus3-b': '니트 조끼 + 체크 바지', 'ev-concert1-b': '크리스탈 재킷 조끼', 'ev-concert3-b': '홀로그램 재킷 조끼' };
+  'ev-yearend1-b': '화이트 골드 턱시도 조끼', 'ev-yearend2-b': '눈꽃 벨벳 재킷 조끼', 'ev-yearend3-b': '퍼 장식 레드 윈터 재킷', 'ev-festival3-b': '네온 번개 민소매', 'ev-campus2-b': '응원단 조끼', 'ev-campus3-b': '니트 조끼 + 체크 바지', 'ev-concert1-b': '크리스탈 재킷 조끼', 'ev-concert3-b': '홀로그램 재킷 조끼' };
 const gk = k => k && S && S.gender === 'boy' && ITEMINFO[k + '-b'] ? k + '-b' : k;
 const boyName = (k, l) => S && S.gender === 'boy' && ITEMINFO[k + '-b'] && BOY_NAME[k + '-b'] ? BOY_NAME[k + '-b'] : l;
 const itemImgs = list => list.map(gk).map(k => { const it = ITEMINFO[k]; return it ? `<img class="witem" src="art/cat/item-${k}.png${CATV}" style="left:${it.x / 4.48}%;top:${it.y / 6}%;width:${it.w / 4.48}%;height:${it.h / 6}%" alt="">` : ''; }).join('');
