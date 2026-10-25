@@ -436,6 +436,10 @@ const MIN_CONTRACT = 12;
 const GIRL = ['하린', '유나', '서아', '지우', '채원', '나은', '예린', '소이', '리아', '다인', '윤서', '시아', '하늘', '루나', '세라', '미유'];
 const BOY = ['도윤', '시우', '이안', '하준', '태오', '윤재', '건우', '레오', '주원', '한결', '우진', '서진', '카이', '로한', '지한', '은호'];
 const NPC = ['STELLAR', '루미너스', 'NOVA:X', '블루밍', 'ECLIPSE', '하이틴', 'ARCADIA', '미라클', 'VERTEX', '솔라리스', 'PRISM', 'DAWN'];
+const NPC_NEW = ['ZENITH', '루나틱', 'VIVID', '밀키웨이', 'ORBIT', '코랄빛', 'NEON:9', '스파클링', 'HALO', '파라솔', 'SKYLINE', '체리블룸', 'MONOLITH', '별빛상자'];   // 해마다 데뷔하는 대형 신인
+// 경쟁 그룹 실력(p)은 그룹마다 다른 속도(g)로 해마다 오름
+const npcGrow = n => n.g || (n.g = rand(RIVAL.grow[0], RIVAL.grow[1]));
+const RIVAL = { grow: [2, 6], comeback: 0.12, boost: [15, 25] };
 // 콘셉트별 곡 제목 후보 10개씩 (🎲 버튼·빈칸일 때 이 중에서 골라요)
 const CONCEPT_TITLES = {
   fresh: ['Summer Splash', '레모네이드', '파란 하늘 아래', 'Blue Wave', 'Fresh Start', '소나기', 'Cider', '여름 끝에서', 'Sunshine Run', '바람이 분다'],
@@ -506,7 +510,7 @@ const debuted = () => S.albums.length > 0 || (S.promo && S.promo.phase === 'on')
 // ===== 능력치 변화 =====
 function gain(m, k, base) {
   let d = base;
-  if (base > 0) d = base * (1 - m.stats[k] / 130) * (m.fatigue > 70 ? 0.5 : 1) * rand(0.7, 1.3);
+  if (base > 0) d = base * (1 - m.stats[k] / 130) * (m.fatigue > 70 ? 0.5 : 1) * (m.slump ? 0.3 : 1) * rand(0.7, 1.3);
   m.stats[k] = clamp(m.stats[k] + d, 0, 100);
 }
 // 연습 장면 배경: 훈련 멤버들 스케줄 다수결 (동률이면 무작위). 춤은 기존 연습실 그림
@@ -538,7 +542,8 @@ function chartList(stage, wk, who = S.name) {
   const mom = [0, 4, 3, 1][Math.min(wk, 3)];
   const me = stage + Math.log10(S.fans + 1) * 6 + S.fame * 0.3 + mom;
   const growth = Math.min(S.week * 0.06, 20);
-  const rivals = shuffle(S.npc).slice(0, 6).map(n => ({ name: n.name, score: n.p + growth + rand(-8, 8) }));
+  const rv = S.rival && S.rival.until >= S.week ? S.npc.find(n => n.name === S.rival.name) : null;
+  const rivals = [...(rv ? [rv] : []), ...shuffle(S.npc.filter(n => n !== rv)).slice(0, rv ? 5 : 6)].map(n => ({ name: n.name, score: n.p + growth + rand(-8, 8) + (n === rv ? S.rival.boost : 0), hot: n === rv }));
   return [...rivals, { name: who, score: me, me: true }].sort((a, b) => b.score - a.score);
 }
 
@@ -590,6 +595,7 @@ function forcedLabel(m) {
   return '';
 }
 
+const GAP = { free: 6, base: 0.002, step: 0.0008, max: 0.02 };
 // ===== 한 주 진행 =====
 function endWeek() {
   if (S.over || S.pending.length) return;
@@ -627,6 +633,10 @@ function endWeek() {
     if (d.clean < 40 && Math.random() < 0.04) { const m = pick(S.members.filter(x => !x.busy)) ; if (m) { m.busy = { type: 'sick', left: 2 }; news('scandal', `🦠 숙소 위생 문제로 ${m.name} 멤버가 아파요.`); REP.lines.push(`🦠 비위생적인 숙소 → ${m.name} 2주 쉬어요`); } }
     if (!d.isNew && Math.random() < 0.06) { const c = ri(3, 8) * 100, what = pick(['누수', '곰팡이', '보일러 고장', '배관 고장', '전기 고장']); spend(c, `숙소 수리비 (${what})`); news('info', `🔧 오래된 숙소에 ${what} 문제가 생겨 수리했어요.`); REP.lines.push(`🔧 구축 숙소 ${what} → 수리비 ${money(c)}`); }
   }
+  for (const m of S.members) {   // 슬럼프: 연습 효과가 크게 줄어듦. 휴식·인성 교육을 하면 빨리 나음
+    if (m.slump) { m.slump -= m.sched === 'rest' || m.sched === 'person' ? 2 : 1; if (m.slump <= 0) { m.slump = 0; news('info', `🌤 ${m.name} 멤버가 슬럼프에서 벗어났어요!`); REP.lines.push(`🌤 ${m.name} 슬럼프 회복`); } }
+    else if (!m.busy && Math.random() < (m.fatigue >= 60 ? 0.025 : 0.006)) { m.slump = ri(3, 6); news('scandal', `🌧 ${m.name} 멤버가 슬럼프에 빠졌어요.`); REP.lines.push(`🌧 ${m.name} 슬럼프 · 몇 주 동안 연습 효과가 크게 줄어요 (휴식·인성 교육을 하면 빨리 나아요)`); }
+  }
   for (const m of S.members) {
     if (m.fatigue > 80) m.stats.health = clamp(m.stats.health - 3, 0, 100);
     if (!m.busy && (m.stats.health < 20 || m.fatigue >= 95) && Math.random() < 0.3) {
@@ -648,6 +658,11 @@ function endWeek() {
       }
     } else {
       const concept = CONCEPTS.find(c => c.id === P.concept);
+      if (!(S.rival && S.rival.until >= w) && Math.random() < RIVAL.comeback) {   // 라이벌 컴백: 2주 동안 그 그룹 점수 크게↑
+        const top = S.npc.slice().sort((a, b) => b.p - a.p).slice(0, 4), n = pick(top);
+        S.rival = { name: n.name, until: w + 1, boost: ri(RIVAL.boost[0], RIVAL.boost[1]) };
+        news('scandal', `🔥 라이벌 ${n.name} 컴백! 2주 동안 1위 경쟁이 치열해요.`); REP.lines.push(`🔥 라이벌 ${n.name} 컴백 · 2주 동안 1위 경쟁이 치열해요`);
+      }
       const st = stageScore(availP, concept, TIERS[P.tier].bonus, promoMembers().length);
       const first = P.wk === 0;   // 첫 주는 순위 집계 전 (순위·1위 없음)
       const list = first ? null : chartList(st, P.wk, promoWho(P));
@@ -741,14 +756,26 @@ function endWeek() {
   for (const k in VENDORS) { const c = S.contracts[k]; if (c) { const v = VENDORS[k].list.find(x => x.id === c.id); spend(v.cost, v.name); } }
   if (debuted()) earn(S.fans * 0.008, '굿즈·음원 기본 수익');
   if (!S.promo) S.fame = Math.max(0, S.fame - 0.4);
-  if (!S.promo && debuted() && w - S.lastPromoEnd > 8) S.fans = Math.round(S.fans * 0.996);
+  if (!S.promo && S.albums.length) {   // 공백기: 6주가 넘으면 팬이 떠나고, 길어질수록 더 많이 떠남
+    const gap = w - S.lastPromoEnd;
+    if (gap > GAP.free) { const f = Math.round(S.fans * Math.min(GAP.max, GAP.base + (gap - GAP.free) * GAP.step)); S.fans -= f;
+      if (f) REP.lines.push(`💔 공백기 ${gap}주째 · 팬 -${num(f)} (오래 쉴수록 더 많이 떠나요)`);
+      if (gap === GAP.free + 1) news('scandal', '💔 공백기가 길어져 팬들이 떠나기 시작했어요. 컴백을 준비해 보세요!'); }
+  }
 
   if (d.m === 12 && d.k === 4) yearEnd(avail);
 
   // 다음 주로
   S.week++;
   const nd = dateOf(S.week);
-  if (S.week % 48 === 0) { S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`); }
+  if (S.week % 48 === 0) { S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`);
+    S.npc.forEach(n => { n.p += npcGrow(n) * rand(0.6, 1.3); });
+    const left = NPC_NEW.filter(x => !S.npc.some(n => n.name === x));
+    if (left.length) { const ps = S.npc.map(n => n.p).sort((a, b) => b - a), nn = { name: pick(left), p: ps[4] + rand(-5, 8) };
+      S.npc.sort((a, b) => a.p - b.p).shift(); S.npc.push(nn); news('info', `🌟 대형 신인 ${nn.name} 데뷔! 경쟁 그룹들도 해마다 실력이 늘고 있어요.`); }
+    const old = S.members.filter(m => m.age >= 27);
+    old.forEach(m => { const d = m.age - 26; m.stats.dance = clamp(m.stats.dance - Math.min(6, d * 1.2), 0, 100); m.stats.health = clamp(m.stats.health - Math.min(6, d), 0, 100); m.stats.visual = clamp(m.stats.visual - Math.min(4, d * 0.6), 0, 100); });
+    if (old.length) news('info', `🕰 ${old.map(m => m.name).join(', ')} 멤버가 나이가 들어 춤·건강·외모가 조금 떨어졌어요.`); }
   if (S.week % 48 === 0) retireCheck();
   S.offers = S.offers.filter(o => o.expire > S.week);
   makeOffers();
@@ -834,6 +861,7 @@ function dramaEnd(m) {
   setScene('drama'); (REP.crew.drama = REP.crew.drama || []).push(m.id); REP.lines.push(`🎬 ${m.name} 드라마 ${dr.title} 종영 · 시청률 ${rating.toFixed(1)}%`);
   m.drama = null;
 }
+const AWARD = { fame: 0.3, win: 6, fans: 5, npc: 0.75, rookie: [45, 60] };
 function yearEnd(avail) {
   const y = dateOf(S.week).y;
   if (!debuted()) { news('info', '올해 연말 무대는 데뷔 전이라 서지 못했어요.'); return; }
@@ -842,10 +870,15 @@ function yearEnd(avail) {
   let f = Math.round(st * 40 * (1 + S.fame / 100));
   earn(1500, '연말 무대 출연료'); tally('yearend'); setScene('yearend'); REP.crew.yearend = avail.filter(m => !m.busy).map(m => m.id);
   avail.forEach(m => addFat(m, 15));
+  // 시상식 점수: 우리 = 인지도·그해 1위 횟수·팬 / 경쟁 그룹 = 실력. 대상은 1위 그룹 하나만
+  const me = { name: S.name, me: true, score: S.fame * AWARD.fame + S.yearTrophies * AWARD.win + Math.log10(S.fans + 1) * AWARD.fans + rand(-4, 4) };
+  const all = [...S.npc.map(n => ({ name: n.name, score: n.p * AWARD.npc + rand(-8, 8) })), me].sort((a, b) => b.score - a.score);
+  const rank = all.indexOf(me) + 1;
+  REP.award = rank <= 6 ? all.slice(0, 6) : [...all.slice(0, 5), me];
   let award = null;
-  if (S.fame >= 80 && S.yearTrophies >= 3) award = '대상';
-  else if (S.fame >= 55) award = '본상';
-  else if (S.debutYear === y && S.fame >= 35) award = '신인상';
+  if (rank === 1 && S.fame >= 60) award = '대상';
+  else if (rank <= 3 && S.fame >= 40) award = '본상';
+  else if (S.debutYear === y && S.fame >= 25 && me.score >= rand(AWARD.rookie[0], AWARD.rookie[1])) award = '신인상';
   if (award) { setScene('win'); REP.yearWin = true; f = Math.round(f * 1.5); S.fame = clamp(S.fame + 5, 0, 100); S.awards.push({ y, award }); news('win', `🏅 ${y}년차 연말 시상식 ${award} 수상!`); }
   S.fans += f;
   news('win', `🎄 연말 무대 출연 · 팬 +${num(f)}`);
@@ -2006,12 +2039,14 @@ function managerLine() {
   const pw = P && P.kind && P.kind !== 'group' ? `${esc(promoWho(P))} ${promoKindLabel(P)}` : '';
   if (isYearEndWeek()) { const why = yearEndWhy(); return [why ? `올해 연말 무대는 아쉽게도 못 서요. (${esc(why)})<br>내년엔 꼭 서 봐요!` : '이번 주는 연말 무대예요! 🎄 모두 함께 무대에 서요. 상을 받을 수도 있어요.', '']; }
   if (P && P.phase === 'prep') return [`${pw}「${esc(P.title)}」 ${P.debut ? '데뷔' : '컴백'} 준비 중이에요! ${P.left}주 뒤면 음악 방송이에요.${pw ? ' 나머지 멤버는 평소 스케줄을 해요.' : ''}`, ''];
-  if (P) return [`${pw}「${esc(P.title)}」 음악 방송 ${P.wk + 1}/${P.weeks}주차예요. ${pw ? '활동 멤버가' : '모두'} 무대에 집중하고 있어요!`, ''];
+  if (P) return [`${pw}「${esc(P.title)}」 음악 방송 ${P.wk + 1}/${P.weeks}주차예요. ${pw ? '활동 멤버가' : '모두'} 무대에 집중하고 있어요!${S.rival && S.rival.until >= S.week ? ` 이번 주는 라이벌 ${esc(S.rival.name)}도 컴백해서 1위가 쉽지 않아요.` : ''}`, ''];
   const tired = S.members.filter(m => !m.busy && m.fatigue >= 70);
   if (tired.length) return [`${tired.map(m => esc(m.name)).join(', ')} 멤버가 많이 지쳤어요. 휴식을 시켜 주세요.`, ''];
   if (!debuted()) return ['아직 데뷔 전이에요. 데뷔를 준비해 볼까요?', TAB !== 'act' ? go('act', '🎤 데뷔 준비하러 가기') : ''];
   if (S.offers.length && TAB !== 'act') return [`광고·드라마·예능 제의가 ${S.offers.length}건 와 있어요!`, go('act', '💌 제의 보러 가기')];
   if (S.festival && S.week <= S.festival.until) return [`${S.festival.name} 출연 제의가 왔어요. 그룹 일정에서 고를 수 있어요.`, ''];
+  const gap = S.week - S.lastPromoEnd;
+  if (S.albums.length && gap > GAP.free) return [`공백기가 ${gap}주째예요. 팬들이 떠나고 있어요! 컴백을 서둘러요.`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
   if (!S.ended && dateOf(S.week).y === CONTRACT_YEARS) return [`올해가 ${CONTRACT_YEARS}년 계약 마지막 해예요. 연말 무대가 끝나면 엔딩이에요!`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
   return [`지금은 공백기예요. ${TIPS[S.week % TIPS.length]}`, TAB !== 'act' ? go('act', '🎤 컴백 준비하러 가기') : ''];
 }
@@ -2043,7 +2078,7 @@ function planHTML() {
     const s = SCHED[m.sched] || SCHED.rest;
     const sel = fl ? `<button class="schbtn" disabled><span class="si">⏳</span><span><b>${esc(fl.replace(/ \(.*\)/, ''))}</b><small>${esc((fl.match(/\((.*)\)/) || ['', '바꿀 수 없어요'])[1])}</small></span></button>`
       : `<button class="schbtn" data-schpick="${m.id}"><span class="si">${SCHED_ICON[m.sched] || '🛌'}</span><span><b>${s.label.replace(/ \(.*\)/, '')}</b><small>${s.cost ? money(s.cost) : '무료'}</small></span></button>`;
-    return `<div class="mrow"><div class="who" data-member="${m.id}" title="눌러서 능력치 보기">${avatar(m, 48)}<div class="info"><div class="name">${esc(m.name)}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}</div>
+    return `<div class="mrow"><div class="who" data-member="${m.id}" title="눌러서 능력치 보기">${avatar(m, 48)}<div class="info"><div class="name">${esc(m.name)}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
 <div class="fbar" title="피로"><i style="width:${m.fatigue}%"></i></div><div class="mstat"><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span><span class="${m.stats.health < 35 ? 'hot' : ''}">건강 <b>${Math.round(m.stats.health)}</b></span></div></div></div>${sel}</div>`;
   }).join('');
   const total = train + fixedCost() + contractCost() + (S.ga === 'concert' ? 5000 : 0);
@@ -2060,7 +2095,7 @@ function membersHTML() {
   const perf = avg(S.members.map(perfOf)), allOpen = S.members.every(m => MOPEN.has(m.id));
   return `<h2>멤버 ${S.members.length}인조</h2><div class="row" style="justify-content:space-between;margin-bottom:8px"><span class="muted">그룹 무대 실력 <b style="color:var(--ink)">${Math.round(perf)}</b></span><button class="btn sub small" data-mtog="ALL">${allOpen ? '모두 접기 ▲' : '모두 펼치기 ▼'}</button></div>
 ${S.members.map(m => { const open = MOPEN.has(m.id); return `<div class="card mc"><div class="mcard"><span class="who" data-member="${m.id}" title="눌러서 자세히">${avatar(m, 60, true)}</span><div class="minfo">
-<div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}</div>
+<div><span class="name" data-member="${m.id}" style="cursor:pointer">${esc(m.name)}</span>${gradeBadge(gradeOf(m), true)}${m.busy ? `<span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}${m.fatigue >= 70 ? '<span class="tag red">피곤해요</span>' : ''}${m.slump ? '<span class="tag blue">슬럼프</span>' : ''}</div>
 <div class="mtop">💪 ${topSkills(m).map(([k, l]) => `${l} <b>${Math.round(m.stats[k])}</b>`).join(' · ')}</div>
 <div class="mstat"><span>만 ${m.age || 18}세</span><span>실력 <b>${Math.round(perfOf(m))}</b></span><span>인기 <b>${Math.round(m.pop)}</b></span><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span></div>
 ${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.variety ? `<div class="muted">📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음</div>` : ''}</div>
@@ -2193,6 +2228,8 @@ function memberDetail(id, pick = null) {   // pick: 'cloth'(옷 갈아입기) / 
   const now = forcedLabel(m) || (SCHED[m.sched] || SCHED.rest).label;
   const warn = [];
   if (m.fatigue >= 70) warn.push('피로가 높아요. 훈련 효과가 반으로 줄어요 → 휴식 추천');
+  if (m.slump) warn.push(`슬럼프예요 (약 ${m.slump}주). 연습 효과가 크게 줄어요 → 휴식·인성 교육을 하면 빨리 나아요`);
+  if ((m.age || 18) >= 26) warn.push('만 27세부터는 새해마다 춤·건강·외모가 조금씩 떨어져요.');
   if (m.stats.health < 35) warn.push('건강이 낮아요. 쓰러질 수 있어요 → 건강 관리 추천');
   if (m.stats.person < 40) warn.push('인성이 낮아서 논란이 생기기 쉬워요 → 인성 교육 추천');
   if ((m.age || 18) >= RETIRE_AGE - 1) warn.push(`내년 새해에 만 ${RETIRE_AGE}세가 되면 은퇴해서 그룹을 떠나요.`);
@@ -2271,7 +2308,8 @@ function showReport(r) {
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
-  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
+  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}${x.hot ? ' 🔥' : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
+  if (r.award) h += `<h3>연말 시상식 점수</h3><table class="ctable">${r.award.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table><p class="muted" style="font-size:12px">대상은 1위 그룹 (인지도 60 이상), 본상은 3위 안 (인지도 40 이상)</p>`;
   if (r.deltas.length) h += `<h3>멤버 변화</h3><div class="dlist">${r.deltas.map(([m, t]) => `<div class="dl">${avatar(m, 36)}<div><b>${esc(m.name)}</b><small>${esc(t).replace(/([가-힣]+) ([+-])(\d+)/g, (_, k, sg, v) => `${k} <em class="${(sg === '+') !== (k === '피로') ? 'up' : 'dn'}">${sg}${v}</em>`)}</small></div></div>`).join('')}</div>`;
   h += `<h3>돈</h3><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
 <div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>합계</b><b class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)}</b></div></div>`;
@@ -2480,10 +2518,10 @@ document.addEventListener('click', e => {
 });
 // 매니저 멘트 모음: 상황을 잠깐 꾸며서 게임과 같은 managerLine()으로 뽑음 (끝나면 원래대로)
 function pvManagerLines() {
-  const keep = { week: S.week, promo: S.promo, members: S.members, albums: S.albums, offers: S.offers, festival: S.festival, fame: S.fame };
+  const keep = { week: S.week, promo: S.promo, members: S.members, albums: S.albums, offers: S.offers, festival: S.festival, fame: S.fame, rival: S.rival, lastPromoEnd: S.lastPromoEnd };
   const ye = Array.from({ length: 48 }, (_, i) => i + 1).find(w => { const d = dateOf(w); return d.m === 12 && d.k === 4; });
   const m0 = S.members[0] || {}, out = [];
-  const one = (label, set) => { Object.assign(S, keep, { week: 1, promo: null, offers: [], festival: null, fame: 50 }, set); out.push([label, ...managerLine()]); };
+  const one = (label, set) => { Object.assign(S, keep, { week: 1, promo: null, offers: [], festival: null, fame: 50, rival: null, lastPromoEnd: 0 }, set); out.push([label, ...managerLine()]); };
   const song = (o, x) => Object.assign({ title: '별빛 고백', debut: false, kind: 'group', mids: [m0.id], uname: 'MOONLIGHT', left: 2, wk: 0, weeks: 4 }, o, x);
   one('연말 무대 · 데뷔 전이라 못 설 때', { week: ye, albums: [] });
   one('연말 무대 · 인지도가 모자랄 때', { week: ye, fame: 12 });
@@ -2494,12 +2532,14 @@ function pvManagerLines() {
   one('컴백 준비 중 (유닛)', { promo: song({ phase: 'prep' }, { kind: 'unit' }) });
   one('음악 방송 중 (그룹)', { promo: song({ phase: 'on' }) });
   one('음악 방송 중 (솔로·유닛)', { promo: song({ phase: 'on' }, { kind: 'solo' }) });
+  one('음악 방송 중 · 라이벌 컴백', { promo: song({ phase: 'on' }), rival: { name: 'ECLIPSE', until: 1, boost: 20 } });
   one('지친 멤버가 있을 때 (피로 70↑)', { members: keep.members.map((m, i) => i < 2 ? Object.assign({}, m, { fatigue: 80 }) : m) });
   one('데뷔 전', { albums: [] });
   one('제의가 와 있을 때', { offers: [{}, {}] });
   one('페스티벌 기간', { festival: { name: '여름 뮤직 페스티벌', until: 9 } });
-  one('계약 마지막 해 (공백기)', { week: (CONTRACT_YEARS - 1) * 48 + 4 });
-  TIPS.forEach((_, i) => one(`공백기 · 팁 ${i + 1}`, { week: TIPS.length + i }));
+  one('공백기가 길 때 (6주 넘음)', { week: 20, lastPromoEnd: 10, albums: [{}] });
+  one('계약 마지막 해 (공백기)', { week: (CONTRACT_YEARS - 1) * 48 + 4, lastPromoEnd: (CONTRACT_YEARS - 1) * 48 + 2 });
+  TIPS.forEach((_, i) => one(`공백기 · 팁 ${i + 1}`, { week: TIPS.length + i, lastPromoEnd: TIPS.length + i }));
   Object.assign(S, keep);
   return out;
 }
