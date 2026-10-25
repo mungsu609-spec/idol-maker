@@ -7,7 +7,7 @@ const rot = (x, y, cx, cy, a) => { const c = Math.cos(a), s = Math.sin(a); retur
 export async function loadCat(PIXI, name) {
   const info = await (await fetch(ART + name + '.json' + VER)).json();
   const tex = {}, keys = ['body', 'armL', 'armR', 'tail', 'face-blink', 'face-sing', 'face-joy', 'face-sad', 'face-sleep'].filter(k => k === 'body' || info.parts[k]);
-  await Promise.all(keys.map(async k => { tex[k] = await PIXI.Assets.load(ART + `${name}-${k}.png` + VER); }));   // 한꺼번에 받기 (하나씩 기다리면 폰에서 느림)
+  await Promise.all(keys.map(async k => { tex[k] = await PIXI.Assets.load(ART + `${name}-${k}.webp` + VER); }));   // 한꺼번에 받기 (하나씩 기다리면 폰에서 느림)
   return { info, tex };
 }
 // 옷·소품 (모든 고양이 공통, 치즈 고양이 자세 기준 좌표)
@@ -16,7 +16,7 @@ let ITEMS = null; const ITEM_P = {};
 export async function loadItems(PIXI, keys) {
   if (!ITEMS) ITEMS = (async () => ({ info: await (await fetch(ART + 'items.json' + VER)).json(), tex: {} }))();
   const it = await ITEMS, want = (keys || Object.keys(it.info)).filter(k => it.info[k]);
-  await Promise.all(want.map(k => ITEM_P[k] || (ITEM_P[k] = PIXI.Assets.load(ART + `item-${k}.png` + VER).then(t => { it.tex[k] = t; }))));
+  await Promise.all(want.map(k => ITEM_P[k] || (ITEM_P[k] = PIXI.Assets.load(ART + `item-${k}.webp` + VER).then(t => { it.tex[k] = t; }))));
   return it;
 }
 

@@ -178,25 +178,46 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+#resdl{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(255,236,244,.92)}
+#resdl .card{width:100%;max-width:360px;text-align:center}
+#resdl .rbar{height:14px;border-radius:8px;background:var(--bar);overflow:hidden;margin:12px 0 6px}
+#resdl .rbar i{display:block;height:100%;width:0;border-radius:8px;background:linear-gradient(90deg,#ffa8cb,#ef5c96);transition:width .2s}
 .over .st3host{margin:4px 0 14px}
 .st3host.dim>img.bgimg{filter:brightness(.55) saturate(.55)}
 .efx{z-index:1;position:absolute;inset:3px;border-radius:12px;overflow:hidden;pointer-events:none}
 .efx.front{z-index:3}
-.efx i{position:absolute;display:block;font-style:normal}
+.efx i,.efx b{position:absolute;display:block;font-style:normal}
+.efx svg{display:block;overflow:visible}
 .efx .col{top:0;height:100%;width:0;will-change:transform;animation:colfall var(--t) linear var(--d) infinite}
 .efx .col.up{animation-name:colrise}
-.efx .col b{position:absolute;top:-24px;left:0;display:block;font-weight:400;line-height:1;will-change:transform;animation:efspin var(--s) linear infinite}
-.efx .col.sway b{animation:efsway var(--s) ease-in-out infinite alternate}
-.efx .cfp{width:7px;height:11px;border-radius:2px}
-.efx .rain b{width:2px;height:22px;border-radius:2px;background:linear-gradient(transparent,rgba(210,225,255,.8));animation:none}
-.efx .sp{will-change:transform,opacity;animation:eftwk var(--t) ease-in-out var(--d) infinite alternate}
-.efx .fw{width:var(--w);height:var(--w);margin:calc(var(--w) / -2) 0 0 calc(var(--w) / -2);border-radius:50%;border:3px dotted var(--c);box-shadow:0 0 12px var(--c),inset 0 0 10px var(--c);opacity:0;will-change:transform,opacity;animation:effw var(--t) ease-out var(--d) infinite}
+.efx .col>b{top:-28px;left:0;will-change:transform;animation:efflip var(--s) linear var(--d2) infinite}
+.efx .col>.snow,.efx .col>.heart,.efx .col>.balloon,.efx .col>.bub{animation-name:efsway;animation-timing-function:ease-in-out}
+.efx .col>.petal,.efx .col>.leaf,.efx .col>.bill{animation-name:efflut;animation-timing-function:ease-in-out}
+.efx .col>.rain{animation:none}
+.efx .cfp{width:7px;height:12px;border-radius:2px}
+.efx .cfp.rib{width:4px;height:18px;border-radius:3px}
+.efx .snow{border-radius:50%;background:radial-gradient(circle,#fff 0 35%,rgba(255,255,255,.55) 50%,rgba(255,255,255,0) 72%)}
+.efx .petal{width:12px;height:9px;border-radius:100% 0 100% 0;background:linear-gradient(135deg,#fff0f5,#ff9cc2 75%);box-shadow:inset -1px -1px 2px rgba(220,80,140,.35)}
+.efx .bill{width:22px;height:12px;border-radius:2px;background:linear-gradient(135deg,#a8e8b2,#4fb36a);border:1px solid #2f8a4b;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.efx .bill::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;border:1px solid rgba(255,255,255,.85)}
+.efx .bub{border-radius:50%;border:1.5px solid rgba(255,255,255,.85);background:radial-gradient(circle at 32% 30%,rgba(255,255,255,.9) 0 12%,rgba(190,235,255,.2) 40%,rgba(255,190,240,.14) 70%,rgba(255,255,255,0) 72%)}
+.efx .rain{width:2px;height:22px;border-radius:2px;background:linear-gradient(rgba(210,225,255,0),rgba(210,225,255,.8))}
+.efx .st{width:var(--w);height:var(--w);margin:calc(var(--w) / -2) 0 0 calc(var(--w) / -2);opacity:0;will-change:transform,opacity;animation:efstar var(--t) ease-in-out var(--d) infinite}
+.efx .st::before{content:"";position:absolute;inset:-70%;border-radius:50%;background:radial-gradient(circle,var(--c) 0,rgba(255,255,255,0) 62%);opacity:.6}
+.efx .st::after{content:"";position:absolute;inset:0;background:linear-gradient(#fff,var(--c));clip-path:polygon(50% 0,58% 42%,100% 50%,58% 58%,50% 100%,42% 58%,0 50%,42% 42%)}
+.efx .bk{width:var(--w);height:var(--w);margin:calc(var(--w) / -2) 0 0 calc(var(--w) / -2);border-radius:50%;background:radial-gradient(circle,var(--c) 0,rgba(255,255,255,0) 68%);opacity:0;will-change:transform,opacity;animation:efbk var(--t) ease-in-out var(--d) infinite}
+.efx .bm{top:-8%;width:var(--w);height:120%;margin-left:calc(var(--w) / -2);transform-origin:50% 0;background:linear-gradient(var(--c),rgba(255,255,255,0) 85%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);opacity:.3;will-change:transform;animation:efbeam var(--t) ease-in-out var(--d) infinite alternate}
+.efx .fw{width:0;height:0}
+.efx .fw b{left:-2.5px;top:-2.5px;width:5px;height:5px;border-radius:50%;background:var(--c);box-shadow:0 0 6px 1px var(--c);opacity:0;will-change:transform,opacity;animation:efburst var(--t) cubic-bezier(.15,.7,.3,1) var(--d) infinite}
 @keyframes colfall{from{transform:translate3d(0,-6%,0)}to{transform:translate3d(0,108%,0)}}
-@keyframes colrise{from{transform:translate3d(0,112%,0)}to{transform:translate3d(0,-4%,0)}}
-@keyframes efspin{to{transform:rotate(360deg) rotateX(360deg)}}
-@keyframes efsway{from{transform:translateX(-10px) rotate(-25deg)}to{transform:translateX(10px) rotate(25deg)}}
-@keyframes eftwk{from{transform:scale(.35);opacity:.15}to{transform:scale(1.15);opacity:1}}
-@keyframes effw{0%{transform:scale(.1);opacity:0}8%{opacity:1}45%{transform:scale(1);opacity:.9}70%,100%{transform:scale(1.25);opacity:0}}
+@keyframes colrise{from{transform:translate3d(0,112%,0)}to{transform:translate3d(0,-6%,0)}}
+@keyframes efflip{from{transform:rotate3d(1,.6,.2,0deg)}to{transform:rotate3d(1,.6,.2,360deg)}}
+@keyframes efsway{0%,100%{transform:translateX(-12px) rotate(-14deg)}50%{transform:translateX(12px) rotate(14deg)}}
+@keyframes efflut{0%{transform:translateX(-14px) rotate3d(.3,1,.2,0deg)}50%{transform:translateX(14px) rotate3d(.3,1,.2,180deg)}100%{transform:translateX(-14px) rotate3d(.3,1,.2,360deg)}}
+@keyframes efstar{0%,100%{transform:scale(.2) rotate(0);opacity:0}50%{transform:scale(1) rotate(45deg);opacity:1}}
+@keyframes efbk{0%,100%{transform:translate3d(0,10px,0) scale(.7);opacity:0}50%{transform:translate3d(0,-10px,0) scale(1);opacity:.75}}
+@keyframes efbeam{from{transform:rotate(calc(var(--a) - 14deg))}to{transform:rotate(calc(var(--a) + 14deg))}}
+@keyframes efburst{0%{transform:rotate(var(--a)) translateY(0) scale(1);opacity:0}6%{opacity:1}60%{opacity:.9}100%{transform:rotate(var(--a)) translateY(calc(var(--r) * -1)) scale(.25);opacity:0}}
 @media (prefers-reduced-motion:reduce){.efx{display:none}}
 .risk{margin-top:4px;padding:5px 8px;border-radius:10px;font-size:13px;line-height:1.45}
 .risk.low{background:#e9f7ee}.risk.mid{background:#fff4d6}.risk.high{background:#ffe3e3}
@@ -1087,35 +1108,56 @@ const ENDINGS = [
 // 엔딩 장면: 배경(art/bg/end_○○.webp, 파산·해체는 기존 그림을 어둡게) + 고양이 + 효과
 const END_BG = { bankrupt: 'scandal', disband: 'dorm' };
 const END_WEAR = { end_legend: 'yearend', end_daesang: 'yearend', end_world: 'concert', end_chart: 'win', end_stage: 'concert' };   // 무대 엔딩은 무대 의상
+// ===== 장면 효과 (그림 없이 코드로 그림: 이모지 X). 모두 transform·opacity만 움직이고 음수 지연으로 처음부터 움직임 =====
 const fxRand = (a, b) => (a + Math.random() * (b - a)).toFixed(2);
-function fxFall(n, piece, o = {}) {   // 위에서 떨어지거나(up이면 아래에서 올라가는) 조각들
-  return Array.from({ length: n }, (_, i) => `<i class="col${o.up ? ' up' : ''}${o.sway ? ' sway' : ''}${o.rain ? ' rain' : ''}" style="left:${fxRand(1, 97)}%;--t:${fxRand(o.t[0], o.t[1])}s;--d:-${fxRand(0, o.t[1])}s"><b style="--s:${fxRand(1.2, 3)}s;${o.css ? o.css(i) : ''}"${o.cls ? ` class="${o.cls}"` : ''}>${piece ? (Array.isArray(piece) ? piece[i % piece.length] : piece) : ''}</b></i>`).join('');
+const fxN = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join('');
+// 떨어지거나(up이면 올라가는) 조각: 바깥 기둥(col)이 위아래로, 안쪽 조각(b)이 팔랑·흔들
+function fxFall(n, piece, o = {}) {
+  return fxN(n, i => `<i class="col${o.up ? ' up' : ''}" style="left:${fxRand(1, 97)}%;--t:${fxRand(o.t[0], o.t[1])}s;--d:-${fxRand(0, o.t[1])}s"><b class="${typeof o.cls === 'function' ? o.cls(i) : o.cls || ''}" style="--s:${fxRand(...(o.s || [1.2, 3]))}s;--d2:-${fxRand(0, 3)}s;${o.css ? o.css(i) : ''}">${typeof piece === 'function' ? piece(i) : piece || ''}</b></i>`);
 }
-const fxSpark = (n, ch = '✨') => Array.from({ length: n }, () => `<i class="sp" style="left:${fxRand(3, 93)}%;top:${fxRand(4, 60)}%;font-size:${fxRand(12, 22)}px;--t:${fxRand(.7, 1.6)}s;--d:-${fxRand(0, 1.6)}s">${ch}</i>`).join('');
-const fxWorks = (n, cs) => Array.from({ length: n }, (_, i) => `<i class="fw" style="left:${fxRand(10, 90)}%;top:${fxRand(8, 40)}%;--w:${fxRand(50, 95)}px;--c:${cs[i % cs.length]};--t:${fxRand(1.8, 2.6)}s;--d:-${fxRand(0, 2.6)}s"></i>`).join('');
-const CONF = ['#ffd24a', '#ff7ab6', '#7ad0ff', '#a98bff', '#7ee0a3', '#ff9f5a'], GOLD = ['#ffd24a', '#ffe9a0', '#f2b632', '#fff4cc'];
-const confetti = (n, cs) => fxFall(n, '', { t: [3.2, 5.5], cls: 'cfp', css: i => `background:${cs[i % cs.length]}` });
-// 행사 장면 효과 (그림 없이 코드로): 콘서트 불꽃·반짝이, 팬싸 하트, 연말 눈, 여름 페스티벌 비눗방울·불꽃, 대학 축제 컨페티
+const CONF = ['#ffd24a', '#ff7ab6', '#7ad0ff', '#a98bff', '#7ee0a3', '#ff9f5a'], GOLD = ['#ffd24a', '#ffe9a0', '#f2b632', '#fff4cc'], NEON = ['#ff7ad9', '#a98bff', '#7ad0ff'];
+const confetti = (n, cs) => fxFall(n, '', { t: [3.2, 5.5], cls: i => i % 3 ? 'cfp' : 'cfp rib', css: i => `background:${cs[i % cs.length]}` });
+const fxSnow = n => fxFall(n, '', { t: [5, 9], s: [2.5, 4], cls: 'snow', css: () => { const z = fxRand(4, 10); return `width:${z}px;height:${z}px`; } });
+const fxPetals = n => fxFall(n, '', { t: [5, 8.5], s: [2, 3.5], cls: 'petal' });
+const fxBills = n => fxFall(n, '', { t: [4, 6.5], s: [1.6, 2.8], cls: 'bill' });
+const fxRain = n => fxFall(n, '', { t: [.6, 1], cls: 'rain' });
+const fxBubbles = n => fxFall(n, '', { up: true, t: [5, 8], s: [2.5, 4], cls: 'bub', css: () => { const z = fxRand(10, 24); return `width:${z}px;height:${z}px`; } });
+const LEAF = ['#f08a3c', '#e0562f', '#f2b443', '#c9472b'];
+const fxLeaves = n => fxFall(n, i => `<svg width="${fxRand(14, 22)}" height="${fxRand(14, 22)}" viewBox="0 0 24 24"><path d="M12 1c2 3 5 4 8 3-1 4-1 6-4 8 2 1 3 3 3 5-3 0-5-1-6-3l-1 9-1-9c-1 2-3 3-6 3 0-2 1-4 3-5-3-2-3-4-4-8 3 1 6 0 8-3z" fill="${LEAF[i % LEAF.length]}"/><path d="M12 6v17" stroke="rgba(110,45,15,.45)" stroke-width="1"/></svg>`, { t: [5, 8.5], s: [2, 3.5], cls: 'leaf' });
+const fxHearts = (n, cs = ['#ff6fa3', '#ff9cc2', '#ff4f8b']) => fxFall(n, i => { const w = fxRand(14, 24); return `<svg width="${w}" height="${w}" viewBox="0 0 24 24"><path d="M12 21C5 16 2 12.5 2 8.6 2 5.5 4.4 3.2 7.3 3.2c1.9 0 3.6 1 4.7 2.6 1.1-1.6 2.8-2.6 4.7-2.6 2.9 0 5.3 2.3 5.3 5.4C22 12.5 19 16 12 21z" fill="${cs[i % cs.length]}"/><ellipse cx="7.6" cy="7.6" rx="2.3" ry="1.4" fill="#fff" opacity=".65" transform="rotate(-35 7.6 7.6)"/></svg>`; }, { up: true, t: [5, 8], s: [2.2, 3.4], cls: 'heart' });
+const fxBalloons = (n, cs = CONF) => fxFall(n, i => `<svg width="24" height="44" viewBox="0 0 24 44"><path d="M12 27q-3 7 1 17" stroke="rgba(120,110,120,.55)" fill="none"/><ellipse cx="12" cy="13" rx="11" ry="13" fill="${cs[i % cs.length]}"/><path d="M10 25.5h4l-2 2.5z" fill="${cs[i % cs.length]}"/><ellipse cx="7.5" cy="8" rx="2.6" ry="4.4" fill="#fff" opacity=".45" transform="rotate(-20 7.5 8)"/></svg>`, { up: true, t: [6, 9.5], s: [2.5, 4], cls: 'balloon' });
+// 제자리 효과: 반짝이는 네 갈래 별, 흐릿한 빛 동그라미(보케), 흔들리는 조명 빔, 빛 알갱이가 퍼지는 불꽃
+const fxStars = (n, cs = ['#fff3b0']) => fxN(n, i => `<i class="st" style="left:${fxRand(4, 96)}%;top:${fxRand(5, 68)}%;--w:${fxRand(10, 22)}px;--c:${cs[i % cs.length]};--t:${fxRand(1.4, 2.6)}s;--d:-${fxRand(0, 2.6)}s"></i>`);
+const fxBokeh = (n, cs) => fxN(n, i => `<i class="bk" style="left:${fxRand(2, 98)}%;top:${fxRand(5, 80)}%;--w:${fxRand(26, 60)}px;--c:${cs[i % cs.length]};--t:${fxRand(3, 6)}s;--d:-${fxRand(0, 6)}s"></i>`);
+const fxBeams = (n, cs) => fxN(n, i => `<i class="bm" style="left:${(100 / (n + 1) * (i + 1)).toFixed(1)}%;--w:${fxRand(70, 110)}px;--a:${((i - (n - 1) / 2) * 10).toFixed(0)}deg;--c:${cs[i % cs.length]};--t:${fxRand(2.5, 4)}s;--d:-${fxRand(0, 4)}s"></i>`);
+const fxWorks = (n, cs) => fxN(n, i => `<i class="fw" style="left:${fxRand(12, 88)}%;top:${fxRand(10, 42)}%;--c:${cs[i % cs.length]};--t:${fxRand(1.6, 2.4)}s;--d:-${fxRand(0, 2.4)}s;--r:${fxRand(35, 60)}px">${fxN(14, k => `<b style="--a:${(k * 360 / 14).toFixed(0)}deg"></b>`)}</i>`);
+const fxLayers = (back, front, flash) => (back ? `<div class="efx">${back}</div>` : '') + (flash ? SCANDAL_FX : '') + (front ? `<div class="efx front">${front}</div>` : '');
+// 행사 장면: 콘서트 조명·불꽃, 팬싸 하트·꽃잎, 연말 눈, 여름 페스티벌 비눗방울·불꽃, 대학 축제 컨페티
 function eventFx(kind) {
-  const back = { concert: fxWorks(4, ['#ff7ad9', '#a98bff', '#7ad0ff', '#ffd24a']) + fxSpark(8), festival: fxWorks(3, ['#ffd24a', '#7ad0ff', '#ff9f5a']), yearend: fxSpark(6) }[kind] || '';
-  const front = {
-    yearend: fxFall(34, '', { sway: true, t: [5, 9], css: () => { const z = fxRand(3, 8); return `width:${z}px;height:${z}px;border-radius:50%;background:#fff;opacity:.85;box-shadow:0 0 4px #fff`; } }),
-    campus: confetti(30, CONF),
-    fansign: fxFall(10, ['💖', '💕', '✨', '🌸'], { up: true, sway: true, t: [5, 8], css: () => `font-size:${fxRand(13, 19)}px` }),
-    festival: fxFall(12, '', { up: true, sway: true, t: [5, 8], css: () => { const z = fxRand(10, 22); return `width:${z}px;height:${z}px;border-radius:50%;border:1.5px solid rgba(255,255,255,.85);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.7),rgba(180,230,255,.15) 60%)`; } }),
-  }[kind] || '';
-  return (back ? `<div class="efx">${back}</div>` : '') + (front ? `<div class="efx front">${front}</div>` : '');
+  const W = ['#fff1c4', '#ffd98a', '#ffe8f2'];
+  return {
+    concert: () => fxLayers(fxBeams(4, NEON) + fxBokeh(7, NEON) + fxWorks(3, ['#ff7ad9', '#ffd24a', '#7ad0ff'])),
+    fansign: () => fxLayers(fxBokeh(6, ['#ffc2dc', '#ffe3ee']), fxHearts(8) + fxPetals(10)),
+    yearend: () => fxLayers(fxBokeh(8, W) + fxStars(6, ['#fff3b0']), fxSnow(36)),
+    festival: () => fxLayers(fxWorks(3, ['#ffd24a', '#7ad0ff', '#ff9f5a']), fxBubbles(12)),
+    campus: () => fxLayers('', confetti(32, CONF)),
+  }[kind]?.() || '';
 }
 function endFx(id) {
-  const back = { legend: fxWorks(4, GOLD) + fxSpark(10), daesang: fxSpark(12), world: fxWorks(5, CONF) + fxSpark(8, '⭐'), actor: fxSpark(8), stage: fxWorks(5, ['#ff7ad9', '#a98bff', '#7ad0ff']) }[id] || '';
-  const front = {
-    legend: confetti(26, GOLD), daesang: confetti(30, GOLD), chart: confetti(30, CONF), steady: confetti(14, CONF) + fxFall(5, '🎈', { up: true, sway: true, t: [6, 9], css: () => 'font-size:22px' }),
-    variety: fxFall(12, ['⭐', '💖', '🎈', '✨'], { up: true, sway: true, t: [4.5, 7], css: () => 'font-size:18px' }),
-    fade: fxFall(16, ['🍂', '🍁'], { sway: true, t: [5, 8.5], css: () => `font-size:${fxRand(14, 22)}px` }),
-    bankrupt: fxFall(12, '💸', { sway: true, t: [4, 6.5], css: () => 'font-size:20px' }),
-    disband: fxFall(40, '', { rain: true, t: [.6, 1] }),
-  }[id] || '';
-  return (back ? `<div class="efx">${back}</div>` : '') + (id === 'actor' || id === 'cf' ? SCANDAL_FX : '') + (front ? `<div class="efx front">${front}</div>` : '');
+  return {
+    legend: () => fxLayers(fxBeams(4, GOLD) + fxWorks(3, GOLD) + fxStars(10, GOLD), confetti(26, GOLD)),
+    daesang: () => fxLayers(fxBeams(3, GOLD) + fxBokeh(6, GOLD) + fxStars(12, GOLD), confetti(30, GOLD)),
+    world: () => fxLayers(fxWorks(5, CONF) + fxStars(8, ['#fff3b0', '#c9e6ff'])),
+    chart: () => fxLayers(fxBeams(3, ['#ff9fd8', '#ffd24a', '#ff9fd8']) + fxStars(6), confetti(30, CONF)),
+    actor: () => fxLayers(fxStars(8, GOLD), '', true),
+    variety: () => fxLayers(fxBokeh(8, CONF), fxBalloons(6) + confetti(14, CONF)),
+    cf: () => fxLayers(fxBokeh(8, ['#c9e6ff', '#ffd1ec', '#fff1c4']), '', true),
+    stage: () => fxLayers(fxBeams(4, NEON) + fxWorks(4, NEON) + fxBokeh(8, NEON)),
+    steady: () => fxLayers(fxBokeh(6, ['#ffd98a', '#ffc2a0']), confetti(14, CONF) + fxBalloons(5)),
+    fade: () => fxLayers(fxBokeh(4, ['#ffd0a0']), fxLeaves(16)),
+    bankrupt: () => fxLayers('', fxBills(12)),
+    disband: () => fxLayers('', fxRain(40)),
+  }[id]?.() || '';
 }
 const endScene = id => `<div class="st3host${END_BG[id] ? ' dim' : ''}" id="endstage">${END_BG[id] ? `<img class="bgimg" src="art/bg/${END_BG[id] === 'dorm' ? dormBg() : END_BG[id]}.webp${CATV}" alt=""><div class="vig"></div>` : bgHTML('end_' + id)}${endFx(id)}</div>`;
 function mountEnd(id) { const h = $('#endstage'); if (h && S.members.length) mount2d(h, S.members, 'end_' + id); }
@@ -1723,7 +1765,7 @@ function puppet(m, o, g) {
     + part('armL', 'armL', P.armL) + part('armR', 'armR', P.armR) + part('head', 'head', P.head);
 }
 function charSVG(m, o) {
-  if (m === MANAGER) return `<image href="${V2}manager-face.webp" x="40" y="30" width="120" height="120"/>`;
+  if (m === MANAGER) return `<image href="${V2}manager-face.webp${CATV}" x="40" y="30" width="120" height="120"/>`;
   { const g = gp(m), Hh = 290, k = Hh / 688;
     return `<g transform="translate(${100 - 384 * k / 2} ${284 - Hh}) scale(${k})">${o && o.anim ? puppet(m, o, g) : layers(m, o || {})}</g>`; }
   const a = artOf(m);
@@ -1829,7 +1871,7 @@ document.body.insertAdjacentHTML('afterbegin', puppetDefs());
 const blinkDelay = m => `animation-delay:${-((m.hue || 0) % 46) / 10}s`;
 // ===== 2D 고양이 아이돌 (그림 AI 그림 + 휘는 메시 애니메이션, cat2d.js) =====
 const CATS = [['cheese', '치즈'], ['tuxedo', '턱시도'], ['calico', '삼색'], ['black', '까망'], ['white', '하양'], ['tabby', '고등어'], ['siamese', '샴'], ['gray', '러블']];
-const CATV = '?v=32';
+const CATV = '?v=33';
 // 옷·소품 (art/cat/item-*.png, 좌표는 items.json). 무대에서는 콘셉트 의상, 평소엔 멤버별로 고른 옷
 const WEAR_CLOTH = [[null, '없음'], ['hoodie', '후드 조끼'], ['sport', '운동복'], ['dress', '프릴 원피스'], ['sailor', '세일러'], ['leather', '가죽 조끼'], ['cape', '별빛 망토'], ['polka', '물방울 원피스'], ['jersey', '힙합 저지'], ['ballad', '흰 드레스'], ['reddress', '빨간 드레스']];
 const WEAR_ACC = [[null, '없음'], ['ribbon', '리본'], ['crown', '왕관'], ['beret', '베레모'], ['cap', '야구 모자'], ['sunglasses', '선글라스'], ['flower', '꽃 화관'], ['bowtie', '나비넥타이']];
@@ -1888,11 +1930,12 @@ const BOY_NAME = { 'dress-b': '파스텔 니트 조끼', 'polka-b': '물방울 �
   'ev-yearend1-b': '화이트 골드 턱시도 조끼', 'ev-yearend2-b': '눈꽃 벨벳 재킷 조끼', 'ev-yearend3-b': '퍼 장식 레드 윈터 재킷', 'ev-festival3-b': '네온 번개 민소매', 'ev-campus2-b': '응원단 조끼', 'ev-campus3-b': '니트 조끼 + 체크 바지', 'ev-concert1-b': '크리스탈 재킷 조끼', 'ev-concert3-b': '홀로그램 재킷 조끼' };
 const gk = k => k && S && S.gender === 'boy' && ITEMINFO[k + '-b'] ? k + '-b' : k;
 const boyName = (k, l) => S && S.gender === 'boy' && ITEMINFO[k + '-b'] && BOY_NAME[k + '-b'] ? BOY_NAME[k + '-b'] : l;
-const itemImgs = list => list.map(gk).map(k => { const it = ITEMINFO[k]; return it ? `<img class="witem" src="art/cat/item-${k}.png${CATV}" style="left:${it.x / 4.48}%;top:${it.y / 6}%;width:${it.w / 4.48}%;height:${it.h / 6}%" alt="">` : ''; }).join('');
+const itemImgs = list => list.map(gk).map(k => { const it = ITEMINFO[k]; return it ? `<img class="witem" src="art/cat/item-${k}.webp${CATV}" style="left:${it.x / 4.48}%;top:${it.y / 6}%;width:${it.w / 4.48}%;height:${it.h / 6}%" alt="">` : ''; }).join('');
 const catOf = m => { if (!m.cat || !CATS.some(c => c[0] === m.cat)) { const i = Math.max(0, S ? S.members.indexOf(m) : 0); m.cat = CATS[i % CATS.length][0]; } return m.cat; };
-const catImg = (coat, kind) => `art/cat/${coat}-${kind}.png${CATV}`;
+const catImg = (coat, kind) => `art/cat/${coat}-${kind}.webp${CATV}`;
 let PIXIP = null;
-const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
+const PIXI_URL = 'https://cdn.jsdelivr.net/npm/pixi.js@7.4.2/dist/pixi.min.js';
+const loadPixi = () => PIXIP || (PIXIP = new Promise((ok, no) => { if (window.PIXI) return ok(); const sc = document.createElement('script'); sc.src = PIXI_URL; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }));
 let CAT2 = null, CATAPP = null, CATCV = null, CATDATA = {}, CATS_ON = [];
 const MODE2 = { dating: 'sad', stalker: 'sad', vocal: 'sing', camera: 'wave', act: 'sing', lang: 'idle', person: 'idle', diet: 'dance', health: 'idle', adshoot: 'wave', variety: 'cheer', stage: 'dance', concert: 'dance', festival: 'dance', campus: 'dance', yearend: 'dance', practice: 'dance', win: 'cheer', live: 'wave', fansign: 'wave', prep: 'idle', drama: 'idle', movie: 'wave', dorm: 'sleep', scandal: 'sad', end_legend: 'cheer', end_daesang: 'cheer', end_world: 'dance', end_chart: 'cheer', end_stage: 'dance', end_actor: 'wave', end_variety: 'cheer', end_cf: 'wave', end_steady: 'wave', end_fade: 'idle', end_bankrupt: 'sad' };
 // AI로 만든 배경 그림 (8장 무료 FLUX, 나머지 제미나이). 숙소는 6종류마다 다른 그림
@@ -2071,7 +2114,7 @@ const MANAGER = { hue: 230, look: { hair: 'part', hc: '#2a2f4a', skin: '#f8d8c2'
 const talkLines = t => t.replace(/「[^」]*」|([.!?])((?:\s*\p{Extended_Pictographic}️?)*)\s+/gu, (s, p, e) => p ? p + (e || '') + '<br>' : s);
 function managerHTML(text, btn) {
   text = talkLines(text);
-  return `<div class="talk"><span class="talk-face"><img src="${V2}manager-face.webp" alt="" style="width:100%;height:100%;display:block"></span>
+  return `<div class="talk"><span class="talk-face"><img src="${V2}manager-face.webp${CATV}" alt="" style="width:100%;height:100%;display:block"></span>
 <div class="talk-body"><b>매니저</b><p>${text}</p>${btn || ''}</div><i class="talk-star"></i></div>`;
 }
 
@@ -2181,7 +2224,7 @@ const ICON = {
   trophy: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" fill="#ffd34d" stroke="#b9822a" stroke-width="2" stroke-linejoin="round"/><path d="M7 5H3c0 4 2 5 4 5M17 5h4c0 4-2 5-4 5" fill="none" stroke="#b9822a" stroke-width="2"/><path d="M10 13h4v4h-4zM7 18h10v3H7z" fill="#e8a92a" stroke="#b9822a" stroke-width="2" stroke-linejoin="round"/></svg>`,
 };
 // 탭 아이콘 (제미나이 그림, art/ui)
-const TABICON = Object.fromEntries([['plan', 'plan'], ['members', 'members'], ['act', 'activity'], ['contract', 'contract'], ['news', 'news']].map(([k, f]) => [k, `<img src="art/ui/tab-${f}.png" alt="" aria-hidden="true">`]));
+const TABICON = Object.fromEntries([['plan', 'plan'], ['members', 'members'], ['act', 'activity'], ['contract', 'contract'], ['news', 'news']].map(([k, f]) => [k, `<img src="art/ui/tab-${f}.png${CATV}" alt="" aria-hidden="true">`]));
 const CREST = `<svg class="crest" viewBox="0 0 160 44" aria-hidden="true"><g fill="#fff" stroke="#e3ad4a" stroke-width="2" stroke-linejoin="round"><path d="M70 26C56 8 30 4 6 12C24 14 32 18 38 24C24 22 16 26 10 32C30 26 46 30 58 34C48 34 40 38 36 42C52 36 62 34 70 30Z"/><path d="M90 26C104 8 130 4 154 12C136 14 128 18 122 24C136 22 144 26 150 32C130 26 114 30 102 34C112 34 120 38 124 42C108 36 98 34 90 30Z"/></g><path d="M80 6l5 11 12 1.3-9 8 2.6 11.7L80 32l-10.6 6 2.6-11.7-9-8 12-1.3z" fill="#ffd84a" stroke="#c9902a" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
 const STATC = { vocal: '#ff6fa3', dance: '#ff9a4a', visual: '#b07cf0', camera: '#f2c230', act: '#3fbfae', lang: '#5a9cf0', person: '#5cc06a', health: '#f06060' };
 const EYENAME = { round: '동그란 눈', droopy: '순한 눈', cat: '고양이 눈', smile: '웃는 눈' };
@@ -2407,7 +2450,7 @@ ${warn.length ? `<p class="neg" style="font-size:13px">${warn.map(esc).join('<br
 <h3>옷·소품</h3>
 <p class="muted center">👗 평소 옷: <b>${wearOf(m).cloth ? boyName(wearOf(m).cloth, stageWearName0(wearOf(m).cloth)) : '없음'}</b> · 🎀 소품: <b>${wearOf(m).acc && wearOf(m).acc !== 'headset' ? boyName(wearOf(m).acc, (WEAR_ACC.find(x => x[0] === wearOf(m).acc) || ['', ''])[1]) : '없음'}</b></p>
 <div class="row" style="justify-content:center;gap:8px"><button class="btn small${pick === 'cloth' ? '' : ' sub'}" data-wpick="${m.id}:${pick === 'cloth' ? '' : 'cloth'}">👗 옷 갈아입기</button><button class="btn small${pick === 'acc' ? '' : ' sub'}" data-wpick="${m.id}:${pick === 'acc' ? '' : 'acc'}">🎀 소품 장착하기</button></div>
-${pick ? `<div class="wearpick" id="wpList">${(pick === 'cloth' ? WEAR_CLOTH : WEAR_ACC).filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m)[pick] === k ? 'on' : ''}" data-wear="${m.id}:${pick}:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.png${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>` : ''}
+${pick ? `<div class="wearpick" id="wpList">${(pick === 'cloth' ? WEAR_CLOTH : WEAR_ACC).filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<button class="${wearOf(m)[pick] === k ? 'on' : ''}" data-wear="${m.id}:${pick}:${k || ''}">${k ? `<img src="art/cat/item-${gk(k)}.webp${CATV}" alt="">` : '<span style="font-size:30px;line-height:44px">✖</span>'}${boyName(k, l)}</button>`).join('')}</div>` : ''}
 <p class="muted" style="font-size:12px">무대(음악 방송·콘서트·축제·시상식)에서는 콘셉트 의상과 헤드셋 마이크로 자동으로 갈아입어요. 소품은 무대에서도 그대로예요. 평소 옷을 안 고르면 연습 땐 운동복, 숙소에선 후드 조끼를 입어요.</p>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
@@ -2650,7 +2693,7 @@ ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악
 <label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
 </div>
 <h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
-<h2>매니저 멘트</h2><div class="card"><p class="muted">게임에서 상황마다 나오는 매니저 말을 모두 모아 봤어요. (이름·제목·숫자는 예시)</p>${pvManagerLines().map(([l, t, b]) => `<p class="f" style="margin:12px 0 0">${l}</p>${managerHTML(t, b)}`).join('')}</div>
+<h2>매니저 멘트</h2><div class="card"><p class="muted">게임에서 상황마다 나오는 매니저 말을 모두 모아 봤어요. (이름·제목·숫자는 예시)</p>${(() => { const L = pvManagerLines(); return (PV.mgr ? L : L.slice(0, 2)).map(([l, t, b]) => `<p class="f" style="margin:12px 0 0">${l}</p>${managerHTML(t, b)}`).join('') + `<button class="btn sub small" data-pvmgr="1" style="width:100%;margin-top:10px">${PV.mgr ? '접기 ▲' : `펼치기 ▼ (전체 ${L.length}개)`}</button>`; })()}</div>
 <h2>엔딩 화면</h2><div class="card"><p class="muted">${CONTRACT_YEARS}년 계약이 끝날 때(또는 게임 오버) 나오는 엔딩이에요. 눌러서 보기.</p><div class="chips">${ENDINGS.map(e => `<button class="chip" data-pvend="${e.id}">${e.icon} ${esc(e.title)}</button>`).join('')}</div></div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
 <p class="muted" style="font-size:12px">옷을 누르면 크게 볼 수 있어요.</p><div class="pvgrid">${items.map(([k, n]) => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
@@ -2658,8 +2701,9 @@ ${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그
   if (PV.scene !== 'clinic' && !dlg.open) mount2d($('#pvstage'), S.members, PV.scene);   // 이벤트 창이 열려 있으면 그 창 무대를 그대로 둠
 }
 document.addEventListener('click', e => {
-  if (!window.PV) return; const t = e.target.closest('[data-pvend],[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg],[data-pvbig],[data-pvbigcat],[data-pvbigi]'); if (!t) return;
+  if (!window.PV) return; const t = e.target.closest('[data-pvmgr],[data-pvend],[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg],[data-pvbig],[data-pvbigcat],[data-pvbigi]'); if (!t) return;
   const d = t.dataset;
+  if (d.pvmgr) { PV.mgr = !PV.mgr; return pvRender(); }
   if (d.pvend) { const en = ENDINGS.find(x => x.id === d.pvend); openDlg(`${endScene(en.id)}${endingCard(en, en.text || (en.id === 'bankrupt' ? '자금이 -1억 아래로 떨어져 회사가 파산했어요.' : '멤버가 모두 떠나 그룹이 해체됐어요.'))}<p class="muted center">조건: ${esc(en.hint)}</p><button class="btn" data-act="close" style="width:100%">닫기</button>`); if (en.id !== 'disband') mountEnd(en.id); return; }
   if (d.pvbig) return pvBig(PV.big.findIndex(x => x[0] === d.pvbig));
   if (d.pvbigi) return pvBig(+d.pvbigi);
@@ -2730,6 +2774,36 @@ function warmUp() {
 }
 if (S && S.promo && S.promo.kind === 'unit' && S.promo.mids && S.promo.uname) { S.units = S.units || {}; S.units[unitKey(S.promo.mids)] = S.units[unitKey(S.promo.mids)] || S.promo.uname; }   // 지금 활동 중인 유닛 이름 기억
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
+// ===== 처음 1회 그림 받기: 게임 그림(art/files.json 목록)을 휴대폰 보관함에 한꺼번에 저장 → 장면이 바로 뜸 =====
+// 그림을 바꾸면 CATV 번호를 올리고 도구/make_files.py로 목록을 다시 만들 것 (그러면 다음 실행 때 새 그림만 다시 받음)
+const RES_KEY = 'idol-maker-res', ART_CACHE = 'idol-art';
+async function ensureRes(force) {
+  if (!('caches' in window)) return;
+  try { if (!force && localStorage.getItem(RES_KEY) === CATV) return; } catch (e) { }
+  let list; try { list = (await (await fetch('art/files.json' + CATV)).json()).map(f => f + CATV).concat([PIXI_URL, 'cat2d.js' + CATV]); } catch (e) { return; }
+  const cache = await caches.open(ART_CACHE);
+  const el = document.createElement('div'); el.id = 'resdl';
+  el.innerHTML = `<div class="card fancy"><h2>🎀 게임 그림 받는 중</h2><p class="muted">처음 한 번만 받아요 (약 ${list.length}개).<br>와이파이에서 받으면 좋아요.</p><div class="rbar"><i></i></div><p id="resn" class="muted">0%</p><button class="btn sub small" id="resskip">그냥 시작하기</button></div>`;
+  document.body.appendChild(el);
+  let skip = false; el.querySelector('#resskip').onclick = () => { skip = true; el.remove(); };
+  let done = 0, fail = 0; const q = list.slice(), bar = el.querySelector('.rbar i'), txt = el.querySelector('#resn');
+  const work = async () => {
+    while (q.length && !skip) {
+      const u = q.shift();
+      try { if (!(await cache.match(u))) { const r = await fetch(u); if (!r.ok) throw 0; await cache.put(u, r); } } catch (e) { fail++; }
+      done++; const pc = Math.round(done / list.length * 100); bar.style.width = pc + '%'; txt.textContent = `${pc}% (${done} / ${list.length})`;
+    }
+  };
+  await Promise.all(Array.from({ length: 6 }, work));
+  if (skip) return;
+  // 예전 번호(?v=)의 그림은 지워서 휴대폰 용량 아끼기
+  try { const v = CATV.slice(3); for (const k of await cache.keys()) { const x = new URL(k.url); if (x.origin === location.origin && x.searchParams.get('v') && x.searchParams.get('v') !== v) cache.delete(k); } } catch (e) { }
+  if (!fail) { try { localStorage.setItem(RES_KEY, CATV); } catch (e) { } el.remove(); return; }
+  el.querySelector('.card').innerHTML = `<h2>그림 일부를 못 받았어요</h2><p class="muted">${fail}개를 받지 못했어요. 인터넷 연결을 확인해 주세요.<br>그냥 시작해도 게임은 할 수 있어요.</p><div class="row" style="justify-content:center;gap:8px"><button class="btn small" id="resre">다시 받기</button><button class="btn sub small" id="resgo">그냥 시작하기</button></div>`;
+  el.querySelector('#resre').onclick = () => { el.remove(); ensureRes(true); };
+  el.querySelector('#resgo').onclick = () => el.remove();
+}
+ensureRes();
 render();
 if (!S) fillNames();
 else if (S.pending.length && !S.over) nextPopup();
