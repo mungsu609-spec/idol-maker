@@ -2392,6 +2392,7 @@ function managerLine() {
   if (isYearEndWeek()) { const why = yearEndWhy(); return [why ? `올해 연말 무대는 아쉽게도 못 서요. (${esc(why)})<br>내년엔 꼭 서 봐요!` : '이번 주는 연말 무대예요! 🎄 모두 함께 무대에 서요. 상을 받을 수도 있어요.', '']; }
   if (P && P.phase === 'prep') return [`${pw}「${esc(P.title)}」 ${P.debut ? '데뷔' : '컴백'} 준비 중이에요! ${P.left}주 뒤면 음악 방송이에요.${pw ? ' 나머지 멤버는 평소 스케줄을 해요.' : ''}`, ''];
   if (P) return [`${pw}「${esc(P.title)}」 음악 방송 ${P.wk + 1}/${P.weeks}주차예요. ${pw ? '활동 멤버가' : '모두'} 무대에 집중하고 있어요!${S.rival && S.rival.until >= S.week ? ` 이번 주는 라이벌 ${esc(S.rival.name)}도 컴백해서 1위가 쉽지 않아요.` : ''}`, ''];
+  if (S.money < 5000) return [S.money < 0 ? `자금이 마이너스예요! -1억 아래로 떨어지면 회사가 파산해요. 광고 제의를 받거나 비싼 숙소·업체를 줄여요.` : `자금이 ${money(S.money)}밖에 안 남았어요. 컴백·콘서트는 돈이 많이 들어요. 조심해요!`, TAB !== 'contract' ? go('contract', '🏠 비용 줄이러 가기') : ''];
   const tired = S.members.filter(m => !m.busy && m.fatigue >= 70);
   if (tired.length) return [`${tired.map(m => esc(m.name)).join(', ')} 멤버가 많이 지쳤어요. 휴식을 시켜 주세요.`, ''];
   if (!debuted()) return ['아직 데뷔 전이에요. 데뷔를 준비해 볼까요?', TAB !== 'act' ? go('act', '🎤 데뷔 준비하러 가기') : ''];
@@ -3000,10 +3001,10 @@ document.addEventListener('click', e => {
 });
 // 매니저 멘트 모음: 상황을 잠깐 꾸며서 게임과 같은 managerLine()으로 뽑음 (끝나면 원래대로)
 function pvManagerLines() {
-  const keep = { week: S.week, promo: S.promo, members: S.members, albums: S.albums, offers: S.offers, festival: S.festival, fame: S.fame, rival: S.rival, lastPromoEnd: S.lastPromoEnd };
+  const keep = { money: S.money, week: S.week, promo: S.promo, members: S.members, albums: S.albums, offers: S.offers, festival: S.festival, fame: S.fame, rival: S.rival, lastPromoEnd: S.lastPromoEnd };
   const ye = Array.from({ length: 48 }, (_, i) => i + 1).find(w => { const d = dateOf(w); return d.m === 12 && d.k === 4; });
   const m0 = S.members[0] || {}, out = [];
-  const one = (label, set) => { Object.assign(S, keep, { week: 1, promo: null, offers: [], festival: null, fame: 50, rival: null, lastPromoEnd: 0 }, set); out.push([label, ...managerLine()]); };
+  const one = (label, set) => { Object.assign(S, keep, { money: 50000, week: 1, promo: null, offers: [], festival: null, fame: 50, rival: null, lastPromoEnd: 0 }, set); out.push([label, ...managerLine()]); };
   const song = (o, x) => Object.assign({ title: '별빛 고백', debut: false, kind: 'group', mids: [m0.id], uname: 'MOONLIGHT', left: 2, wk: 0, weeks: 4 }, o, x);
   one('연말 무대 · 데뷔 전이라 못 설 때', { week: ye, albums: [] });
   one('연말 무대 · 인지도가 모자랄 때', { week: ye, fame: 12 });
@@ -3015,6 +3016,8 @@ function pvManagerLines() {
   one('음악 방송 중 (그룹)', { promo: song({ phase: 'on' }) });
   one('음악 방송 중 (솔로·유닛)', { promo: song({ phase: 'on' }, { kind: 'solo' }) });
   one('음악 방송 중 · 라이벌 컴백', { promo: song({ phase: 'on' }), rival: { name: 'ECLIPSE', until: 1, boost: 20 } });
+  one('자금이 적을 때 (5천만 아래)', { money: 3000 });
+  one('자금이 마이너스일 때', { money: -2000 });
   one('지친 멤버가 있을 때 (피로 70↑)', { members: keep.members.map((m, i) => i < 2 ? Object.assign({}, m, { fatigue: 80 }) : m) });
   one('데뷔 전', { albums: [] });
   one('제의가 와 있을 때', { offers: [{}, {}] });
