@@ -966,7 +966,7 @@ function endWeek() {
     const df = Math.round(m.fatigue) - Math.round(b.fatigue); if (df) parts.push(`피로 ${df > 0 ? '+' : ''}${df}`);
     if (parts.length) REP.deltas.push([m, parts.join(', ')]);
   }
-  if (!S.pending.length && !S.mini && S.members.length >= 2 && Math.random() < 0.08) {
+  if (!S.pending.length && !S.mini && S.members.length >= 2 && Math.random() < 0.05) {
     const i = ri(0, MINI.length - 1), [a, b] = shuffle(S.members.filter(m => !m.busy).length >= 2 ? S.members.filter(m => !m.busy) : S.members);
     S.mini = { i, mid: a.id, bid: MINI[i].two ? b.id : null };
   }
