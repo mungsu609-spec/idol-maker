@@ -1604,6 +1604,7 @@ function recruitDlg(msg) {
   const m = RC.m;
   openDlg(`<h2>연습생 영입</h2><div class="pcard"><div class="pcard-art">${avatar(m, 140, true)}${gradeBadge(gradeOf(m))}</div>
 <div class="pcard-name"><b>${esc(m.name)}</b><small>만 ${m.age}세 · 무대 실력 ${Math.round(perfOf(m))}</small></div></div>
+<p class="center" style="margin:0 0 8px;font-size:14px">💪 잘하는 것: <b>${topSkills(m).map(([k, l]) => `${l} ${Math.round(m.stats[k])}`).join(', ')}</b><br>🎵 잘 맞는 콘셉트: <b>${CONCEPTS.map(c => [c, m.stats[c.fav[0]] + m.stats[c.fav[1]]]).sort((x, y) => y[1] - x[1]).slice(0, 2).map(([c]) => conceptLabel(c)).join(', ')}</b></p>
 ${statBars(m)}
 <label class="f">계약금 제안</label><div class="chips">${RC_BONUS.map(([v, l], i) => `<button class="chip${RC.bonus === i ? ' on' : ''}" data-rcb="${i}">${l}</button>`).join('')}</div>
 <p class="muted">영입 제안을 받아들일 가능성: 약 <b>${Math.round(recruitChance(RC.bonus) * 100)}%</b><br>(인지도·계약금·숙소·1위 경험에 따라 달라져요)</p>
