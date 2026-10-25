@@ -968,7 +968,7 @@ function fastForward(n) {
   }
   const reps = FAST; FAST = null;
   const lines = reps.flatMap(r => r.lines.filter(l => FF_KEEP.test(l)).map(l => `<div class="ffl"><small>${esc(r.title.replace(' 결과', ''))}</small>${esc(l)}</div>`));
-  const gap = S.week - S.lastPromoEnd; if (!S.promo && S.albums.length && gap > GAP.free) lines.push(`<div class="ffl"><small>지금</small>💔 공백기 ${gap}주째라 팬이 계속 떠나고 있어요. 컴백을 준비해 보세요!</div>`);
+  const gap = S.week - S.lastPromoEnd; if (!S.over && !S.promo && S.albums.length && gap > GAP.free) lines.push(`<div class="ffl"><small>지금</small>💔 공백기 ${gap}주째라 팬이 계속 떠나고 있어요. 컴백을 준비해 보세요!</div>`);
   const stop = S.over ? '게임이 끝났어요.' : S.pending.length ? '⚠️ 논란이 생겨서 멈췄어요.' : S.albumDone ? '💿 활동이 끝나서 멈췄어요.' : S.recap ? '🎉 새해가 되어 멈췄어요.' : '';
   const d = [['💗 팬', S.fans - f0, v => (v >= 0 ? '+' : '') + num(v)], ['💰 자금', S.money - m0, v => (v >= 0 ? '+' : '') + money(v)], ['⭐ 인지도', Math.round(S.fame - fa0), v => (v >= 0 ? '+' : '') + v]];
   openDlg(`<h2>⏩ ${reps.length}주 진행 결과</h2><p class="muted center">${dateStr(w0)} → ${dateStr(S.week)}</p>
