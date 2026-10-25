@@ -783,7 +783,7 @@ function miniHTML(e) {
 <button class="choice" data-mini="a"><b>${d.a[0]}</b></button><button class="choice" data-mini="b"><b>${d.b[0]}</b></button>`;
 }
 function miniPick(k) {
-  const e = S.mini; if (!e) return; S.mini = null;
+  const e = S.mini; if (!e) return; S.mini = null; tally('mini');
   const d = MINI[e.i], m = S.members.find(x => x.id === e.mid), b = S.members.find(x => x.id === e.bid);
   const msg = m || !d.t.length ? d[k][1](m, b) : '멤버가 없어서 그냥 지나갔어요.';
   news('info', `🎲 ${d.t(m || { name: '' }, b || { name: '' })} → ${d[k][0].replace(/^\S+ /, '')}`);
@@ -959,7 +959,7 @@ function endWeek() {
     if (m.bday === w % 48) {
       const f = debuted() ? Math.round(80 + S.fans * 0.004 + m.pop * 20) : 0; S.fans += f; m.pop += debuted() ? 1 : 0;
       news('win', `🎂 오늘은 ${m.name}의 생일! ${debuted() ? `팬들이 생일 축하 광고를 걸었어요 · 팬 +${num(f)}` : '멤버들이 깜짝 파티를 열어 줬어요'}`);
-      REP.lines.push(`🎂 ${m.name} 생일${f ? ` · 팬 +${num(f)}` : ''}`); REP.bday = m.name;
+      REP.lines.push(`🎂 ${m.name} 생일${f ? ` · 팬 +${num(f)}` : ''}`); REP.bday = m.name; tally('bday');
     }
   }
   // 고정 지출·기본 수입
@@ -1283,6 +1283,10 @@ const ACH = [
   ['concepts', '🎨', `콘셉트 ${CONCEPTS.length}가지 모두 활동`, () => new Set(S.albums.map(a => a.concept)).size >= CONCEPTS.length],
   ['mission10', '📋', '매니저 미션 10번 성공', () => cnt('missionOk') >= 10],
   ['facMax', '🏢', '회사 시설 하나를 최고 단계로', () => FAC.some(f => facLv(f[0]) >= 3)],
+  ['bday', '🎂', '멤버 생일 축하', () => cnt('bday') >= 1],
+  ['mini10', '🎲', '작은 일 10번 겪기', () => cnt('mini') >= 10],
+  ['finish7', '📜', `${CONTRACT_YEARS}년 계약 완주`, () => !!S.ended || !!(S.endingId && !(ENDINGS.find(e => e.id === S.endingId) || {}).over)],
+  ['hall3', '🏛', '명예의 전당 3그룹', () => (META.hall || []).length >= 3],
   ['ending1', '📖', '첫 엔딩 보기', () => Object.keys(META.endings).length >= 1],
   ['ending5', '📖', '엔딩 5가지 모으기', () => Object.keys(META.endings).length >= 5],
   ['endingAll', '📖', '엔딩 모두 모으기', () => ENDINGS.every(e => META.endings[e.id])],
