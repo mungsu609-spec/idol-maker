@@ -37,12 +37,12 @@ header{position:sticky;top:0;z-index:5;padding:10px 0 10px;background:linear-gra
 .cal span{font-size:17px;color:#7a4a1a}
 .cal small{font-size:12.5px;font-weight:600;color:var(--sub);line-height:1.15;margin-left:5px;font-family:system-ui,sans-serif}
 .icon-btn{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);background:linear-gradient(#fffdf6,#ffe9b8);box-shadow:inset 0 2px 0 #fff,0 2px 0 var(--goldd);font-size:17px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
-.kpi{display:flex;align-items:center;gap:5px;background:#fffdf8;border:2px solid #efd9b4;border-radius:12px;padding:4px 6px;box-shadow:0 2px 0 #e6cc9e;min-width:0}
-.kpi svg{width:22px;height:22px;flex:none}
+.kpis{display:grid;grid-template-columns:1.2fr 1.1fr .8fr 1fr;gap:5px;margin-top:9px}
+.kpi{display:flex;align-items:center;gap:3px;background:#fffdf8;border:2px solid #efd9b4;border-radius:12px;padding:4px 4px;box-shadow:0 2px 0 #e6cc9e;min-width:0}
+.kpi svg{width:19px;height:19px;flex:none}
 .kpi div{min-width:0}
 .kpi small{display:block;font-size:12px;font-weight:600;color:var(--sub);line-height:1.1;white-space:nowrap}
-.kpi b{display:block;font-weight:800;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+.kpi b{display:block;font-weight:800;font-size:15px;letter-spacing:-.3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
 .neg{color:var(--bad)}
 h2{font-family:"Jua",sans-serif;font-weight:400;font-size:18px;color:var(--title);margin:20px 0 10px;display:flex;align-items:center;gap:10px}
 h2::before,h2::after{content:"";height:2px;flex:1;background:linear-gradient(90deg,transparent,var(--gold))}
@@ -394,8 +394,15 @@ const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { c
 function wpick(arr, wf) { const ws = arr.map(wf); let r = Math.random() * ws.reduce((a, b) => a + b, 0); for (let i = 0; i < arr.length; i++) { r -= ws[i]; if (r <= 0) return arr[i]; } return arr[arr.length - 1]; }
 // 돈 단위: 만원
 function money(n) { n = Math.round(n); const s = n < 0 ? '-' : ''; n = Math.abs(n); if (n >= 10000) { const e = Math.floor(n / 10000), m = n % 10000; return s + e + '억' + (m ? ' ' + m.toLocaleString() + '만' : ''); } return s + n.toLocaleString() + '만'; }
-function moneyShort(n) { return Math.abs(n) >= 10000 ? (n / 10000).toFixed(1).replace('.0', '') + '억' : money(n); }
-function num(n) { n = Math.round(n); if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '만'; return n.toLocaleString(); }
+// 상단 칸용 짧은 금액 (단위 만): 10억 넘으면 소수점 없이, 1조 넘으면 '조' → 칸에서 안 잘리게
+function moneyShort(n) {
+  const a = Math.abs(n), sg = n < 0 ? '-' : '';
+  if (a >= 1e8) return sg + (a / 1e8).toFixed(a >= 1e9 ? 0 : 1).replace('.0', '') + '조';
+  if (a >= 1e5) return sg + Math.round(a / 1e4) + '억';
+  if (a >= 1e4) return sg + (a / 1e4).toFixed(1).replace('.0', '') + '억';
+  return sg + Math.round(a) + '만';
+}
+function num(n) { n = Math.round(n); if (n >= 1e8) return (n / 1e8).toFixed(1).replace('.0', '') + '억'; if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1) + '만'; return n.toLocaleString(); }
 // 1년 = 12달 × 4주 = 48주
 const dateOf = w => ({ y: Math.floor(w / 48) + 1, m: Math.floor(w % 48 / 4) + 1, k: w % 4 + 1 });
 const dateStr = w => { const d = dateOf(w); return `${d.y}년차 ${d.m}월 ${d.k}주`; };
