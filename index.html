@@ -1675,7 +1675,10 @@ function avatar(m, size = 44, full, outfit) {
 }
 // 매니저 (포켓 프린세스 집사 역할)
 const MANAGER = { hue: 230, look: { hair: 'part', hc: '#2a2f4a', skin: '#f8d8c2', eye: 'cat', ec: '#4a5a9a', daily: 'manager' }, stats: { visual: 0 }, fatigue: 0, busy: null };
+// 문장마다 줄 바꿈 (곡 제목 「…」 안은 그대로, 문장 끝 이모지는 앞 줄에 붙임)
+const talkLines = t => t.replace(/「[^」]*」|([.!?])((?:\s*\p{Extended_Pictographic}️?)*)\s+/gu, (s, p, e) => p ? p + (e || '') + '<br>' : s);
 function managerHTML(text, btn) {
+  text = talkLines(text);
   return `<div class="talk"><span class="talk-face"><img src="${V2}manager-face.webp" alt="" style="width:100%;height:100%;display:block"></span>
 <div class="talk-body"><b>매니저</b><p>${text}</p>${btn || ''}</div><i class="talk-star"></i></div>`;
 }
@@ -1800,7 +1803,7 @@ const TIPS = ['콘셉트마다 잘 맞는 능력치가 달라요. 멤버를 눌�
 function managerLine() {
   const P = S.promo, go = (t, l) => `<button class="btn small" data-tab="${t}">${l}</button>`;
   const pw = P && P.kind && P.kind !== 'group' ? `${esc(promoWho(P))} ${promoKindLabel(P)}` : '';
-  if (isYearEndWeek()) { const why = yearEndWhy(); return [why ? `올해 연말 무대는 아쉽게도 못 서요. (${esc(why)}) 내년엔 꼭 서 봐요!` : '이번 주는 연말 무대예요! 🎄 모두 함께 무대에 서요. 상을 받을 수도 있어요.', '']; }
+  if (isYearEndWeek()) { const why = yearEndWhy(); return [why ? `올해 연말 무대는 아쉽게도 못 서요. (${esc(why)})<br>내년엔 꼭 서 봐요!` : '이번 주는 연말 무대예요! 🎄 모두 함께 무대에 서요. 상을 받을 수도 있어요.', '']; }
   if (P && P.phase === 'prep') return [`${pw}「${esc(P.title)}」 ${P.debut ? '데뷔' : '컴백'} 준비 중이에요! ${P.left}주 뒤면 음악 방송이에요.${pw ? ' 나머지 멤버는 평소 스케줄을 해요.' : ''}`, ''];
   if (P) return [`${pw}「${esc(P.title)}」 음악 방송 ${P.wk + 1}/${P.weeks}주차예요. ${pw ? '활동 멤버가' : '모두'} 무대에 집중하고 있어요!`, ''];
   const tired = S.members.filter(m => !m.busy && m.fatigue >= 70);
@@ -2223,6 +2226,7 @@ ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악
 <label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
 </div>
 <h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
+<h2>매니저 멘트</h2><div class="card"><p class="muted">게임에서 상황마다 나오는 매니저 말을 모두 모아 봤어요. (이름·제목·숫자는 예시)</p>${pvManagerLines().map(([l, t, b]) => `<p class="f" style="margin:12px 0 0">${l}</p>${managerHTML(t, b)}`).join('')}</div>
 <h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
 <p class="muted" style="font-size:12px">옷을 누르면 크게 볼 수 있어요.</p><div class="pvgrid">${items.map(([k, n]) => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
 ${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그룹이면 위 옷 대신 이걸 입어요)</label><div class="pvgrid">${boyItems.map(k => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(BOY_NAME[k])}</small></div>`).join('')}</div>`}</div>`;
@@ -2246,6 +2250,30 @@ document.addEventListener('click', e => {
   if (d.pvshuffle) PV.cats = PV.cats.map(c => [Math.random(), c]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
   pvRender();
 });
+// 매니저 멘트 모음: 상황을 잠깐 꾸며서 게임과 같은 managerLine()으로 뽑음 (끝나면 원래대로)
+function pvManagerLines() {
+  const keep = { week: S.week, promo: S.promo, members: S.members, albums: S.albums, offers: S.offers, festival: S.festival, fame: S.fame };
+  const ye = Array.from({ length: 48 }, (_, i) => i + 1).find(w => { const d = dateOf(w); return d.m === 12 && d.k === 4; });
+  const m0 = S.members[0] || {}, out = [];
+  const one = (label, set) => { Object.assign(S, keep, { week: 1, promo: null, offers: [], festival: null, fame: 50 }, set); out.push([label, ...managerLine()]); };
+  const song = (o, x) => Object.assign({ title: '별빛 고백', debut: false, kind: 'group', mids: [m0.id], uname: 'MOONLIGHT', left: 2, wk: 0, weeks: 4 }, o, x);
+  one('연말 무대 · 데뷔 전이라 못 설 때', { week: ye, albums: [] });
+  one('연말 무대 · 인지도가 모자랄 때', { week: ye, fame: 12 });
+  one('연말 무대 · 설 수 있을 때', { week: ye });
+  one('데뷔 준비 중 (그룹)', { albums: [], promo: song({ phase: 'prep', debut: true }) });
+  one('컴백 준비 중 (그룹)', { promo: song({ phase: 'prep' }) });
+  one('컴백 준비 중 (솔로)', { promo: song({ phase: 'prep' }, { kind: 'solo' }) });
+  one('컴백 준비 중 (유닛)', { promo: song({ phase: 'prep' }, { kind: 'unit' }) });
+  one('음악 방송 중 (그룹)', { promo: song({ phase: 'on' }) });
+  one('음악 방송 중 (솔로·유닛)', { promo: song({ phase: 'on' }, { kind: 'solo' }) });
+  one('지친 멤버가 있을 때 (피로 70↑)', { members: keep.members.map((m, i) => i < 2 ? Object.assign({}, m, { fatigue: 80 }) : m) });
+  one('데뷔 전', { albums: [] });
+  one('제의가 와 있을 때', { offers: [{}, {}] });
+  one('페스티벌 기간', { festival: { name: '여름 뮤직 페스티벌', until: 9 } });
+  TIPS.forEach((_, i) => one(`공백기 · 팁 ${i + 1}`, { week: TIPS.length + i }));
+  Object.assign(S, keep);
+  return out;
+}
 // 도감 옷 크게 보기: 고양이 바꾸기, ◀ ▶로 다음 옷
 function pvBig(i) {
   const L = PV.big, n = L.length; if (!n) return; i = (i + n) % n; PV.bigI = i;
