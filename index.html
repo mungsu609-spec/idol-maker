@@ -183,6 +183,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.winbadge{position:absolute;z-index:4;left:50%;top:10px;transform:translateX(-50%);padding:4px 16px;border-radius:999px;background:linear-gradient(180deg,#ffe9a0,#f2b632);border:2px solid #fff;box-shadow:0 2px 0 #b9822a,0 0 16px rgba(255,210,74,.8);font-family:"Jua",sans-serif;font-size:18px;color:#7a4a00;animation:winpop .6s cubic-bezier(.2,1.6,.4,1) .3s both}
+@keyframes winpop{from{transform:translateX(-50%) scale(.2);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 .setgrid>:last-child:nth-child(odd){grid-column:1/-1}
 .chip em.garec{font-style:normal;font-size:11.5px;font-weight:800;color:#fff;background:var(--pink);border-radius:8px;padding:0 5px;margin-left:4px;vertical-align:1px}
 .albrow{cursor:pointer}.albrow:hover{background:#fff6fb}
@@ -1167,7 +1169,7 @@ function yearEnd(avail) {
   if (rank === 1 && S.fame >= 60) award = '대상';
   else if (rank <= 3 && S.fame >= 40) award = '본상';
   else if (S.debutYear === y && S.fame >= 25 && me.score >= rand(AWARD.rookie[0], AWARD.rookie[1])) award = '신인상';
-  if (award) { setScene('win'); REP.yearWin = true; f = Math.round(f * 1.5); S.fame = clamp(S.fame + 5, 0, 100); S.awards.push({ y, award }); news('win', `🏅 ${y}년차 연말 시상식 ${award} 수상!`); }
+  if (award) { setScene('win'); REP.yearWin = true; REP.awardName = award; f = Math.round(f * 1.5); S.fame = clamp(S.fame + 5, 0, 100); S.awards.push({ y, award }); news('win', `🏅 ${y}년차 연말 시상식 ${award} 수상!`); }
   S.fans += f;
   news('win', `🎄 연말 무대 출연 · 팬 +${num(f)}`);
   REP.lines.push(`🎄 연말 무대 · 점수 ${Math.round(st)}${award ? ` · 🏅 ${award} 수상!` : ''} · 팬 +${num(f)}`);
@@ -1355,6 +1357,7 @@ function eventFx(kind) {
     yearend: () => fxLayers(fxBokeh(8, W) + fxStars(6, ['#fff3b0']), fxSnow(36)),
     festival: () => fxLayers(fxWorks(3, ['#ffd24a', '#7ad0ff', '#ff9f5a']), fxBubbles(12)),
     campus: () => fxLayers('', confetti(32, CONF)),
+    win: () => fxLayers(fxStars(8, GOLD), fxGlitter(22, GOLD)) + `<div class="winbadge">${REP && REP.yearWin && REP.awardName ? '🏅 ' + REP.awardName : '🏆 1위'}</div>`,
   }[kind]?.() || '';
 }
 function endFx(id) {
