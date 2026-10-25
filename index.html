@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+html.bigtext body{zoom:1.1}
 .overbtns{display:grid;gap:8px;max-width:300px;margin:4px auto 30px}
 .schint{margin:6px 0;padding:7px 10px;border-radius:10px;background:#f1f6ff;font-size:13px;color:var(--sub)}
 .sparkw{margin-top:10px}.sparkw small{display:flex;justify-content:space-between;color:var(--sub);font-size:11.5px}.sparkw svg{display:block;width:100%;height:64px}
@@ -2855,11 +2856,13 @@ function howTo() {
   openDlg(`<h2>게임 방법</h2>${managerHTML('안녕하세요, 매니저예요! 우리 그룹을 최고의 아이돌로 키워 봐요.')}<div class="glist" style="margin-top:10px">${rows.map(([i, t, d]) => `<div class="gi"><span>${i}</span><div><b>${t}</b><small>${d}</small></div></div>`).join('')}</div>
 <button class="btn" data-act="close" style="width:100%;margin-top:10px">시작해요!</button>`);
 }
+const bigText = () => { try { return localStorage.getItem('idol-maker-big') === '1'; } catch (e) { return false; } };
 const lowFx = () => { try { return localStorage.getItem('idol-maker-lowfx') === '1'; } catch (e) { return false; } };
 function settings() {
   openDlg(`<h2>설정</h2><p class="muted center">게임은 이 브라우저에 자동으로 저장돼요.</p>
 <a class="btn" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
 <button class="btn sub" data-act="howto" style="width:100%;margin-bottom:8px">📖 게임 방법</button>
+<button class="btn sub" data-act="bigtext" style="width:100%;margin-bottom:8px">🔠 글자 크기: ${bigText() ? '크게 (보통으로)' : '보통 (크게)'}</button>
 <button class="btn sub" data-act="lowfx" style="width:100%;margin-bottom:8px">✨ 장면 효과: ${lowFx() ? '끔 (켜기)' : '켬 (끄기)'}</button>
 <button class="btn sub" data-act="save-out" style="width:100%;margin-bottom:8px">💾 저장 데이터 내보내기 (백업)</button>
 <button class="btn sub" data-act="save-in" style="width:100%;margin-bottom:8px">📂 저장 데이터 불러오기</button>
@@ -2955,6 +2958,7 @@ document.addEventListener('click', e => {
     case 'howto': return howTo();
     case 'brag': { const e = ENDINGS.find(x => x.id === S.endingId) || {}; const t = `🐾 아이돌 메이커 · ${S.name}\n${e.icon || ''} 엔딩: ${e.title || '게임 끝'}\n${dateStr(S.week)} · 팬 ${num(S.fans)}명 · 음방 1위 ${S.trophies}번 · 앨범 ${S.albums.length}장${S.awards.length ? ` · 시상식 ${S.awards.map(a => a.award).join('·')}` : ''}\n${location.origin + location.pathname}`;
       (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast('결과를 복사했어요! 친구에게 붙여 넣어 자랑해 보세요'), () => prompt('아래 글을 복사하세요', t)); return; }
+    case 'bigtext': { try { localStorage.setItem('idol-maker-big', bigText() ? '0' : '1'); } catch (e) { } document.documentElement.classList.toggle('bigtext', bigText()); return settings(); }
     case 'lowfx': { try { localStorage.setItem('idol-maker-lowfx', lowFx() ? '0' : '1'); } catch (e) { } document.body.classList.toggle('lowfx', lowFx()); return settings(); }
     case 'save-out': return saveOut();
     case 'save-in': return saveIn();
@@ -3154,6 +3158,7 @@ function warmUp() {
 if (S && S.promo && S.promo.kind === 'unit' && S.promo.mids && S.promo.uname) { S.units = S.units || {}; S.units[unitKey(S.promo.mids)] = S.units[unitKey(S.promo.mids)] || S.promo.uname; }   // 지금 활동 중인 유닛 이름 기억
 if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 document.body.classList.toggle('lowfx', lowFx());
+document.documentElement.classList.toggle('bigtext', bigText());
 ensureRes();
 render();
 if (!S) fillNames();
