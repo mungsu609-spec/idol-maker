@@ -259,6 +259,10 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 @keyframes head{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
 @keyframes nod{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg)}}
 .st3host{position:relative;margin-bottom:12px}
+.hearts{z-index:1;position:absolute;inset:3px;border-radius:12px;overflow:hidden;pointer-events:none}
+.hearts i{position:absolute;bottom:-12%;font-style:normal;font-size:calc(20px * var(--s));opacity:0;filter:drop-shadow(0 0 6px rgba(255,120,170,.7));animation:heartup var(--t) ease-in var(--d) infinite}
+@keyframes heartup{0%{transform:translate(0,0) scale(.6);opacity:0}12%{opacity:.95}50%{transform:translate(var(--x),-55%) scale(1)}100%{transform:translate(calc(var(--x) * -1),-110%) scale(1.1);opacity:0}}
+@media (prefers-reduced-motion:reduce){.hearts{display:none}}
 .st3host>svg.scene{margin-bottom:0}
 .st3host>img.bgimg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:3px solid var(--gold);box-shadow:0 3px 0 var(--goldd)}
 .winfx{position:absolute;inset:3px;border-radius:12px;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,230,140,.35) 0 8deg,transparent 8deg 22deg);mix-blend-mode:screen;animation:winspin 12s linear infinite}
@@ -1476,10 +1480,12 @@ const BGS = ['dating', 'stalker', 'stage', 'practice', 'vocal', 'camera', 'act',
 const BG_ALIAS = { win: 'stage' };   // 1위 = 음악 방송 무대 + 빛 효과 (예전 win 그림은 연습실이라 안 씀)
 const DORM_BG = { d1: 'dorm_old', d2: 'dorm', d3: 'dorm_two', d6: 'dorm_house', d4: 'dorm_office', d5: 'dorm_lux' };   // 숙소 6종 모두 다른 그림
 const dormBg = () => DORM_BG[(S && S.dorm ? dormOf() : DORMS[1]).id] || 'dorm';
+// 열애설(심야 데이트) 배경: 하트가 아래에서 위로 떠오르며 사라짐 (CSS만, 돈 안 듦)
+const heartsFx = () => `<div class="hearts">${Array.from({ length: 12 }, (_, i) => `<i style="left:${(5 + i * 8 + (i * 37) % 7)}%;--d:${(i * .73) % 6}s;--t:${4.2 + (i * 1.3) % 2.4}s;--s:${.8 + (i * .29) % .7};--x:${(i % 2 ? 1 : -1) * (6 + i % 4 * 4)}px">${['💗', '💕', '💖', '❤️'][i % 4]}</i>`).join('')}</div>`;
 function bgHTML(kind) {
   if (kind === 'dorm') kind = dormBg();
   const k = BGS.includes(kind) ? kind : BGS.includes(BG_ALIAS[kind]) ? BG_ALIAS[kind] : null;
-  return k ? `<img class="bgimg" src="art/bg/${k}.webp${CATV}" alt=""><div class="vig"></div>${kind === 'win' ? '<div class="winfx"></div>' : ''}` : scene(kind, [], kind !== 'clinic');
+  return k ? `<img class="bgimg" src="art/bg/${k}.webp${CATV}" alt=""><div class="vig"></div>${kind === 'win' ? '<div class="winfx"></div>' : ''}${kind === 'dating' ? heartsFx() : ''}` : scene(kind, [], kind !== 'clinic');
 }
 // 장면별 조명: 고양이 색을 배경 빛에 맞추기 [빨강·초록·파랑 곱하기, 밝기 더하기], 무대는 바닥 조명(스포트라이트)
 const LIGHT = {
