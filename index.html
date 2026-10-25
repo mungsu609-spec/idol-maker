@@ -475,6 +475,10 @@ const ri = (a, b) => Math.floor(rand(a, b + 1));
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+// 조사 고르기: 끝 글자 받침이 있으면 a, 없으면 b ('로'는 받침 ㄹ이면 '로')
+const jong = w => { const c = String(w).charCodeAt(String(w).length - 1); return c >= 0xAC00 && c <= 0xD7A3 ? (c - 0xAC00) % 28 : 0; };
+const josa = (w, a, b) => w + (jong(w) ? a : b);
+const ro = w => w + (jong(w) && jong(w) !== 8 ? '으로' : '로');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = () => Math.random().toString(36).slice(2, 9);
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -1460,7 +1464,7 @@ function acceptOffer(id) {
   const o = S.offers.find(x => x.id === id); if (!o) return;
   const m = S.members.find(x => x.id === o.mid);
   if (!m) { S.offers = S.offers.filter(x => x !== o); render(); return; }
-  if (m.busy) { alert(`${m.name}은(는) 지금 ${BUSY[m.busy.type]} 중이라 받을 수 없어요.`); return; }
+  if (m.busy) { alert(`${josa(m.name, '은', '는')} 지금 ${BUSY[m.busy.type]} 중이라 받을 수 없어요.`); return; }
   tally('offer'); tally(o.type === 'variety' && o.regular ? 'varietyReg' : o.type); if (o.type === 'drama' && o.role === '주연') tally('lead'); if (o.type === 'movie' && o.role === '주연') tally('movieLead');
   if (o.type === 'ad') {
     m.ad = { brand: o.brand, fee: o.fee, left: AD_WEEKS }; m.busy = { type: 'adshoot', left: 1 };
@@ -1623,16 +1627,16 @@ function dormPenalty() { const d = dormOf(); return d.cost * Math.max(0, MIN_CON
 function moveDorm(id) {
   const to = DORMS.find(d => d.id === id); if (!to || to.id === dormOf().id) return;
   const pen = dormPenalty(), move = 500;
-  if (!confirm(`${to.name}(으)로 이사할까요?\n이사 비용 ${money(move)}${pen ? ` + 지금 숙소 위약금 ${money(pen)}` : ''}`)) return;
+  if (!confirm(`${ro(to.name)} 이사할까요?\n이사 비용 ${money(move)}${pen ? ` + 지금 숙소 위약금 ${money(pen)}` : ''}`)) return;
   S.money -= move + pen; S.dorm = { id: to.id, since: S.week };
-  news('info', `🏠 ${to.name}(으)로 이사했어요!`);
+  news('info', `🏠 ${ro(to.name)} 이사했어요!`);
   save(); render();
 }
 function signVendor(kind, id) {
   const cur = S.contracts[kind];
   if (cur) { if (!terminate(kind, true)) return; }
   S.contracts[kind] = { id, since: S.week };
-  news('info', `${VENDORS[kind].list.find(v => v.id === id).name}와(과) 계약했어요.`);
+  news('info', `${josa(VENDORS[kind].list.find(v => v.id === id).name, '과', '와')} 계약했어요.`);
   save(); render();
 }
 function penaltyOf(kind) {
