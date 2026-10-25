@@ -505,7 +505,14 @@ function concertWhy() {
   if (S.week - S.lastConcert < 12) return `다음 콘서트까지 ${12 - (S.week - S.lastConcert)}주`;
   return '';
 }
+// 12월 4주 = 연말 무대 주. 조건이 되면 그룹 일정이 '연말 무대'로 고정
+const isYearEndWeek = () => { const d = dateOf(S.week); return d.m === 12 && d.k === 4; };
+function yearEndWhy() { if (!debuted()) return '데뷔 후 설 수 있어요'; if (S.fame < 25) return `인지도 25 필요 (지금 ${Math.round(S.fame)})`; return ''; }
 function gaOptions() {
+  if (isYearEndWeek()) {
+    const why = yearEndWhy();
+    if (!why) return [{ id: 'yearend', label: '🎄 연말 무대', desc: '이번 주는 연말 무대에 모두 함께 서요 · 출연료 1,500만 · 팬 크게 증가 · 피로 +15 · 시상식 수상 기회', fixed: true }];
+  }
   const o = [{ id: 'none', label: '없음', desc: '각자 개인 스케줄을 해요' },
   { id: 'live', label: '📱 팬 소통 라이브', desc: '팬이 늘어요. 인성이 낮으면 말실수할 수 있어요' }];
   if (!S.promo) {
@@ -515,12 +522,14 @@ function gaOptions() {
   }
   const fw = fansignWhy();
   o.push({ id: 'fansign', label: '✍️ 팬싸인회', desc: fw || `비용 300만 · 앨범이 팔리고 팬과 인기가 늘어요 · ${S.promo && S.promo.kind !== 'group' ? promoWho(S.promo) + ' 멤버만' : '참여 멤버'} 피로 +8`, ok: !fw });
+  if (isYearEndWeek()) o.unshift({ id: 'yearend', label: '🎄 연말 무대', desc: yearEndWhy(), ok: false });
   return o;
 }
 function forcedLabel(m) {
   if (m.busy) return `${BUSY[m.busy.type]} (${m.busy.left}주 남음)`;
   if (S.ga === 'concert') return '단독 콘서트';
   if (S.ga === 'festival') return '페스티벌';
+  if (S.ga === 'yearend') return '연말 무대';
   if (S.promo && inPromo(m)) return S.promo.phase === 'prep' ? `${promoKindLabel(S.promo)}컴백 준비 (녹음·안무)` : `${promoKindLabel(S.promo)}음악 방송`;
   return '';
 }
@@ -532,7 +541,7 @@ function endWeek() {
   REP = { title: dateStr(w) + ' 결과', lines: [], chart: null, inc: [], exp: [], deltas: [], scene: 'practice', crew: {} };
   const before = new Map(S.members.map(m => [m.id, { ...m.stats, fatigue: m.fatigue }]));
   const fans0 = S.fans, fame0 = S.fame;
-  let ga = S.ga; if (!gaOptions().some(o => o.id === ga && o.ok !== false)) ga = 'none';
+  const gaO = gaOptions(); let ga = gaO[0].fixed ? gaO[0].id : S.ga; if (!gaO.some(o => o.id === ga && o.ok !== false)) ga = 'none';
   const P = S.promo;
   const avail = S.members.filter(m => !m.busy);
   const availP = P ? promoMembers().filter(m => !m.busy) : [];
@@ -545,6 +554,7 @@ function endWeek() {
     if (m.busy) { tickBusy(m); continue; }
     if (ga === 'concert' || ga === 'festival') { addFat(m, 20); gain(m, 'vocal', 1.5); gain(m, 'dance', 1.5); gain(m, 'camera', 1.5); }
     else if (P && inPromo(m) && P.phase === 'prep') { addFat(m, 12); gain(m, 'vocal', 2.5); gain(m, 'dance', 2.5); }
+    else if (ga === 'yearend' && !(P && inPromo(m))) { gain(m, 'camera', 1); }
     else if (P && inPromo(m) && P.phase === 'on') { addFat(m, 15); gain(m, 'camera', 1.5); m.pop += (m.stats.visual + m.stats.camera) / 80 * (P.kind === 'solo' ? 2.5 : P.kind === 'unit' ? 1.5 : 1); }
     else { const s = SCHED[m.sched] || SCHED.rest; train += s.cost; doSched(m, s); }
     if (ga === 'live') addFat(m, 4);
@@ -613,7 +623,7 @@ function endWeek() {
   if (ga === 'live') {
     const p = avg(S.members.map(m => m.stats.person)), lang = avg(S.members.map(m => m.stats.lang));
     const f = Math.round((150 + Math.sqrt(S.fans) * 6) * (0.6 + p / 100) * (1 + lang / 200));
-    setScene('live'); S.fans += f; REP.lines.push(`📱 팬 소통 라이브 · 팬 +${num(f)}`);
+    setScene('live'); REP.crew.live = S.members.filter(m => !m.busy && m.sched !== 'rest' && m.sched !== 'health').map(m => m.id); S.fans += f; REP.lines.push(`📱 팬 소통 라이브 · 팬 +${num(f)}`);
   } else if (ga === 'concert') {
     spend(5000, '콘서트 준비 비용'); setScene('concert');
     const sold = Math.round(Math.min(S.fans * 0.4, 3000 + S.fame * 300));
@@ -754,7 +764,7 @@ function dramaEnd(m) {
   const f = Math.round(rating * 300);
   S.fans += f; m.pop += rating; S.fame = clamp(S.fame + rating * 0.2, 0, 100);
   news('win', `${m.name} 출연 드라마 ${dr.title} 종영 · 시청률 ${rating.toFixed(1)}% · 팬 +${num(f)}`);
-  setScene('drama'); REP.lines.push(`🎬 ${m.name} 드라마 ${dr.title} 종영 · 시청률 ${rating.toFixed(1)}%`);
+  setScene('drama'); (REP.crew.drama = REP.crew.drama || []).push(m.id); REP.lines.push(`🎬 ${m.name} 드라마 ${dr.title} 종영 · 시청률 ${rating.toFixed(1)}%`);
   m.drama = null;
 }
 function yearEnd(avail) {
@@ -763,7 +773,7 @@ function yearEnd(avail) {
   if (S.fame < 25) { news('info', '연말 무대에 초대받지 못했어요. (인지도 25 이상 필요)'); REP.lines.push('🎄 연말 무대 초대 X (인지도 25 필요)'); return; }
   const st = stageScore(avail, null, 0);
   let f = Math.round(st * 40 * (1 + S.fame / 100));
-  earn(1500, '연말 무대 출연료'); setScene('yearend');
+  earn(1500, '연말 무대 출연료'); setScene('yearend'); REP.crew.yearend = avail.map(m => m.id);
   avail.forEach(m => addFat(m, 15));
   let award = null;
   if (S.fame >= 80 && S.yearTrophies >= 3) award = '대상';
@@ -1330,7 +1340,7 @@ function charSVG(m, o) {
     + LN('M100.5 112L98.5 117.5L101 118', shade(sk, -.3), 1.4) + mouth
     + hairFront(L) + acc2 + st;
 }
-function onStage() { return S && ((S.promo && S.promo.phase === 'on') || S.ga === 'concert' || S.ga === 'festival'); }
+function onStage() { return S && ((S.promo && S.promo.phase === 'on') || S.ga === 'concert' || S.ga === 'festival' || S.ga === 'yearend'); }
 function stageOutfitNow() {
   if (S && S.promo && V2_OUT[S.promo.outfit]) return S.promo.outfit;
   if (S && !S.promo && S.albums && S.albums.length && V2_OUT[S.albums[S.albums.length - 1].outfit]) return S.albums[S.albums.length - 1].outfit;
@@ -1728,10 +1738,11 @@ const gradeBadge = (g, inline) => `<span class="grade${inline ? ' inline' : ''}"
 function statBars(m, two) {
   return `<div class="${two ? 'stats2' : ''}">${STATS.map(([k, l]) => `<div class="stat"><span>${l}</span><div class="bar"><i style="width:${m.stats[k]}%;--c:${STATC[k]}"></i></div><b>${Math.round(m.stats[k])}</b></div>`).join('')}</div>`;
 }
-const TIPS = ['콘셉트마다 잘 맞는 능력치가 달라요. 멤버를 눌러 확인해 보세요.', '의상·메이크업 업체와 계약하면 무대 점수가 올라가요.', '인성이 낮으면 유명해질수록 논란이 잘 생겨요.', '외국어가 높으면 해외 팬이 더 많이 늘어요.', '연기를 키우면 드라마 주연 제의가 와요.', '멤버를 누르면 헤어와 연습복을 바꿀 수 있어요.'];
+const TIPS = ['콘셉트마다 잘 맞는 능력치가 달라요. 멤버를 눌러 확인해 보세요.', '의상·메이크업 업체와 계약하면 무대 점수가 올라가요.', '인성이 낮으면 유명해질수록 논란이 잘 생겨요.', '외국어가 높으면 해외 팬이 더 많이 늘어요.', '연기를 키우면 드라마 주연 제의가 와요.', '멤버를 누르면 옷 갈아입기·소품 장착을 할 수 있어요.'];
 function managerLine() {
   const P = S.promo, go = (t, l) => `<button class="btn small" data-tab="${t}">${l}</button>`;
   const pw = P && P.kind && P.kind !== 'group' ? `${esc(promoWho(P))} ${promoKindLabel(P)}` : '';
+  if (isYearEndWeek()) { const why = yearEndWhy(); return [why ? `올해 연말 무대는 아쉽게도 못 서요. (${esc(why)}) 내년엔 꼭 서 봐요!` : '이번 주는 연말 무대예요! 🎄 모두 함께 무대에 서요. 상을 받을 수도 있어요.', '']; }
   if (P && P.phase === 'prep') return [`${pw}「${esc(P.title)}」 ${P.debut ? '데뷔' : '컴백'} 준비 중이에요! ${P.left}주 뒤면 음악 방송이에요.${pw ? ' 나머지 멤버는 평소 스케줄을 해요.' : ''}`, ''];
   if (P) return [`${pw}「${esc(P.title)}」 음악 방송 ${P.wk + 1}/${P.weeks}주차예요. ${pw ? '활동 멤버가' : '모두'} 무대에 집중하고 있어요!`, ''];
   const tired = S.members.filter(m => !m.busy && m.fatigue >= 70);
@@ -1759,7 +1770,7 @@ ${TAB !== 'plan' ? '' : '<div class="go"><button class="btn" data-act="end-week"
 <nav><div>${tabs.map(([id, l]) => `<button class="${TAB === id ? 'on' : ''}" data-tab="${id}"><span class="ti">${TABICON[id]}</span>${l}</button>`).join('')}</div></nav>`;
 }
 function planHTML() {
-  const opts = gaOptions(); if (!opts.some(o => o.id === S.ga && o.ok !== false)) S.ga = 'none';
+  const opts = gaOptions(); if (opts[0].fixed) S.ga = opts[0].id; else if (!opts.some(o => o.id === S.ga && o.ok !== false)) S.ga = 'none';
   const cur = opts.find(o => o.id === S.ga);
   let train = 0;
   const rows = S.members.map(m => {
@@ -1983,7 +1994,7 @@ function showReport(r) {
   if (S.pending.length) h += `<p class="neg" style="margin-top:12px"><b>⚠️ 논란이 ${S.pending.length}건 생겼어요!</b></p>`;
   h += `<button class="btn" data-act="next-popup" style="width:100%;margin-top:12px">${S.pending.length ? '논란 대처하기' : '확인'}</button>`;
   openDlg(top + `<div class="rep-body">${h}</div><p class="skip muted">눌러서 바로 보기</p>`);
-  if (r.scene !== 'clinic') { const ids = r.crew && r.crew[r.scene === 'win' ? 'stage' : r.scene]; mount2d($('#st3host'), ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : S.members.filter(m => !m.busy), r.scene); }
+  if (r.scene !== 'clinic') { const ids = r.crew && r.crew[r.scene === 'win' ? (r.yearWin ? 'yearend' : 'stage') : r.scene]; mount2d($('#st3host'), ids && ids.length ? S.members.filter(m => ids.includes(m.id)) : S.members.filter(m => !m.busy), r.scene); }
   const body = $('#dlgBody'); body.classList.add('intro');
   [...body.querySelectorAll('.rep-body > *')].forEach((el, i) => el.style.setProperty('--i', i));
   const fmt = { '💗 팬': n => (n >= 0 ? '+' : '') + num(n), '💰 자금': n => (n >= 0 ? '+' : '') + money(n), '⭐ 인지도': n => (n >= 0 ? '+' : '') + n };
