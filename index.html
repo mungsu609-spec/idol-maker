@@ -182,6 +182,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.gtabs{justify-content:center;flex-wrap:nowrap;gap:5px}.gtabs .chip{padding:5px 9px;font-size:13.5px;white-space:nowrap}
 .pvjump{position:sticky;top:0;z-index:5;margin:0 -16px 10px;padding:8px 16px;background:rgba(255,240,246,.94);backdrop-filter:blur(4px);flex-wrap:nowrap;overflow-x:auto}
 .pvjump .chip{flex:none;padding:4px 10px;font-size:13.5px}
 .pvjump{scrollbar-width:none}.pvjump::-webkit-scrollbar{display:none}
@@ -1124,6 +1125,7 @@ function tickMission(final) {   // final: 한 주가 끝났을 때 (실패·달 
     if (d.keep) { if (final && !d.keep(x)) fail = true; else if (final && S.week >= x.until) ok = true; }
     else if (mCur(x) >= x.t) ok = true;
     else if (final && S.week >= x.until) fail = true;
+    if (ok || fail) (S.mHist = S.mHist || []).unshift({ l: x.label, ok, w: S.week }), S.mHist.length = Math.min(S.mHist.length, 6);
     if (ok) { x.done = 'ok'; tally('missionOk'); earn(x.reward, '📋 매니저 미션 보상'); news('win', `📋 매니저 미션 성공: ${x.label} · 보상 ${money(x.reward)}`); REP && REP.lines.push(`📋 매니저 미션 성공! ${x.label} · 보상 ${money(x.reward)}`); }
     if (fail) { x.done = 'fail'; news('info', `📋 매니저 미션 실패: ${x.label}`); REP && REP.lines.push(`📋 매니저 미션 실패: ${x.label}`); }
   }
@@ -1166,6 +1168,10 @@ const ACH = [
   ['ending5', '📖', '엔딩 5가지 모으기', () => Object.keys(META.endings).length >= 5],
   ['endingAll', '📖', '엔딩 모두 모으기', () => ENDINGS.every(e => META.endings[e.id])],
 ];
+const ACH_PROG = { win10: () => [S.trophies, 10], win30: () => [S.trophies, 30], daesang3: () => [awardN('대상'), 3], fans1: () => [S.fans, 10000], fans10: () => [S.fans, 100000], fans100: () => [S.fans, 1000000],
+  rich: () => [S.money, 100000], concert5: () => [cnt('concert'), 5], ad5: () => [cnt('ad'), 5], seven: () => [S.members.length, 7], concepts: () => [new Set(S.albums.map(a => a.concept)).size, CONCEPTS.length],
+  mission10: () => [cnt('missionOk'), 10], ending5: () => [Object.keys(META.endings).length, 5], endingAll: () => [Object.keys(META.endings).length, ENDINGS.length] };
+const achProg = id => { const f = ACH_PROG[id]; if (!f || !S) return ''; const [a, b] = f(), big = b >= 10000; return `${big ? (b === 100000 && id === 'rich' ? moneyShort(Math.max(0, a)) : num(Math.max(0, a))) : Math.max(0, a)} / ${big ? (id === 'rich' ? moneyShort(b) : num(b)) : b}`; };
 function checkAch() {
   let any = false;
   for (const [id, ic, l, ok] of ACH) if (!META.ach[id] && ok()) {
@@ -1295,13 +1301,13 @@ function goalsDlg(tab) {
   if (GTAB === 'goal') h = `<p class="muted center">하나씩 차례대로 이뤄 보세요. 이루면 보상을 받아요.</p><div class="glist">${GOALS.map((g, i) => { const done = i < (S.goal || 0), cur = i === (S.goal || 0);
     return `<div class="gi${done ? '' : cur ? ' cur' : ' off'}"><span>${done ? '✅' : cur ? '🎯' : '⬜'}</span><div><b>${esc(g.label)}</b><small>${done && S.goalW && S.goalW[i] != null ? `${dateStr(S.goalW[i])}에 달성 · ` : ''}보상 ${rewardText(g)}</small></div></div>`; }).join('')}</div>`;
   else if (GTAB === 'mission') { const x = S.mission;
-    h = `<p class="muted center">매달 첫째 주에 매니저가 새 미션을 줘요.</p>${x ? `<div class="glist"><div class="gi cur"><span>📋</span><div><b>${esc(x.label)}</b><small>${missionState(x)}</small></div></div></div>` : ''}<p class="center">지금까지 성공 <b>${cnt('missionOk')}</b>번</p>`; }
+    h = `<p class="muted center">매달 첫째 주에 매니저가 새 미션을 줘요.</p>${x ? `<div class="glist"><div class="gi cur"><span>📋</span><div><b>${esc(x.label)}</b><small>${missionState(x)}</small></div></div></div>` : ''}<p class="center">지금까지 성공 <b>${cnt('missionOk')}</b>번</p>${(S.mHist || []).length ? `<h3>지난 미션</h3><div class="glist">${S.mHist.map(h => `<div class="gi${h.ok ? '' : ' off'}"><span>${h.ok ? '✅' : '❌'}</span><div><b>${esc(h.l)}</b><small>${dateStr(h.w - 1)} · ${h.ok ? '성공' : '실패'}</small></div></div>`).join('')}</div>` : ''}`; }
   else if (GTAB === 'ach') { const n = ACH.filter(a => META.ach[a[0]]).length;
-    h = `<p class="muted center">업적은 새 게임을 해도 남아요. (${n} / ${ACH.length})</p><div class="glist">${ACH.map(([id, ic, l]) => `<div class="gi${META.ach[id] ? '' : ' off'}"><span>${META.ach[id] ? ic : '🔒'}</span><div><b>${esc(l)}</b>${META.ach[id] ? `<small>${esc(META.ach[id].g)} · ${dateStr(META.ach[id].w)}</small>` : ''}</div></div>`).join('')}</div>`; }
+    h = `<p class="muted center">업적은 새 게임을 해도 남아요. (${n} / ${ACH.length})</p><div class="glist">${ACH.map(([id, ic, l]) => `<div class="gi${META.ach[id] ? '' : ' off'}"><span>${META.ach[id] ? ic : '🔒'}</span><div><b>${esc(l)}</b>${META.ach[id] ? `<small>${esc(META.ach[id].g)} · ${dateStr(META.ach[id].w)}</small>` : achProg(id) ? `<small>지금 ${achProg(id)}</small>` : ''}</div></div>`).join('')}</div>`; }
   else { const n = ENDINGS.filter(e => META.endings[e.id]).length;
     h = `<p class="muted center">${CONTRACT_YEARS}년 계약이 끝나면 기록에 따라 엔딩이 정해져요. 위에 있는 엔딩일수록 먼저 골라져요. (${n} / ${ENDINGS.length})</p><div class="glist">${ENDINGS.map(e => { const seen = META.endings[e.id];
       return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small></div></div>`; }).join('')}</div>`; }
-  openDlg(`<h2>목표</h2><div class="chips" style="justify-content:center">${tabs.map(([k, l]) => `<button class="chip${GTAB === k ? ' on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>${h}<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
+  openDlg(`<h2>목표</h2><div class="chips gtabs">${tabs.map(([k, l]) => `<button class="chip${GTAB === k ? ' on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>${h}<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
 }
 
 // ===== 제의 (광고·드라마·예능) =====
