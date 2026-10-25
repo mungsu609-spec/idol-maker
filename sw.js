@@ -1,5 +1,5 @@
 // 인터넷이 없어도 열리도록 앱 파일을 저장해 둠. 앱을 고치면 VERSION 숫자를 올릴 것.
-const VERSION = "v79";
+const VERSION = "v80";
 // 그림·라이브러리 보관함: 앱(VERSION)을 업데이트해도 지우지 않음. 그림이 바뀌면 주소의 ?v= 번호(index.html의 CATV)가 바뀌어 새로 받음
 const ART = "idol-art";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
