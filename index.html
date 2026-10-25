@@ -1643,7 +1643,8 @@ function startComeback() {
     const who = mids ? S.members.filter(m => mids.includes(m.id)) : S.members, young = who.filter(m => (m.age || 18) < 19);
     if (young.length) return alert(`섹시 콘셉트는 성인(만 19세 이상) 멤버만 할 수 있어요.\n미성년자: ${young.map(m => `${m.name}(만 ${m.age}세)`).join(', ')}`);
   }
-  if (S.money < TIERS[tier].cost && !confirm('자금이 모자라요. 빚을 내서라도 진행할까요?')) return;
+  if (S.money < TIERS[tier].cost && !confirm(`자금이 모자라요. 빚을 내서라도 진행할까요?
+제작비를 내면 자금이 ${money(S.money - TIERS[tier].cost)}가 돼요. -1억 아래로 떨어지면 파산해요!`)) return;
   S.money -= TIERS[tier].cost;
   const debut = S.albums.length === 0;
   S.promo = { phase: 'prep', left: 2, concept, title, weeks, tier, best: 99, wins: 0, wk: 0, debut: debut && kind === 'group', outfit: $('#cbOutfit') ? $('#cbOutfit').value : catStageOutfits(concept)[0], kind, mids, uname };
