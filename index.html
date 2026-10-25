@@ -1353,7 +1353,7 @@ function goalsDlg(tab) {
     h = `<p class="muted center">업적은 새 게임을 해도 남아요. (${n} / ${ACH.length})</p><div class="glist">${ACH.map(([id, ic, l]) => `<div class="gi${META.ach[id] ? '' : ' off'}"><span>${META.ach[id] ? ic : '🔒'}</span><div><b>${esc(l)}</b>${META.ach[id] ? `<small>${esc(META.ach[id].g)} · ${dateStr(META.ach[id].w)}</small>` : achProg(id) ? `<small>지금 ${achProg(id)}</small>` : ''}</div></div>`).join('')}</div>`; }
   else { const n = ENDINGS.filter(e => META.endings[e.id]).length;
     h = `<p class="muted center">${CONTRACT_YEARS}년 계약이 끝나면 기록에 따라 엔딩이 정해져요. 위에 있는 엔딩일수록 먼저 골라져요. (${n} / ${ENDINGS.length})</p><div class="glist">${ENDINGS.map(e => { const seen = META.endings[e.id];
-      return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small></div></div>`; }).join('')}</div>`; }
+      return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small></div>${seen && S && S.members.length ? `<button class="btn sub small" data-endview="${e.id}" style="margin-left:auto;flex:none">보기</button>` : ''}</div>`; }).join('')}</div>`; }
   openDlg(`<h2>목표</h2><div class="chips gtabs">${tabs.map(([k, l]) => `<button class="chip${GTAB === k ? ' on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>${h}<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
 }
 
@@ -2866,6 +2866,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.endview) { const e = ENDINGS.find(x => x.id === d.endview); if (!e) return; openDlg(`${endScene(e.id)}${endingCard(e, e.text || (e.id === 'bankrupt' ? '자금이 -1억 아래로 떨어져 회사가 파산했어요.' : '멤버가 모두 떠나 그룹이 해체됐어요.'))}<button class="btn sub" data-gtab="ending" style="width:100%">◀ 엔딩 도감으로</button>`); if (e.id !== 'disband') mountEnd(e.id); return; }
   if (d.kpi) return toast(['💰 자금: 지금 회사에 있는 돈이에요. -1억 아래로 떨어지면 파산해요.', '💗 팬: 음악 방송·팬싸·라이브·예능으로 늘고, 공백기가 길면 떠나요.', '⭐ 인지도: 높을수록 제의가 자주 오고 시상식·순위에 유리해요. 활동을 쉬면 조금씩 내려가요.', '🏆 음방 1위: 지금까지 음악 방송에서 1위를 한 횟수예요.'][+d.kpi]);
   if (d.msort) { MSORT = d.msort; return render(); }
   if (d.fold) { FOLD.has(d.fold) ? FOLD.delete(d.fold) : FOLD.add(d.fold); return render(); }
