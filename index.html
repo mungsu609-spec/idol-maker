@@ -1520,7 +1520,9 @@ function liveFx() {
   const nm = S.members.length ? S.members.map(m => m.name) : ['리더'], who = S.gender === 'boy' ? '오빠' : '언니';
   const C = [`${who}들 너무 귀여워 😍`, '사랑해요 💕', '노래 한 소절만~ 🎤', '👏👏👏', '다음 컴백 언제예요?', '밥은 먹었어? 🍚', 'ㅋㅋㅋㅋㅋ', '심장 아파요 💘', '방송 켜줘서 고마워!', '1등 댓글 🥇', '오늘 컨디션 최고!', 'Hello from LA 👋', '머리 바꿨어?? 찰떡', '꿈에 나와 주세요 🌙', ...nm.slice(0, 6).map((n, i) => [`${n} 최고!!`, `${n} 손 흔들어 줘 🙌`, `${n} 보러 왔어요`][i % 3])];
   const pk = shuffle(C);
-  return `<div class="livefx">${Array.from({ length: 10 }, (_, i) => `<i class="${i % 2 ? 'r' : ''}" style="${i % 2 ? 'right' : 'left'}:${2 + (i * 5) % 9}%;--d:-${(i * .83).toFixed(2)}s;--t:${(7 + (i * .7) % 2).toFixed(1)}s"><span>${esc(pk[i % pk.length])}</span></i>`).join('')}</div>`;
+  // 같은 쪽 말풍선은 같은 속도·같은 간격으로 (속도가 다르면 따라잡아 겹침), 오른쪽은 반 칸 엇갈림
+  const N = 5, T = 9;
+  return `<div class="livefx">${Array.from({ length: N * 2 }, (_, i) => { const r = i % 2, k = i >> 1; return `<i class="${r ? 'r' : ''}" style="${r ? 'right' : 'left'}:${2 + (k * 3) % 7}%;--d:-${((k + r * .5) * T / N).toFixed(2)}s;--t:${T}s"><span>${esc(pk[i % pk.length])}</span></i>`; }).join('')}</div>`;
 }
 const SCANDAL_FX = `<div class="scfx">${[[13, 42], [22, 55], [31, 44], [39, 52], [47, 40], [55, 47], [63, 41], [71, 50], [80, 38], [88, 46], [27, 36], [60, 56]].map(([x, y], i) => `<b class="fl" style="left:${x}%;top:${y}%;--d:-${((i * .53) % 2).toFixed(2)}s;--t:${(1.6 + (i * .37) % 1.1).toFixed(2)}s"></b>`).join('')}</div>`;
 function bgHTML(kind) {
