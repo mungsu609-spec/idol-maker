@@ -183,6 +183,8 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.chip.lightc{color:var(--lc);text-shadow:0 0 1px rgba(0,0,0,.15)}.chip.lightc.on{background:var(--lc);color:#fff;border-color:var(--lc)}
+#dlgBody input[type=text]{border:2px solid var(--gold);border-radius:12px;padding:8px 10px;background:#fffdf6;font:inherit}
 html.bigtext body{zoom:1.1}
 .overbtns{display:grid;gap:8px;max-width:300px;margin:4px auto 30px}
 .schint{margin:6px 0;padding:7px 10px;border-radius:10px;background:#f1f6ff;font-size:13px;color:var(--sub)}
@@ -479,6 +481,11 @@ const avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
 const jong = w => { const c = String(w).charCodeAt(String(w).length - 1); return c >= 0xAC00 && c <= 0xD7A3 ? (c - 0xAC00) % 28 : 0; };
 const josa = (w, a, b) => w + (jong(w) ? a : b);
 const ro = w => w + (jong(w) && jong(w) !== 8 ? '으로' : '로');
+// 팬클럽 이름·응원봉 색 (시작 화면·설정에서 정함)
+const FANDOMS = ['냥덕', '츄르단', '꾹꾹이', '별냥이', '골골송', '젤리단', '솜뭉치', '캔따개'];
+const LIGHTS = [['#ff7ab6', '핑크'], ['#a98bff', '보라'], ['#7ad0ff', '하늘'], ['#ffd24a', '노랑'], ['#7ee0a3', '민트'], ['#ff6b6b', '빨강']];
+const fandom = () => (S && S.fandom) || '팬클럽';
+const lightC = () => (S && S.light) || '#ff7ab6';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const uid = () => Math.random().toString(36).slice(2, 9);
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -731,7 +738,7 @@ function recapHTML(r) {
     ['💰 늘어난 자금', `${r.money >= 0 ? '+' : ''}${money(r.money)}`], ['🎆 콘서트 · ✍️ 팬싸', `${r.concert}번 · ${r.fansign}번`], ['📢 광고 · 🎬 드라마 · 🎥 영화', `${r.ad} · ${r.drama} · ${r.movie}`], ['📺 예능', `${r.variety}번`],
     ['📋 미션 성공', `${r.mission}번`], ['🚨 논란', `${r.scandal}번`]];
   return `<h2>🎉 ${r.y}년차 결산</h2>${managerHTML(talk)}<div class="money-list" style="margin-top:10px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
-<p class="muted center" style="margin-top:8px">새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.</p><button class="btn" data-act="next-popup" style="width:100%;margin-top:6px">${r.y + 1}년차 시작!</button>`;
+<p class="muted center" style="margin-top:8px">새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.<br>올해도 ${esc(josa(fandom(), '과', '와'))} 함께해요 💗</p><button class="btn" data-act="next-popup" style="width:100%;margin-top:6px">${r.y + 1}년차 시작!</button>`;
 }
 // 작은 선택 이벤트: 가끔 한 주가 끝나면 두 가지 중 하나를 고름 (효과는 작게)
 const stat = (m, k, v) => { m.stats[k] = clamp(m.stats[k] + v, 0, 100); };
@@ -1317,7 +1324,7 @@ const fxLayers = (back, front, flash) => (back ? `<div class="efx">${back}</div>
 function eventFx(kind) {
   const W = ['#fff1c4', '#ffd98a', '#ffe8f2'];
   return {
-    concert: () => fxLayers(fxBeams(4, NEON) + fxBokeh(7, NEON) + fxWorks(3, ['#ff7ad9', '#ffd24a', '#7ad0ff'])),
+    concert: () => fxLayers(fxBeams(4, [lightC(), '#ffffff', lightC()]) + fxBokeh(9, [lightC(), lightC(), '#ffffff']) + fxWorks(3, ['#ff7ad9', '#ffd24a', '#7ad0ff'])),
     fansign: () => fxLayers(fxBokeh(6, ['#ffc2dc', '#ffe3ee']), fxHearts(8) + fxPetals(10)),
     yearend: () => fxLayers(fxBokeh(8, W) + fxStars(6, ['#fff3b0']), fxSnow(36)),
     festival: () => fxLayers(fxWorks(3, ['#ffd24a', '#7ad0ff', '#ff9f5a']), fxBubbles(12)),
@@ -2633,7 +2640,7 @@ const fanSpark = () => spark(S.fh, `💗 팬 수 변화 (최근 ${(S.fh || []).l
 function recordHTML() {
   const best = S.albums.filter(a => a.best < 99).reduce((b, a) => Math.min(b, a.best), 99), d = S.debutYear;
   const aw = ['대상', '본상', '신인상'].map(a => [a, S.awards.filter(x => x.award === a).length]).filter(x => x[1]);
-  const rows = [['📅 데뷔', d ? `${d}년차` : '아직 데뷔 전'], ['💿 앨범', `${S.albums.length}장${best < 99 ? ` · 최고 ${best}위` : ''}`], ['🏆 음악 방송 1위', `${S.trophies}번`],
+  const rows = [['💗 팬클럽', `${esc(fandom())} · 응원봉 <span style="color:${lightC()}">●</span>`], ['📅 데뷔', d ? `${d}년차` : '아직 데뷔 전'], ['💿 앨범', `${S.albums.length}장${best < 99 ? ` · 최고 ${best}위` : ''}`], ['🏆 음악 방송 1위', `${S.trophies}번`],
     ['🏅 연말 시상식', aw.length ? aw.map(([a, n]) => `${a} ${n}번`).join(' · ') : '아직 없어요'], ['💗 최고 팬 수', `${num(Math.max(S.maxFans || 0, S.fans))}명`],
     ['🎆 단독 콘서트', `${cnt('concert')}번`], ['✍️ 팬싸인회', `${cnt('fansign')}번`], ['📢 광고', `${cnt('ad')}건`], ['🎬 드라마', `${cnt('drama')}편`], ['🎥 영화', `${cnt('movie')}편${cnt('tenM') ? ` (천만 ${cnt('tenM')})` : ''}`],
     ['📺 예능', `${cnt('variety') + cnt('varietyReg')}번`], ['📋 매니저 미션 성공', `${cnt('missionOk')}번`], ['🚨 논란', `${cnt('scandal')}번`]];
@@ -2648,6 +2655,8 @@ ${list.length > NEWSN ? `<button class="btn sub" data-act="news-more" style="wid
 function setupHTML() {
   return `<div class="setup"><div class="logo"><h1>아이돌 메이커</h1><p class="muted">나만의 아이돌 그룹을 키워 보세요 ✨</p></div><div id="suScene"></div>
 <div class="card"><label class="f">그룹 이름 <button class="btn sub small" data-act="rand-gname">🎲</button></label><input type="text" id="suName" value="LUMIÈRE" maxlength="20">
+<label class="f">팬클럽 이름 <button class="btn sub small" data-act="rand-fandom">🎲</button></label><input type="text" id="suFan" value="${pick(FANDOMS)}" maxlength="12">
+<label class="f">응원봉 색</label><div class="chips" id="suLight">${LIGHTS.map(([c, l], i) => `<button class="chip lightc${i ? '' : ' on'}" data-light="${c}" style="--lc:${c}">● ${l}</button>`).join('')}</div>
 <label class="f">그룹 종류</label><div class="chips"><button class="chip on" data-gender="girl">걸그룹</button><button class="chip" data-gender="boy">보이그룹</button></div>
 <label class="f">멤버 수</label><div class="chips">${[4, 5, 6, 7].map(n => `<button class="chip${n === 5 ? ' on' : ''}" data-count="${n}">${n}명</button>`).join('')}</div>
 <label class="f">멤버 (캐릭터·이름·나이) <button class="btn sub small" data-act="rand-names">🎲 이름 다시 뽑기</button></label><div id="suNames"></div>
@@ -2775,7 +2784,7 @@ const FAN_TALK = {
   prep: ['컴백 언제 와요… 기다리는 중', '티저 언제 나와요?!'], dorm: ['오늘은 푹 쉬어요!', '쉬는 모습도 귀여워'],
   practice: ['연습하는 거 보기만 해도 든든', '이번 컴백 기대돼요'], vocal: ['고음 연습 영상 풀어 주세요', '노래 실력 날로 늘어'],
 };
-function fanTalk(r) { if (r.fan === undefined && r.bday && debuted()) r.fan = pick([`${r.bday} 생일 축하해!!`, `세상에서 제일 귀여운 ${r.bday} 생일 축하해`, `${r.bday}, 태어나 줘서 고마워`]); if (r.fan === undefined) { const l = FAN_TALK[r.scene] || (TRAIN_SCENES.includes(r.scene) ? FAN_TALK.practice : null); r.fan = l && debuted() ? pick(l) : ''; } return r.fan; }
+function fanTalk(r) { if (r.fan === undefined && S.fandom && debuted() && Math.random() < .25 && ['stage', 'win', 'concert', 'fansign', 'yearend'].includes(r.scene)) r.fan = pick([`${josa(S.fandom, '은', '는')} 언제나 ${S.name} 편이야!`, `${S.fandom} 응원봉 들고 왔어요!`, `${S.name} 사랑해 ♡ - ${S.fandom} 일동`]); if (r.fan === undefined && r.bday && debuted()) r.fan = pick([`${r.bday} 생일 축하해!!`, `세상에서 제일 귀여운 ${r.bday} 생일 축하해`, `${r.bday}, 태어나 줘서 고마워`]); if (r.fan === undefined) { const l = FAN_TALK[r.scene] || (TRAIN_SCENES.includes(r.scene) ? FAN_TALK.practice : null); r.fan = l && debuted() ? pick(l) : ''; } return r.fan; }
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
   const d0 = dateOf(S.week - 1), d1 = dateOf(S.week);
@@ -2866,6 +2875,7 @@ function settings() {
   openDlg(`<h2>설정</h2><p class="muted center">게임은 이 브라우저에 자동으로 저장돼요.</p>
 <a class="btn" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
 <button class="btn sub" data-act="howto" style="width:100%;margin-bottom:8px">📖 게임 방법</button>
+<button class="btn sub" data-act="fandom" style="width:100%;margin-bottom:8px">💗 팬클럽 '${esc(fandom())}' · 응원봉 바꾸기</button>
 <button class="btn sub" data-act="bigtext" style="width:100%;margin-bottom:8px">🔠 글자 크기: ${bigText() ? '크게 (보통으로)' : '보통 (크게)'}</button>
 <button class="btn sub" data-act="lowfx" style="width:100%;margin-bottom:8px">✨ 장면 효과: ${lowFx() ? '끔 (켜기)' : '켬 (끄기)'}</button>
 <button class="btn sub" data-act="save-out" style="width:100%;margin-bottom:8px">💾 저장 데이터 내보내기 (백업)</button>
@@ -2875,6 +2885,11 @@ function settings() {
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
 }
 // 저장 데이터 백업: 글자 코드로 바꿔 복사해 두면, 브라우저 저장이 지워지거나 다른 기기에서도 이어 할 수 있음 (업적·엔딩 도감도 같이)
+function fandomDlg() {
+  openDlg(`<h2>💗 팬클럽 · 응원봉</h2><label class="f">팬클럽 이름</label><input type="text" id="fdName" value="${esc(S.fandom || '')}" maxlength="12" placeholder="${esc(pick(FANDOMS))}" style="width:100%">
+<label class="f">응원봉 색 (콘서트 빛 색이 바뀌어요)</label><div class="chips">${LIGHTS.map(([c, l]) => `<button class="chip lightc${lightC() === c ? ' on' : ''}" data-light="${c}" style="--lc:${c}">● ${l}</button>`).join('')}</div>
+<button class="btn" data-act="fandom-save" style="width:100%;margin-top:12px">저장</button><button class="btn sub" data-act="settings" style="width:100%;margin-top:8px">◀ 설정으로</button>`);
+}
 function saveOut() {
   const code = btoa(unescape(encodeURIComponent(JSON.stringify({ app: 'idol-maker', at: Date.now(), S, META }))));
   openDlg(`<h2>💾 저장 데이터 내보내기</h2><p class="muted">아래 글자를 통째로 복사해서 메모장·카톡 나에게 보내기 등에 보관하세요.<br>나중에 '불러오기'에 붙여 넣으면 지금 상태로 돌아와요.</p>
@@ -2934,6 +2949,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.light) { if (S && !document.getElementById('suName')) { const nm = $('#fdName') ? $('#fdName').value : ''; S.light = d.light; save(); fandomDlg(); if ($('#fdName')) $('#fdName').value = nm; return; } SU.light = d.light; document.querySelectorAll('[data-light]').forEach(b => b.classList.toggle('on', b === t)); return; }
   if (d.mini) return miniPick(d.mini);
   if (d.endview) { const e = ENDINGS.find(x => x.id === d.endview); if (!e) return; openDlg(`${endScene(e.id)}${endingCard(e, e.text || (e.id === 'bankrupt' ? '자금이 -1억 아래로 떨어져 회사가 파산했어요.' : '멤버가 모두 떠나 그룹이 해체됐어요.'))}<button class="btn sub" data-gtab="ending" style="width:100%">◀ 엔딩 도감으로</button>`); if (e.id !== 'disband') mountEnd(e.id); return; }
   if (d.kpi) return toast(['💰 자금: 지금 회사에 있는 돈이에요. -1억 아래로 떨어지면 파산해요.', '💗 팬: 음악 방송·팬싸·라이브·예능으로 늘고, 공백기가 길면 떠나요.', '⭐ 인지도: 높을수록 제의가 자주 오고 시상식·순위에 유리해요. 활동을 쉬면 조금씩 내려가요.', '🏆 음방 1위: 지금까지 음악 방송에서 1위를 한 횟수예요.'][+d.kpi]);
@@ -2981,11 +2997,15 @@ document.addEventListener('click', e => {
     case 'comeback': return startComeback();
     case 'rand-title': $('#cbTitle').value = titleFor($('#cbConcept').value); return;
     case 'rand-names': return fillNames();
+    case 'rand-fandom': $('#suFan').value = pick(FANDOMS.filter(n => n !== $('#suFan').value)); return;
+    case 'fandom-save': { const v = $('#fdName').value.trim(); if (v) S.fandom = v.slice(0, 12); save(); render(); toast(`팬클럽 '${S.fandom}' 저장!`); return settings(); }
+    case 'fandom': return fandomDlg();
     case 'rand-gname': $('#suName').value = pick(['LUMIÈRE', 'STARLIGHT', 'NYANG:ON', 'Purrfect', 'MEOWMENT', '별빛냥', 'Velvet Paw', 'CATCH ME', 'Moonpaw', 'SUGAR TAIL', '츄르밤', 'PRISM CAT'].filter(n => n !== $('#suName').value)); return;
     case 'start': {
       const rows = [...document.querySelectorAll('#suNames .su-row')];
       const names = rows.map((r2, n) => r2.querySelector('input').value.trim() || `멤버${n + 1}`), ages = rows.map(r2 => +r2.querySelector('select').value);
-      return newGame({ name: $('#suName').value.trim() || 'LUMIÈRE', gender: SU.gender, names, ages, chars: SU.chars.slice(0, rows.length) });
+      newGame({ name: $('#suName').value.trim() || 'LUMIÈRE', gender: SU.gender, names, ages, chars: SU.chars.slice(0, rows.length) });
+      S.fandom = ($('#suFan') ? $('#suFan').value.trim() : '') || pick(FANDOMS); S.light = SU.light || LIGHTS[0][0]; save(); return render();
     }
     case 'reset':
       if (!confirm('지금 게임을 지우고 처음부터 할까요?')) return;
