@@ -1296,12 +1296,12 @@ const ACH_PROG = { win10: () => [S.trophies, 10], win30: () => [S.trophies, 30],
   mission10: () => [cnt('missionOk'), 10], ending5: () => [Object.keys(META.endings).length, 5], endingAll: () => [Object.keys(META.endings).length, ENDINGS.length] };
 const achProg = id => { const f = ACH_PROG[id]; if (!f || !S) return ''; const [a, b] = f(), big = b >= 10000; return `${big ? (b === 100000 && id === 'rich' ? moneyShort(Math.max(0, a)) : num(Math.max(0, a))) : Math.max(0, a)} / ${big ? (id === 'rich' ? moneyShort(b) : num(b)) : b}`; };
 function checkAch() {
-  let any = false;
+  const got = [];
   for (const [id, ic, l, ok] of ACH) if (!META.ach[id] && ok()) {
-    META.ach[id] = { g: S.name, w: S.week }; any = true;
-    news('win', `${ic} 업적 달성: ${l}`); REP && REP.lines.push(`🏅 업적 달성: ${l}`);
+    META.ach[id] = { g: S.name, w: S.week }; got.push(l);
+    news('win', `${ic} 업적 달성: ${l}`);
   }
-  if (any) saveMeta();
+  if (got.length) { saveMeta(); REP && REP.lines.push(got.length > 1 ? `🏅 업적 ${got.length}개 달성: ${got.join(' · ')}` : `🏅 업적 달성: ${got[0]}`); }
 }
 function progress(final) { checkGoals(); tickMission(final); checkAch(); }
 
