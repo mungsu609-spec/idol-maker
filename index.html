@@ -2867,7 +2867,7 @@ function fanTalk(r) { if (r.fan === undefined && S.fandom && debuted() && Math.r
 function showReport(r) {
   const inc = r.inc.reduce((a, x) => a + x[1], 0), exp = r.exp.reduce((a, x) => a + x[1], 0);
   const d0 = dateOf(S.week - 1), d1 = dateOf(S.week);
-  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div><div class="st3host" id="st3host">${bgHTML(r.scene)}</div><p class="caption">${r.scene === 'win' ? (r.yearWin && r.awardName ? `연말 시상식 ${r.awardName} 수상! 🏅` : '음악 방송 1위! 축하해요 🏆') : CAPTION[r.scene] || ''}</p>${fanTalk(r) ? `<p class="fantalk"><span>💬</span>${esc(fanTalk(r))}</p>` : ''}
+  const top = `<div class="flip"><span class="pg old">${d0.m}월 ${d0.k}주</span><span class="pg new">${d1.m}월 ${d1.k}주</span></div><div class="st3host" id="st3host">${bgHTML(r.scene)}</div><p class="caption">${r.scene === 'win' ? (r.yearWin && r.awardName ? `연말 시상식 ${r.awardName} 수상! 🏅` : '음악 방송 1위! 축하해요 🏆') : r.scene === 'concert' && S.fandom ? `단독 콘서트! ${esc(S.fandom)} 응원봉이 반짝반짝 ✨` : CAPTION[r.scene] || ''}</p>${fanTalk(r) ? `<p class="fantalk"><span>💬</span>${esc(fanTalk(r))}</p>` : ''}
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
