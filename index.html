@@ -1253,7 +1253,7 @@ function missionState(x) {
   if (x.done === 'ok') return '✅ 성공! 보상을 받았어요';
   if (x.done === 'fail') return '이번 달은 실패 · 다음 달에 새 미션';
   const wl = x.until - S.week, d = mDef(x);
-  return `${d.keep ? '지키는 중' : `${x.id === 'stat' ? SL[x.k] + ' ' : ''}${Math.max(0, mCur(x))} / ${x.t}`} · ${wl}주 남음 · 보상 ${money(x.reward)}`;
+  return `${d.keep ? '지키는 중' : `${x.id === 'stat' ? SL[x.k] + ' ' : ''}${Math.max(0, mCur(x)).toLocaleString()} / ${x.t.toLocaleString()}`} · ${wl}주 남음 · 보상 ${money(x.reward)}`;
 }
 
 // 업적: 한 번 이루면 새 게임을 해도 남음
