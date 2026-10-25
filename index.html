@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.renbtn{border:0;background:none;font-size:15px;padding:0 2px;cursor:pointer;vertical-align:2px}
 /* 한국어 줄 바꿈: 띄어쓰기 단위로만 끊고(단어 중간 X), 마지막 줄이 한두 글자만 남지 않게 */
 body{word-break:keep-all;overflow-wrap:break-word}
 p,.talk-body p,small,.news div,.ffl,.risk div{text-wrap:pretty}
@@ -2765,7 +2766,7 @@ function memberDetail(id, pick = null) {   // pick: 'cloth'(옷 갈아입기) / 
   const arrows = (f, label) => `<button class="arrow" data-cust="${m.id}:${f}:-1" aria-label="이전">◀</button><b>${label}</b><button class="arrow" data-cust="${m.id}:${f}:1" aria-label="다음">▶</button>`;
   const sw = (f, list, cur) => `<div class="sw">${list.map((c, i) => `<button class="swatch${cur === c ? ' on' : ''}" style="background:${c}" data-cust="${m.id}:${f}:${i}" aria-label="색 ${i + 1}"></button>`).join('')}</div>`;
   openDlg(`<div class="pcard"><div class="pcard-art">${avatar(m, 170, true)}${gradeBadge(gradeOf(m))}</div>
-<div class="pcard-name"><b>${esc(m.name)}</b><small>무대 실력 ${Math.round(perfOf(m))} · 그룹 ${rank}등 · 인기 ${Math.round(m.pop)}</small></div></div>${posTags(m) ? `<p class="center" style="margin:-4px 0 6px">${posTags(m)}</p>` : ''}
+<div class="pcard-name"><b>${esc(m.name)} <button class="renbtn" data-rename="${m.id}" aria-label="이름 바꾸기">✏️</button></b><small>무대 실력 ${Math.round(perfOf(m))} · 그룹 ${rank}등 · 인기 ${Math.round(m.pop)}</small></div></div>${posTags(m) ? `<p class="center" style="margin:-4px 0 6px">${posTags(m)}</p>` : ''}
 <p class="muted center">만 ${m.age || 18}세${m.bday != null ? ` · 🎂 ${Math.floor(m.bday / 4) + 1}월 ${m.bday % 4 + 1}주` : ''} · 이번 주: ${esc(now)}${m.busy ? ` <span class="tag blue">${BUSY[m.busy.type]} ${m.busy.left}주</span>` : ''}</p>
 ${forcedLabel(m) ? '' : `<div class="row" style="justify-content:center;gap:8px;margin-bottom:6px"><button class="btn sub small" data-schpick="${m.id}">📋 스케줄 바꾸기</button>${recSched(m) !== m.sched ? `<button class="btn small" data-recone="${m.id}">✨ 추천: ${esc(SCHED[recSched(m)].label.replace(/ \(.*\)/, ''))}</button>` : ''}</div>`}
 <h3>능력치</h3>${statBars(m)}
@@ -2937,7 +2938,7 @@ function settings() {
   const tg = (act, ic, label, on, onT, offT) => `<button class="setg${on ? ' on' : ''}" data-act="${act}"><span>${ic}</span><b>${label}</b><small>${on ? onT : offT}</small></button>`;
   openDlg(`<h2>설정</h2><p class="muted center" style="margin-top:-4px">게임은 이 브라우저에 자동으로 저장돼요.</p>
 <h3>📱 화면 · 편의</h3><div class="setgrid">${tg('bigtext', '🔠', '글자 크기', bigText(), '크게', '보통')}${tg('quickrep', '⚡', '결과 창 연출', !quickRep(), '보기', '건너뛰기')}${tg('lowfx', '✨', '장면 효과', !lowFx(), '켬', '끔')}${S ? tg('autosched', '🤖', '매주 자동 추천', !!S.autoSched, '켬', '끔') : ''}<button class="setg" data-act="howto"><span>📖</span><b>게임 방법</b><small>다시 보기</small></button></div>
-<h3>💗 우리 그룹</h3><button class="btn sub" data-act="fandom" style="width:100%">${S && S.fandom ? `팬클럽 '${esc(S.fandom)}' · 응원봉 바꾸기` : '팬클럽 이름 · 응원봉 정하기'}</button>
+<h3>💗 우리 그룹</h3><button class="btn sub" data-rename="GROUP" style="width:100%;margin-bottom:8px">✏️ 그룹 이름 바꾸기 (지금: ${esc(S ? S.name : '')})</button><button class="btn sub" data-act="fandom" style="width:100%">${S && S.fandom ? `팬클럽 '${esc(S.fandom)}' · 응원봉 바꾸기` : '팬클럽 이름 · 응원봉 정하기'}</button>
 <h3>💾 저장</h3><div class="setgrid"><button class="setg" data-act="save-out"><span>💾</span><b>내보내기</b><small>백업 코드 복사</small></button><button class="setg" data-act="save-in"><span>📂</span><b>불러오기</b><small>백업 코드 붙여 넣기</small></button><button class="setg" data-act="autobak" style="grid-column:1/-1"><span>⏪</span><b>자동 백업</b><small>새해마다 저장 · 최근 ${autoBaks().length}개</small></button></div>
 <h3>🧰 기타</h3><a class="btn sub" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
 <div class="setgrid"><button class="setg" data-act="res-again"><span>🖼</span><b>그림 다시 받기</b><small>그림이 이상할 때</small></button><button class="setg warn" data-act="reset"><span>🐾</span><b>새 게임</b><small>지금 게임 지우기</small></button></div>
@@ -3017,6 +3018,12 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.rename) {   // 이름 바꾸기 (멤버 10자, 그룹 20자)
+    const grp = d.rename === 'GROUP', m = grp ? null : S.members.find(x => x.id === d.rename); if (!grp && !m) return;
+    const v = (prompt(grp ? '새 그룹 이름 (20자까지)' : `${m.name}의 새 이름 (10자까지)`, grp ? S.name : m.name) || '').trim().slice(0, grp ? 20 : 10); if (!v) return;
+    if (grp) { news('info', `✏️ 그룹 이름을 '${v}'(으)로 바꿨어요.`.replace(`'${v}'(으)로`, `'${v}'${jong(v) && jong(v) !== 8 ? '으로' : '로'}`)); S.name = v; save(); render(); return settings(); }
+    const old = m.name; m.name = v; S.offers.forEach(o => { if (o.mid === m.id) o.name = v; }); news('info', `✏️ ${old} 멤버의 이름을 ${v}(으)로 바꿨어요.`.replace(`${v}(으)로`, ro(v))); save(); render(); return memberDetail(m.id);
+  }
   if (d.abload) { const b = autoBaks()[+d.abload]; if (!b || !confirm(`${dateStr(b.w)} 상태로 되돌릴까요?
 지금 진행한 내용은 사라져요.`)) return; S = JSON.parse(b.S); save(); closeDlg(); TAB = 'plan'; render(); return toast('되돌렸어요!'); }
   if (d.fac) return buildFac(d.fac);
