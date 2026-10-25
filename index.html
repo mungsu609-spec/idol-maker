@@ -1850,7 +1850,7 @@ function planHTML() {
 <p class="muted">${esc(cur.desc)}</p>
 <h2>멤버별 스케줄</h2><div class="card fancy"><div class="mrow allrow"><div class="who"><span class="allico">🐾</span><div class="info"><div class="name">일괄 스케줄</div><div class="muted">전원 한 번에</div></div></div><button class="schbtn" data-schpick="ALL"><span class="si">📋</span><span><b>골라 주세요</b><small>모두 같은 스케줄</small></span></button></div>${rows}</div>
 <p class="muted">이번 주 예상 지출 ${money(total)}<br>(스케줄 ${money(train)} · 숙소 ${money(dormOf().cost)} · 직원 ${money(staffCost())}${contractCost() ? ` · 업체 ${money(contractCost())}` : ''}${S.ga === 'concert' ? ' · 콘서트 5,000만' : ''})</p>
-<p class="muted">💡 피로가 70을 넘으면 훈련 효과가 반으로 줄고,<br>80을 넘으면 건강이 깎여요.</p>`;
+<p class="muted" style="display:flex;gap:4px"><span>💡</span><span>피로가 70을 넘으면 훈련 효과가 반으로 줄고,<br>80을 넘으면 건강이 깎여요.</span></p>`;
 }
 const MOPEN = new Set();   // 멤버 탭에서 능력치를 펼친 멤버
 const topSkills = m => STATS.filter(([k]) => k !== 'health' && k !== 'person').sort((a, b) => m.stats[b[0]] - m.stats[a[0]]).slice(0, 2);
