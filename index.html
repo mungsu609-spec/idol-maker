@@ -2563,7 +2563,9 @@ function cbPredict() {
   const me = perf * 0.8 + fav * 0.2 + contractBonus() + TIERS[tier].bonus - fat * 0.08 + Math.log10(S.fans + 1) * 6 + S.fame * 0.3 + 3;
   const top = Math.max(...S.npc.map(n => n.p)) + Math.min((S.week + 3) * 0.06, 20), d = me - top;
   const lv = d >= 5 ? ['높음', 'good', '1위를 노려 볼 만해요!'] : d >= -8 ? ['보통', 'warn', '운이 좋으면 1위도 할 수 있어요.'] : ['낮음', 'bad', '실력·콘셉트·업체를 더 키우면 좋아요.'];
-  el.innerHTML = `<p class="muted" style="margin:8px 0 0">📈 1위 가능성: <b style="color:var(--${lv[1]})">${lv[0]}</b> (예상 ${Math.round(me)}점 · 가장 강한 경쟁 그룹 약 ${Math.round(top)}점)<br>${lv[2]}</p>`;
+  const left = S.money - TIERS[tier].cost, weekly = fixedCost() + contractCost() + 100;
+  const moneyLine = `<p class="${left < 10000 ? 'neg' : 'muted'}" style="margin:6px 0 0;font-size:13px">💰 제작비를 내면 자금이 <b>${money(left)}</b> 남아요${left < 10000 ? ` — 매주 약 ${money(weekly)}씩 나가니 조심해요! (-1억 아래면 파산)` : ''}</p>`;
+  el.innerHTML = moneyLine + `<p class="muted" style="margin:8px 0 0">📈 1위 가능성: <b style="color:var(--${lv[1]})">${lv[0]}</b> (예상 ${Math.round(me)}점 · 가장 강한 경쟁 그룹 약 ${Math.round(top)}점)<br>${lv[2]}</p>`;
 }
 function actHTML() {
   let h = managerBox();
