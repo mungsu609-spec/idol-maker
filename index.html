@@ -1675,7 +1675,7 @@ function avatar(m, size = 44, full, outfit) {
 }
 // 매니저 (포켓 프린세스 집사 역할)
 const MANAGER = { hue: 230, look: { hair: 'part', hc: '#2a2f4a', skin: '#f8d8c2', eye: 'cat', ec: '#4a5a9a', daily: 'manager' }, stats: { visual: 0 }, fatigue: 0, busy: null };
-// 문장마다 줄 바꿈 (곡 제목 「…」 안은 그대로, 문장 끝 이모지는 앞 줄에 붙임)
+// 문장마다 줄 바꿈, 문장 안에서 끊을 곳은 대사에 <br> (곡 제목 「…」 안은 그대로, 문장 끝 이모지는 앞 줄에 붙임)
 const talkLines = t => t.replace(/「[^」]*」|([.!?])((?:\s*\p{Extended_Pictographic}️?)*)\s+/gu, (s, p, e) => p ? p + (e || '') + '<br>' : s);
 function managerHTML(text, btn) {
   text = talkLines(text);
@@ -1799,7 +1799,7 @@ const gradeBadge = (g, inline) => `<span class="grade${inline ? ' inline' : ''}"
 function statBars(m, two) {
   return `<div class="${two ? 'stats2' : ''}">${STATS.map(([k, l]) => `<div class="stat"><span>${l}</span><div class="bar"><i style="width:${m.stats[k]}%;--c:${STATC[k]}"></i></div><b>${Math.round(m.stats[k])}</b></div>`).join('')}</div>`;
 }
-const TIPS = ['콘셉트마다 잘 맞는 능력치가 달라요. 멤버를 눌러 확인해 보세요.', '의상·메이크업 업체와 계약하면 무대 점수가 올라가요.', '인성이 낮으면 유명해질수록 논란이 잘 생겨요.', '외국어가 높으면 해외 팬이 더 많이 늘어요.', '연기를 키우면 드라마 주연 제의가 와요.', '멤버를 누르면 옷 갈아입기·소품 장착을 할 수 있어요.'];
+const TIPS = ['콘셉트마다 잘 맞는 능력치가 달라요. 멤버를 눌러 확인해 보세요.', '의상·메이크업 업체와 계약하면<br>무대 점수가 올라가요.', '인성이 낮으면 유명해질수록 논란이 잘 생겨요.', '외국어가 높으면 해외 팬이 더 많이 늘어요.', '연기를 키우면 드라마 주연 제의가 와요.', '멤버를 누르면 옷 갈아입기·소품 장착을<br>할 수 있어요.'];
 function managerLine() {
   const P = S.promo, go = (t, l) => `<button class="btn small" data-tab="${t}">${l}</button>`;
   const pw = P && P.kind && P.kind !== 'group' ? `${esc(promoWho(P))} ${promoKindLabel(P)}` : '';
