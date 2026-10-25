@@ -2645,7 +2645,7 @@ function actHTML() {
 <div class="preview" id="cbPreview">${outfitPreview(catStageOutfits(c0)[0])}</div>
 <div class="row cbnav"><button class="btn sub" data-cbstep="1">◀ 이전</button><button class="btn" data-cbstep="3">다음 ▶</button></div></div>
 <div class="cbstep" data-step="3"${(CB.step || 1) === 3 ? '' : ' hidden'}><div id="cbSum" class="cbsum"></div>
-<label class="f">음악 방송 활동 기간</label><div class="chips">${[1, 2, 3, 4].map(n => `<label class="chip"><input type="radio" name="cbWeeks" value="${n}"${n === 2 ? ' checked' : ''}> ${n}주</label>`).join('')}</div><p class="muted" style="font-size:12px;margin:2px 0 0">첫 주는 순위 집계 전이라, 2주 활동이면 순위가 1번만 나와요. 길수록 1위 기회가 많아요.</p>
+<label class="f">음악 방송 활동 기간</label><div class="chips">${[1, 2, 3, 4].map(n => `<label class="chip"><input type="radio" name="cbWeeks" value="${n}"${n === 3 ? ' checked' : ''}> ${n}주</label>`).join('')}</div><p class="muted" style="font-size:12px;margin:2px 0 0">첫 주는 순위 집계 전이라, 2주 활동이면 순위가 1번만 나와요. 길수록 1위 기회가 많아요.</p>
 <label class="f">앨범 제작비</label><div class="chips">${TIERS.map((t, i) => `<label class="chip"><input type="radio" name="cbTier" value="${i}"${i === 1 ? ' checked' : ''}> ${t.label} ${money(t.cost)}${t.bonus ? ` <small>(무대 +${t.bonus})</small>` : ''}</label>`).join('')}</div><div id="cbPred"></div>
 <p class="muted">준비 2주(녹음·안무) 뒤 음악 방송을 해요. 활동이 길수록 팬이 많이 늘지만 피로도 쌓여요.</p>
 <div class="row cbnav"><button class="btn sub" data-cbstep="2">◀ 이전</button><button class="btn" data-act="comeback" style="flex:1">${debut ? '데뷔' : CB.kind === 'solo' ? '솔로 컴백' : CB.kind === 'unit' ? '유닛 컴백' : '컴백'} 준비 시작</button></div></div></div>`;
