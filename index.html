@@ -182,6 +182,9 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.pvjump{position:sticky;top:0;z-index:5;margin:0 -16px 10px;padding:8px 16px;background:rgba(255,240,246,.94);backdrop-filter:blur(4px);flex-wrap:nowrap;overflow-x:auto}
+.pvjump .chip{flex:none;padding:4px 10px;font-size:13.5px}
+.pvjump{scrollbar-width:none}.pvjump::-webkit-scrollbar{display:none}
 .moneyfold{margin-top:12px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:#fffdf8}
 .moneyfold summary{display:flex;justify-content:space-between;align-items:center;list-style:none;cursor:pointer}
 .moneyfold summary::-webkit-details-marker{display:none}
@@ -2881,6 +2884,7 @@ function pvRender() {
   const gm = { id: 'g', cat: PV.gal, stats: { person: 50 }, wear: {}, hue: 300 };
   $('#app').innerHTML = `<header><div class="top"><div class="ribbon">🔍 미리보기</div><a class="btn sub small" href="./" style="margin-left:auto">게임으로 ▶</a></div></header>
 <p class="muted center">게임을 하지 않고 장면·인원·옷·동작을 바로 골라 볼 수 있어요. 여기서 바꾼 건 저장되지 않아요.</p>
+<div class="chips pvjump">${[['pvstage', '🎬 장면'], ['pv-ev', '🚨 이벤트'], ['pv-win', '🪟 창'], ['pv-mgr', '💬 매니저'], ['pv-end', '🎉 엔딩'], ['pv-wear', '👗 도감']].map(([k, l]) => `<button class="chip" data-pvjump="${k}">${l}</button>`).join('')}</div>
 <div class="st3host" id="pvstage">${bgHTML(PV.scene)}</div>
 <div class="card">
 <label class="f">장면</label><select class="full" data-pvsel="scene">${PV_SCENES.map(([k, l]) => `<option value="${k}"${PV.scene === k ? ' selected' : ''}>${l}</option>`).join('')}</select>
@@ -2893,17 +2897,22 @@ ${PV.scene === 'dorm' ? `<label class="f">숙소 종류</label><select class="fu
 ${PV.cloth === 'auto' ? `<label class="f">무대 콘셉트 (자동일 때 음악 방송·1위 장면 옷)</label><select class="full" data-pvsel="concept">${CONCEPTS.map(c => `<option value="${c.id}"${PV.concept === c.id ? ' selected' : ''}>${conceptLabel(c)}</option>`).join('')}</select>` : ''}
 <label class="f">소품</label><select class="full" data-pvsel="acc">${WEAR_ACC.filter(([k]) => !k || ITEMINFO[k]).map(([k, l]) => `<option value="${k || ''}"${(PV.acc || '') === (k || '') ? ' selected' : ''}>${l}</option>`).join('')}</select>
 </div>
-<h2>이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
-<h2>매니저 멘트</h2><div class="card"><p class="muted">게임에서 상황마다 나오는 매니저 말을 모두 모아 봤어요. (이름·제목·숫자는 예시)</p>${(() => { const L = pvManagerLines(); return (PV.mgr ? L : L.slice(0, 2)).map(([l, t, b]) => `<p class="f" style="margin:12px 0 0">${l}</p>${managerHTML(t, b)}`).join('') + `<button class="btn sub small" data-pvmgr="1" style="width:100%;margin-top:10px">${PV.mgr ? '접기 ▲' : `펼치기 ▼ (전체 ${L.length}개)`}</button>`; })()}</div>
-<h2>엔딩 화면</h2><div class="card"><p class="muted">${CONTRACT_YEARS}년 계약이 끝날 때(또는 게임 오버) 나오는 엔딩이에요. 눌러서 보기.</p><div class="chips">${ENDINGS.map(e => `<button class="chip" data-pvend="${e.id}">${e.icon} ${esc(e.title)}</button>`).join('')}</div></div>
-<h2>옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
+<h2 id="pv-ev">이벤트 창</h2><div class="card"><p class="muted">맨 앞 고양이(${esc(S.members[0] ? S.members[0].name : '')})에게 일이 생긴 걸로 창을 띄워요. 대처를 골라 결과 창까지 볼 수 있어요.</p><div class="chips">${[['열애', '💑 열애설'], ['인성', '😠 인성 논란'], ['실력', '🎤 실력 논란'], ['말실수', '💬 말실수'], ['사생', '👁 사생팬']].map(([k, l]) => `<button class="chip" data-pvev="${k}">${l}</button>`).join('')}</div></div>
+<h2 id="pv-win">새로 생긴 창</h2><div class="card"><p class="muted">게임 중에 뜨는 창을 바로 열어 봐요.</p><div class="chips"><button class="chip" data-pvwin="howto">📖 게임 방법</button><button class="chip" data-pvwin="recap">🎉 새해 결산 (예시)</button><button class="chip" data-pvwin="warn">⚠️ 진행 전 경고 (예시)</button></div></div>
+<h2 id="pv-mgr">매니저 멘트</h2><div class="card"><p class="muted">게임에서 상황마다 나오는 매니저 말을 모두 모아 봤어요. (이름·제목·숫자는 예시)</p>${(() => { const L = pvManagerLines(); return (PV.mgr ? L : L.slice(0, 2)).map(([l, t, b]) => `<p class="f" style="margin:12px 0 0">${l}</p>${managerHTML(t, b)}`).join('') + `<button class="btn sub small" data-pvmgr="1" style="width:100%;margin-top:10px">${PV.mgr ? '접기 ▲' : `펼치기 ▼ (전체 ${L.length}개)`}</button>`; })()}</div>
+<h2 id="pv-end">엔딩 화면</h2><div class="card"><p class="muted">${CONTRACT_YEARS}년 계약이 끝날 때(또는 게임 오버) 나오는 엔딩이에요. 눌러서 보기.</p><div class="chips">${ENDINGS.map(e => `<button class="chip" data-pvend="${e.id}">${e.icon} ${esc(e.title)}</button>`).join('')}</div></div>
+<h2 id="pv-wear">옷·소품 도감</h2><div class="card"><label class="f">입혀 볼 고양이</label><div class="chips">${CATS.map(([k, l]) => chip('pvgal', k, PV.gal, l)).join('')}</div>
 <p class="muted" style="font-size:12px">옷을 누르면 크게 볼 수 있어요.</p><div class="pvgrid">${items.map(([k, n]) => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(boyName(k, n))}</small></div>`).join('')}</div>
 ${S.gender === 'boy' ? '' : `<label class="f">보이그룹 전용 옷 (보이그룹이면 위 옷 대신 이걸 입어요)</label><div class="pvgrid">${boyItems.map(k => `<div data-pvbig="${k}">${avatar(gm, 84, true, k)}<small>${esc(BOY_NAME[k])}</small></div>`).join('')}</div>`}</div>`;
   if (PV.scene !== 'clinic' && !dlg.open) mount2d($('#pvstage'), S.members, PV.scene);   // 이벤트 창이 열려 있으면 그 창 무대를 그대로 둠
 }
 document.addEventListener('click', e => {
-  if (!window.PV) return; const t = e.target.closest('[data-pvmgr],[data-pvend],[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg],[data-pvbig],[data-pvbigcat],[data-pvbigi]'); if (!t) return;
+  if (!window.PV) return; const t = e.target.closest('[data-pvjump],[data-pvwin],[data-pvmgr],[data-pvend],[data-pvn],[data-pvmode],[data-pvshuffle],[data-pvgal],[data-pvev],[data-pvg],[data-pvbig],[data-pvbigcat],[data-pvbigi]'); if (!t) return;
   const d = t.dataset;
+  if (d.pvjump) { const el = document.getElementById(d.pvjump); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (d.pvwin === 'howto') return howTo();
+  if (d.pvwin === 'recap') return openDlg(recapHTML({ y: 2, fans: 112000, fansNow: 170000, wins: 3, money: 65240, albums: 2, award: '본상', concert: 2, fansign: 6, ad: 2, drama: 1, movie: 1, variety: 3, scandal: 1, mission: 7 }).replace('data-act="next-popup"', 'data-act="close"'));
+  if (d.pvwin === 'warn') { const m = S.members[0]; m.fatigue = 88; m.sched = 'dance'; window.RISKY = [m]; checkBeforeWeek(); $('#dlgBody').querySelectorAll('[data-act=week-rest],[data-act=week-go]').forEach(b => b.dataset.act = 'close'); m.fatigue = 0; return; }
   if (d.pvmgr) { PV.mgr = !PV.mgr; return pvRender(); }
   if (d.pvend) { const en = ENDINGS.find(x => x.id === d.pvend); openDlg(`${endScene(en.id)}${endingCard(en, en.text || (en.id === 'bankrupt' ? '자금이 -1억 아래로 떨어져 회사가 파산했어요.' : '멤버가 모두 떠나 그룹이 해체됐어요.'))}<p class="muted center">조건: ${esc(en.hint)}</p><button class="btn" data-act="close" style="width:100%">닫기</button>`); if (en.id !== 'disband') mountEnd(en.id); return; }
   if (d.pvbig) return pvBig(PV.big.findIndex(x => x[0] === d.pvbig));
