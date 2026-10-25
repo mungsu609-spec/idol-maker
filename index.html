@@ -1278,28 +1278,41 @@ function terminate(kind, silent) {
   return true;
 }
 let RC = null;
-const RC_BONUS = [[1000, '1,000만'], [2000, '2,000만'], [4000, '4,000만']];
+// 계약금 [금액, 이름, 받아들일 가능성 변화]
+const RC_BONUS = [[500, '500만', -0.15], [1000, '1,000만', 0], [2000, '2,000만', 0.15], [4000, '4,000만', 0.3], [8000, '8,000만', 0.45]];
+// 연습생 보기는 한 달에 5번까지 (거절한 연습생은 떠나서 다시 보려면 1번 씀)
+const RC_MAX = 5;
+const rcLeft = () => { const mo = Math.floor(S.week / 4); if (!S.rcView || S.rcView.mo !== mo) S.rcView = { mo, n: 0 }; return RC_MAX - S.rcView.n; };
+function recruitOpen() {   // 멤버 탭 '영입하기': 보던 연습생이 있으면 그대로, 없으면 새로 (1번 씀)
+  if (RC && RC.mo === Math.floor(S.week / 4)) return recruitDlg();
+  recruit();
+}
 function recruit() {
   if (S.members.length >= 7) return;
+  if (rcLeft() <= 0) { RC = null; return recruitDlg(); }
+  S.rcView.n++; save();
   const pool = (S.gender === 'girl' ? GIRL : BOY).filter(n => !S.members.some(m => m.name === n));
   const m = newMember(pick(pool.length ? pool : ['새멤버']), 15, 38, S.gender, ri(15, 20));
   const used = S.members.map(x => lookOf(x).ch), free = [1, 2, 3, 4, 5, 6, 7].filter(c => !used.includes(c));
   lookOf(m).ch = free.length ? pick(free) : ri(1, 7);
   { const used = S.members.map(catOf), free = CATS.filter(c => !used.includes(c[0])); m.cat = (free.length ? pick(free) : pick(CATS))[0]; }
-  RC = { m, bonus: 1 };
+  RC = { m, bonus: 1, mo: Math.floor(S.week / 4) };
   recruitDlg();
 }
-function recruitChance(b) { return clamp(0.25 + S.fame / 120 + [0, 0.15, 0.3][b] + (dormOf().clean - 50) / 300 + (S.trophies > 0 ? 0.1 : 0), 0.1, 0.95); }
+function recruitChance(b) { return clamp(0.2 + S.fame / 130 + RC_BONUS[b][2] + (dormOf().clean - 50) / 300 + (S.trophies > 0 ? 0.1 : 0), 0.05, 0.95); }
 function recruitDlg(msg) {
+  const left = rcLeft(), more = `<div class="row" style="margin-top:8px"><button class="btn sub" data-act="rc-next" style="flex:1"${left > 0 ? '' : ' disabled'}>다른 연습생 보기 (${left}/${RC_MAX})</button><button class="btn sub" data-act="close" style="flex:1">닫기</button></div>
+<p class="muted center" style="font-size:12px">연습생 보기는 한 달에 ${RC_MAX}번까지예요. 이번 달 남은 횟수 <b>${left}</b>번</p>`;
+  if (!RC) return openDlg(`<h2>연습생 영입</h2>${msg ? `<p class="neg center"><b>${esc(msg)}</b></p>` : ''}<p class="center">이번 달은 연습생을 더 만날 수 없어요.<br>다음 달에 다시 와 주세요!</p>${more}`);
   const m = RC.m;
   openDlg(`<h2>연습생 영입</h2><div class="pcard"><div class="pcard-art">${avatar(m, 140, true)}${gradeBadge(gradeOf(m))}</div>
 <div class="pcard-name"><b>${esc(m.name)}</b><small>만 ${m.age}세 · 무대 실력 ${Math.round(perfOf(m))}</small></div></div>
 ${statBars(m)}
 <label class="f">계약금 제안</label><div class="chips">${RC_BONUS.map(([v, l], i) => `<button class="chip${RC.bonus === i ? ' on' : ''}" data-rcb="${i}">${l}</button>`).join('')}</div>
-<p class="muted">영입 제안을 받아들일 가능성: 약 ${Math.round(recruitChance(RC.bonus) * 100)}% (인지도·계약금·숙소·1위 경험에 따라 달라져요)</p>
+<p class="muted">영입 제안을 받아들일 가능성: 약 <b>${Math.round(recruitChance(RC.bonus) * 100)}%</b><br>(인지도·계약금·숙소·1위 경험에 따라 달라져요)</p>
 ${msg ? `<p class="neg"><b>${esc(msg)}</b></p>` : ''}
 <button class="btn" data-act="rc-offer" style="width:100%">💌 영입 제안하기</button>
-<div class="row" style="margin-top:8px"><button class="btn sub" data-act="rc-next" style="flex:1">다른 연습생 보기</button><button class="btn sub" data-act="close" style="flex:1">닫기</button></div>`);
+${more}`);
 }
 function recruitOffer() {
   const m = RC.m, [cost] = RC_BONUS[RC.bonus];
@@ -1310,7 +1323,11 @@ function recruitOffer() {
     save(); render();
     openDlg(`<h2>🎉 영입 성공!</h2><div class="pcard"><div class="pcard-art">${avatar(m, 140, true)}</div><div class="pcard-name"><b>${esc(m.name)}</b><small>"열심히 하겠습니다!"</small></div></div><button class="btn" data-act="close" style="width:100%">확인</button>`);
   } else {
-    recruitDlg(pick([`${m.name}: "조금 더 생각해 볼게요…" (거절)`, `${m.name}: "다른 회사 제안도 받아서요." (거절)`, `${m.name}: "죄송해요, 아직 준비가 안 됐어요." (거절)`]));
+    RC = null;   // 거절한 연습생은 떠남
+    const left = rcLeft();
+    openDlg(`<h2>연습생 영입</h2><p class="neg center"><b>${esc(pick([`${m.name}: "조금 더 생각해 볼게요…"`, `${m.name}: "다른 회사 제안도 받아서요."`, `${m.name}: "죄송해요, 아직 준비가 안 됐어요."`]))}</b></p><p class="center">${esc(m.name)} 연습생이 제안을 거절하고 떠났어요.</p>
+<div class="row" style="margin-top:8px"><button class="btn sub" data-act="rc-next" style="flex:1"${left > 0 ? '' : ' disabled'}>다른 연습생 보기 (${left}/${RC_MAX})</button><button class="btn sub" data-act="close" style="flex:1">닫기</button></div>
+<p class="muted center" style="font-size:12px">연습생 보기는 한 달에 ${RC_MAX}번까지예요. 이번 달 남은 횟수 <b>${left}</b>번</p>`);
   }
 }
 
@@ -2100,7 +2117,7 @@ ${S.members.map(m => { const open = MOPEN.has(m.id); return `<div class="card mc
 <div class="mstat"><span>만 ${m.age || 18}세</span><span>실력 <b>${Math.round(perfOf(m))}</b></span><span>인기 <b>${Math.round(m.pop)}</b></span><span class="${m.fatigue >= 70 ? 'hot' : ''}">피로 <b>${Math.round(m.fatigue)}</b></span></div>
 ${m.ad ? `<div class="muted">📢 광고 ${esc(m.ad.brand)} · ${m.ad.left}주 남음</div>` : ''}${m.drama ? `<div class="muted">🎬 드라마 ${esc(m.drama.title)} ${m.drama.role}</div>` : ''}${m.variety ? `<div class="muted">📺 예능 ${esc(m.variety.title)} 고정 · ${m.variety.left}주 남음</div>` : ''}</div>
 <button class="mtog" data-mtog="${m.id}" aria-label="능력치 ${open ? '접기' : '펼치기'}">${open ? '▲' : '▼'}</button></div>${open ? statBars(m, true) : ''}</div>`; }).join('')}
-<div class="card"><b class="name">연습생 영입</b><p class="muted">연습생을 만나 보고 영입을 제안해요. 거절할 수도 있어요 · 최대 7명</p><button class="btn small" data-act="recruit"${S.members.length >= 7 ? ' disabled' : ''}>영입하기</button></div>`;
+<div class="card"><b class="name">연습생 영입</b><p class="muted">연습생을 만나 보고 영입을 제안해요.<br>거절할 수도 있어요 · 최대 7명<br>이번 달 연습생 보기 남은 횟수: <b>${rcLeft()}</b> / ${RC_MAX}</p><button class="btn small" data-act="recruit"${S.members.length >= 7 || (rcLeft() <= 0 && !(RC && RC.mo === Math.floor(S.week / 4))) ? ' disabled' : ''}>영입하기</button></div>`;
 }
 const outfitOptions = c => catStageOutfits(c).map(k => `<option value="${k}">${outfitName(k, S.gender)}</option>`).join('');
 let CB = { kind: 'group', solo: null, unit: new Set() };
@@ -2426,7 +2443,7 @@ document.addEventListener('click', e => {
     case 'goals-ending': return goalsDlg('ending');
     case 'keep-going': S.over = null; S.ended = true; save(); render(); return;
     case 'close': return closeDlg();
-    case 'recruit': return recruit();
+    case 'recruit': return recruitOpen();
     case 'rc-offer': return recruitOffer();
     case 'rc-next': return recruit();
     case 'comeback': return startComeback();
