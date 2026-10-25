@@ -585,7 +585,7 @@ function newGame(cfg) {
     ga: 'none', lastConcert: -99, lastPromoEnd: 0, festival: null, awards: [],
     npc: NPC.map(n => ({ name: n, p: ri(40, 100) })), over: null, log: {}, goal: 0, mission: null,
   };
-  newMission();
+  newMission(); S.ys = yearSnap();
   setTimeout(() => { try { if (!localStorage.getItem('idol-maker-howto')) { localStorage.setItem('idol-maker-howto', '1'); howTo(); } } catch (e) { } }, 300);
   S.members.forEach((m, i) => { lookOf(m).ch = (cfg.chars || [])[i] || (i % 7) + 1; m.cat = CATS[(lookOf(m).ch - 1) % CATS.length][0]; });
   news('info', `${S.name} 결성! 데뷔를 향한 연습생 생활이 시작됐어요.`);
@@ -684,6 +684,22 @@ function forcedLabel(m) {
 
 const GAP = { free: 6, base: 0.002, step: 0.0008, max: 0.02 };
 // ===== 한 주 진행 =====
+// 새해 결산: 해가 바뀔 때 그해 기록을 한 장으로 (S.ys = 그해 시작 때 기록)
+const YEAR_KEYS = ['concert', 'fansign', 'ad', 'drama', 'movie', 'variety', 'varietyReg', 'scandal', 'missionOk'];
+const yearSnap = () => ({ fans: S.fans, trophies: S.trophies, money: S.money, albums: S.albums.length, log: Object.fromEntries(YEAR_KEYS.map(k => [k, cnt(k)])) });
+function yearRecap() {
+  const a = S.ys, y = dateOf(S.week - 1).y, d = k => cnt(k) - (a.log[k] || 0);
+  return { y, fans: S.fans - a.fans, fansNow: S.fans, wins: S.trophies - a.trophies, money: S.money - a.money, albums: S.albums.length - a.albums, award: (S.awards.find(x => x.y === y) || {}).award || '',
+    concert: d('concert'), fansign: d('fansign'), ad: d('ad'), drama: d('drama'), movie: d('movie'), variety: d('variety') + d('varietyReg'), scandal: d('scandal'), mission: d('missionOk') };
+}
+function recapHTML(r) {
+  const talk = r.award === '대상' ? `${r.y}년차는 대상까지 받은 최고의 한 해였어요! 정말 고생 많았어요.` : r.wins >= 3 ? `1위를 ${r.wins}번이나 했어요! 이 기세로 내년도 달려 봐요.` : r.fans > 0 ? `팬이 ${num(r.fans)}명 늘었어요. 차근차근 잘 크고 있어요!` : `조금 힘든 한 해였지만, 내년엔 더 잘할 수 있어요!`;
+  const rows = [['💗 늘어난 팬', `${r.fans >= 0 ? '+' : ''}${num(r.fans)}명 (지금 ${num(r.fansNow)}명)`], ['🏆 음악 방송 1위', `${r.wins}번`], ['💿 낸 앨범', `${r.albums}장`], ['🏅 연말 시상식', r.award || '없음'],
+    ['💰 늘어난 자금', `${r.money >= 0 ? '+' : ''}${money(r.money)}`], ['🎆 콘서트 · ✍️ 팬싸', `${r.concert}번 · ${r.fansign}번`], ['📢 광고 · 🎬 드라마 · 🎥 영화', `${r.ad} · ${r.drama} · ${r.movie}`], ['📺 예능', `${r.variety}번`],
+    ['📋 미션 성공', `${r.mission}번`], ['🚨 논란', `${r.scandal}번`]];
+  return `<h2>🎉 ${r.y}년차 결산</h2>${managerHTML(talk)}<div class="money-list" style="margin-top:10px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>
+<p class="muted center" style="margin-top:8px">새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.</p><button class="btn" data-act="next-popup" style="width:100%;margin-top:6px">${r.y + 1}년차 시작!</button>`;
+}
 function endWeek() {
   if (S.over || S.pending.length) return;
   const w = S.week, d = dateOf(w);
@@ -860,7 +876,7 @@ function endWeek() {
   // 다음 주로
   S.week++;
   const nd = dateOf(S.week);
-  if (S.week % 48 === 0) { S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`);
+  if (S.week % 48 === 0) { S.recap = S.ys ? yearRecap() : null; S.ys = yearSnap(); S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`);
     S.npc.forEach(n => { n.p += npcGrow(n) * rand(0.6, 1.3); });
     const left = NPC_NEW.filter(x => !S.npc.some(n => n.name === x));
     if (left.length) { const ps = S.npc.map(n => n.p).sort((a, b) => b - a), nn = { name: pick(left), p: ps[4] + rand(-5, 8) };
@@ -2682,6 +2698,7 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
     mount2d($('#st3host'), [m], scBg);
     return;
   }
+  if (S && S.recap && !S.over) { const r = S.recap; S.recap = null; save(); return openDlg(recapHTML(r)); }
   closeDlg(); render();
 }
 function howTo() {
