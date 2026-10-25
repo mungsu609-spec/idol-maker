@@ -183,6 +183,7 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.goalcard .pbar{display:block;height:5px;margin-top:4px;border-radius:3px;background:var(--bar);overflow:hidden;max-width:220px}.goalcard .pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#ffa8cb,#ef5c96)}
 .fflist{max-height:46vh;overflow:auto}.ffl{padding:5px 0;border-top:1px dashed var(--line);font-size:14px}.ffl:first-child{border-top:0}.ffl small{display:block;color:var(--sub);font-size:11.5px}
 .shwarn{margin:0 4px 8px;padding:6px 10px;border-radius:10px;background:#fff1e6;color:#b4552b;font-size:13px;text-align:center}
 .sopt em.rec{font-style:normal;font-size:11px;font-weight:800;color:#fff;background:var(--pink);border-radius:8px;padding:1px 6px;margin-left:4px;vertical-align:1px}
@@ -1325,12 +1326,16 @@ function upcoming() {
   const old = S.members.filter(m => (m.age || 18) >= RETIRE_AGE - 1); if (old.length) out.push(`🎓 ${old.map(m => esc(m.name)).join('·')} 새해에 은퇴`);
   return out.slice(0, 3);
 }
+// 얇은 진행 막대 (목표·미션)
+const pbar = pr => pr ? `<i class="pbar"><i style="width:${Math.round(clamp(pr[0] / pr[1], 0, 1) * 100)}%"></i></i>` : '';
+const GOAL_PROG = { fans1: () => [S.fans, 10000], fans10: () => [S.fans, 100000], win10: () => [S.trophies, 10] };
+const goalProg = g => GOAL_PROG[g.id] ? GOAL_PROG[g.id]() : null;
 function goalCard() {
   const g = GOALS[S.goal || 0], x = S.mission;
   return `<button class="card goalcard" data-act="goals">
 <div class="gl"><span>📜</span><div><b>${CONTRACT_YEARS}년 계약 · ${S.ended ? '계약 끝, 계속 키우는 중' : contractLeft()}</b><small>${S.ended ? '엔딩 도감은 목표 창에서 볼 수 있어요' : `${CONTRACT_YEARS}년차 연말 무대가 끝나면 엔딩이에요`}</small></div></div>
-<div class="gl"><span>🎯</span><div><b>${g ? esc(g.label) : '큰 목표 모두 달성!'}</b><small>${g ? '다음 목표 · 보상 ' + rewardText(g) : '이제 엔딩을 모아 보세요'}</small></div></div>
-${x ? `<div class="gl"><span>📋</span><div><b>${esc(x.label)}</b><small>이번 달 매니저 미션 · ${missionState(x)}</small></div></div>` : ''}
+<div class="gl"><span>🎯</span><div><b>${g ? esc(g.label) : '큰 목표 모두 달성!'}</b><small>${g ? '다음 목표 · 보상 ' + rewardText(g) : '이제 엔딩을 모아 보세요'}</small>${g ? pbar(goalProg(g)) : ''}</div></div>
+${x ? `<div class="gl"><span>📋</span><div><b>${esc(x.label)}</b><small>이번 달 매니저 미션 · ${missionState(x)}</small>${!x.done && !mDef(x).keep ? pbar([Math.max(0, mCur(x) - (x.id === 'stat' ? x.t - 7 : 0)), x.id === 'stat' ? 7 : x.t]) : ''}</div></div>` : ''}
 ${upcoming().length ? `<div class="gl"><span>🗓</span><div><b>다가오는 일</b><small>${upcoming().join(' · ')}</small></div></div>` : ''}
 <small class="more">눌러서 목표·업적·엔딩 보기 ▶</small></button>`;
 }
