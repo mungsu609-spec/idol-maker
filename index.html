@@ -410,6 +410,7 @@ html,body,button,a,input,select,label,canvas{touch-action:manipulation}
 .winfx{position:absolute;inset:3px;border-radius:12px;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,230,140,.35) 0 8deg,transparent 8deg 22deg);mix-blend-mode:screen;animation:winspin 12s linear infinite}
 @keyframes winspin{to{transform:rotate(0)}}
 .st3host canvas.st3d{z-index:2;position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
+.catph{position:absolute;inset:3px;z-index:2;pointer-events:none}.st3host.ready .catph{display:none}
 .thumbrow{z-index:2;position:absolute;left:2%;right:2%;bottom:3%;display:flex;justify-content:center;height:62%}
 .thumbrow.back{bottom:22%;height:50%;left:12%;right:12%}
 .thumbrow img{height:100%;min-width:0;flex:0 1 auto;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
@@ -2194,14 +2195,27 @@ function backSlots(nf, nb) {
   return Array.from({ length: nb }, (_, i) => gaps[Math.round(i * (gaps.length - 1) / (nb - 1))]);
 }
 let MOUNT_ID = 0;
+// 고양이 움직임이 늦거나 실패하면(휴대폰 그래픽 문제 등) 움직이지 않는 고양이 그림이라도 보여 줌
+function staticCats(host, members) {
+  if (!host || !host.isConnected || host.querySelector('.catph')) return;
+  const ms = members.slice(0, 7), n = ms.length, two = n >= 5, nf = n === 5 ? 3 : two ? 4 : n, sp = two ? (nf === 3 ? 22 : 18) : Math.min(23, 92 / n);
+  const im = (m, slot) => `<img src="${catImg(catOf(m), 'full')}" alt="" style="position:absolute;bottom:0;height:100%;left:${50 + slot * sp}%;transform:translateX(-50%)">`;
+  const front = ms.slice(0, nf).map((m, j) => im(m, j - (nf - 1) / 2)).join(''), bs = backSlots(nf, n - nf);
+  const el = document.createElement('div'); el.className = 'catph';
+  el.innerHTML = two ? `<div class="thumbrow back">${ms.slice(nf).map((m, j) => im(m, bs[j])).join('')}</div><div class="thumbrow two">${front}</div>` : `<div class="thumbrow">${front}</div>`;
+  host.appendChild(el);
+}
 async function mount2d(host, members, kind) {
   const my = ++MOUNT_ID; const T0 = performance.now(); const LG = (...a) => window.CATDEBUG && console.log('mount', Math.round(performance.now() - T0), ...a);
   if (!host || window.NO3D || !members.length) return;
+  setTimeout(() => { if (my === MOUNT_ID && !host.classList.contains('ready')) staticCats(host, members); }, 1500);   // 1.5초 안에 못 그리면 그림으로 대신
   try {
     await loadPixi(); LG('pixi');
     if (!CAT2) CAT2 = await import('./cat2d.js' + CATV);
     if (my !== MOUNT_ID || !host.isConnected) return;   // 그 사이 화면이 다시 그려졌으면 새 호출에 맡김
-    if (!CATCV) { CATCV = document.createElement('canvas'); CATCV.className = 'st3d'; }
+    if (!CATCV) { CATCV = document.createElement('canvas'); CATCV.className = 'st3d';
+      CATCV.addEventListener('webglcontextlost', e => { e.preventDefault(); try { CATAPP && CATAPP.destroy(false); } catch (x) { } CATAPP = null; CATCV = null; CATS_ON = []; });   // 휴대폰이 그래픽 메모리를 회수하면 다음 장면에서 새로 만듦
+    }
     host.appendChild(CATCV);
     const w = host.clientWidth - 6, h = host.clientHeight - 6;
     if (!CATAPP) { CATAPP = new PIXI.Application({ view: CATCV, backgroundAlpha: 0, antialias: true, width: w, height: h, resolution: Math.min(2, devicePixelRatio || 1), autoDensity: true }); CATAPP.ticker.add(() => { const dt = CATAPP.ticker.deltaMS / 1000; CATS_ON.forEach(c => c.update(dt)); }); }
@@ -2236,7 +2250,7 @@ async function mount2d(host, members, kind) {
       }
     }
     host.classList.add('ready');
-  } catch (e) { console.warn('고양이 무대 실패', e); }
+  } catch (e) { console.warn('고양이 무대 실패', e); staticCats(host, members); }
 }
 // ===== (예전) 3D 아이돌 — 지금은 쓰지 않음 =====
 const M3D = {
