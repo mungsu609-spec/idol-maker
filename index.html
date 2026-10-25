@@ -180,6 +180,10 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .vicon{flex:none;width:46px;height:46px;border-radius:12px;background:linear-gradient(#fff6e0,#ffe2a8);border:2px solid var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:20px;line-height:1}
 .vicon i{font-style:normal;font-size:8px;color:#d99a1c;margin-top:2px}
 .over{text-align:center;padding-top:40px}
+.rechead{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;padding:0;font:inherit;color:var(--ink);cursor:pointer}
+.rechead b{font-family:"Jua",sans-serif;font-weight:400;font-size:17px;color:var(--title)}.rechead span{font-size:13px;color:var(--pinkd)}
+body.lowfx .efx,body.lowfx .hearts,body.lowfx .livefx,body.lowfx .scfx,body.lowfx .stfx{display:none}
+#dlgBody textarea{width:100%;min-height:90px;border:2px solid var(--gold);border-radius:12px;padding:8px;font-size:12px;font-family:monospace;background:#fffdf6;resize:vertical}
 #toast{position:fixed;left:50%;bottom:150px;z-index:60;max-width:86%;padding:9px 16px;border-radius:14px;background:rgba(61,38,50,.9);color:#fff;font-size:14px;font-weight:600;text-align:center;pointer-events:none;opacity:0;transform:translate(-50%,10px);transition:opacity .25s,transform .25s}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #resdl{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(255,236,244,.92)}
@@ -209,6 +213,11 @@ input[type=text]{width:100%;border:2px solid var(--gold);background:#fffdf6;bord
 .efx .col>.glit{animation:efglit var(--s) ease-in-out var(--d2) infinite alternate}
 .efx .col>.strm{animation-name:efsway;animation-timing-function:ease-in-out}
 .efx .fly{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:radial-gradient(circle,#fff 0 25%,var(--c) 45%,rgba(255,255,255,0) 72%);box-shadow:0 0 10px 3px var(--c);opacity:0;will-change:transform,opacity;animation:effly var(--t) ease-in-out var(--d) infinite}
+.efx .sheen{left:0;top:0;width:100%;height:100%}
+.efx .sheen::after{content:"";position:absolute;top:-30%;left:0;width:32%;height:160%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,247,225,.32) 50%,rgba(255,255,255,0));transform:translateX(-160%) skewX(-18deg);will-change:transform;animation:efsheen var(--t) ease-in-out var(--d) infinite}
+.efx .fl{width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,rgba(255,255,255,.6) 32%,rgba(255,255,255,0) 70%);opacity:0;will-change:transform,opacity;animation:efflash var(--t) linear var(--d) infinite}
+@keyframes efsheen{0%{transform:translateX(-160%) skewX(-18deg)}55%,100%{transform:translateX(420%) skewX(-18deg)}}
+@keyframes efflash{0%,88%,100%{opacity:0;transform:scale(.4)}90%{opacity:1;transform:scale(1.2)}94%{opacity:.25;transform:scale(.9)}}
 @keyframes efglit{from{opacity:.25;transform:scale(.6)}to{opacity:1;transform:scale(1.3)}}
 @keyframes effly{0%,100%{transform:translate3d(0,0,0);opacity:0}25%{opacity:.9}50%{transform:translate3d(var(--x),var(--y),0);opacity:.5}75%{opacity:.95}}
 .efx .bill{opacity:.45}
@@ -365,7 +374,7 @@ html,body,button,a,input,select,label,canvas{touch-action:manipulation}
 @keyframes heartsway{0%{transform:translate3d(0,0,0) scale(.6);opacity:0}10%{opacity:1}35%{transform:translate3d(var(--x),0,0) scale(1)}65%{transform:translate3d(calc(var(--x) * -1),0,0) scale(1.05)}85%{opacity:.85}100%{transform:translate3d(0,0,0) scale(1.1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.hearts{display:none}}
 .st3host>svg.scene{margin-bottom:0}
-.st3host>img.bgimg{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:3px solid var(--gold);box-shadow:0 3px 0 var(--goldd)}
+.st3host>img.bgimg{background:linear-gradient(135deg,#3a2a44,#5a3f5e);display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;border:3px solid var(--gold);box-shadow:0 3px 0 var(--goldd)}
 .winfx{position:absolute;inset:3px;border-radius:12px;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,230,140,.35) 0 8deg,transparent 8deg 22deg);mix-blend-mode:screen;animation:winspin 12s linear infinite}
 @keyframes winspin{to{transform:rotate(0)}}
 .st3host canvas.st3d{z-index:2;position:absolute;left:3px;right:3px;top:3px;bottom:3px;width:calc(100% - 6px);height:calc(100% - 6px);border-radius:12px}
@@ -867,6 +876,7 @@ function endWeek() {
   }
   if (S.money < 0) S.wasDebt = true;
   progress(true);
+  S.maxFans = Math.max(S.maxFans || 0, S.fans);
   REP.dFans = S.fans - fans0; REP.dFame = Math.round(S.fame - fame0);
   if (S.money < -10000) endGame('bankrupt', '자금이 -1억 아래로 떨어져 회사가 파산했어요.');
   else if (!S.members.length) endGame('disband', '멤버가 모두 떠나 그룹이 해체됐어요.');
@@ -1162,14 +1172,14 @@ const fxBubbles = n => fxFall(n, '', { up: true, t: [5, 8], s: [2.5, 4], cls: 'b
 const LEAF = ['#f08a3c', '#e0562f', '#f2b443', '#c9472b'];
 const fxLeaves = n => fxFall(n, i => `<svg width="${fxRand(14, 22)}" height="${fxRand(14, 22)}" viewBox="0 0 24 24"><path d="M12 1c2 3 5 4 8 3-1 4-1 6-4 8 2 1 3 3 3 5-3 0-5-1-6-3l-1 9-1-9c-1 2-3 3-6 3 0-2 1-4 3-5-3-2-3-4-4-8 3 1 6 0 8-3z" fill="${LEAF[i % LEAF.length]}"/><path d="M12 6v17" stroke="rgba(110,45,15,.45)" stroke-width="1"/></svg>`, { t: [5, 8.5], s: [2, 3.5], cls: 'leaf' });
 const fxHearts = (n, cs = ['#ff6fa3', '#ff9cc2', '#ff4f8b']) => fxFall(n, i => { const w = fxRand(14, 24); return `<svg width="${w}" height="${w}" viewBox="0 0 24 24"><path d="M12 21C5 16 2 12.5 2 8.6 2 5.5 4.4 3.2 7.3 3.2c1.9 0 3.6 1 4.7 2.6 1.1-1.6 2.8-2.6 4.7-2.6 2.9 0 5.3 2.3 5.3 5.4C22 12.5 19 16 12 21z" fill="${cs[i % cs.length]}"/><ellipse cx="7.6" cy="7.6" rx="2.3" ry="1.4" fill="#fff" opacity=".65" transform="rotate(-35 7.6 7.6)"/></svg>`; }, { up: true, t: [5, 8], s: [2.2, 3.4], cls: 'heart' });
-const fxBalloons = (n, cs = CONF) => fxFall(n, i => `<svg width="24" height="44" viewBox="0 0 24 44"><path d="M12 27q-3 7 1 17" stroke="rgba(120,110,120,.55)" fill="none"/><ellipse cx="12" cy="13" rx="11" ry="13" fill="${cs[i % cs.length]}"/><path d="M10 25.5h4l-2 2.5z" fill="${cs[i % cs.length]}"/><ellipse cx="7.5" cy="8" rx="2.6" ry="4.4" fill="#fff" opacity=".45" transform="rotate(-20 7.5 8)"/></svg>`, { up: true, t: [6, 9.5], s: [2.5, 4], cls: 'balloon' });
 // 금가루(반짝이며 떨어짐)·빛가루(위로 떠오름)·꼬불 리본 테이프·떨어지는 별·반딧불 같은 따뜻한 빛
 const fxGlitter = (n, cs, up) => fxFall(n, '', { up, t: up ? [5, 8] : [4, 7], s: [.8, 1.6], cls: 'glit', css: i => { const z = fxRand(2, 4.5); return `width:${z}px;height:${z}px;--c:${cs[i % cs.length]}`; } });
-const fxStreamers = (n, cs) => fxFall(n, i => `<svg width="12" height="${fxRand(34, 48)}" viewBox="0 0 12 44"><path d="M6 1C11 6 1 11 6 16S11 26 6 31 1 39 6 43" stroke="${cs[i % cs.length]}" stroke-width="3.2" fill="none" stroke-linecap="round"/><path d="M6 1C11 6 1 11 6 16" stroke="#fff" stroke-opacity=".45" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>`, { t: [4, 6.5], s: [1.6, 2.8], cls: 'strm' });
-const fxStarFall = (n, cs) => fxFall(n, i => { const w = fxRand(12, 20); return `<svg width="${w}" height="${w}" viewBox="0 0 24 24"><path d="M12 1.5l3.1 6.6 7.2.9-5.3 5 1.4 7.1L12 17.6l-6.4 3.5 1.4-7.1-5.3-5 7.2-.9z" fill="${cs[i % cs.length]}" stroke="#fff" stroke-opacity=".7" stroke-width="1"/><path d="M12 5l1.6 3.6" stroke="#fff" stroke-opacity=".8" stroke-width="1.4" stroke-linecap="round"/></svg>`; }, { t: [4, 7], s: [2, 3.5], cls: 'starf' });
 const fxFlies = (n, cs) => fxN(n, i => `<i class="fly" style="left:${fxRand(4, 96)}%;top:${fxRand(15, 75)}%;--c:${cs[i % cs.length]};--t:${fxRand(4, 7)}s;--d:-${fxRand(0, 7)}s;--x:${fxRand(-30, 30)}px;--y:${fxRand(-26, 10)}px"></i>`);
+// 광택: 넓은 빛 띠가 화면을 비스듬히 스윽 지나감 / 플래시: 객석에서 작게 터지는 카메라 플래시
+const fxSheen = () => `<i class="sheen" style="--t:${fxRand(3.5, 4.5)}s;--d:-${fxRand(0, 2)}s"></i>`;
+const fxFlash = (n, top = [55, 92]) => fxN(n, () => `<i class="fl" style="left:${fxRand(3, 97)}%;top:${fxRand(top[0], top[1])}%;--t:${fxRand(2.2, 4.2)}s;--d:-${fxRand(0, 4.2)}s"></i>`);
 // 제자리 효과: 반짝이는 네 갈래 별, 흐릿한 빛 동그라미(보케), 흔들리는 조명 빔, 빛 알갱이가 퍼지는 불꽃
-const fxStars = (n, cs = ['#fff3b0']) => fxN(n, i => `<i class="st" style="left:${fxRand(4, 96)}%;top:${fxRand(5, 68)}%;--w:${fxRand(10, 22)}px;--c:${cs[i % cs.length]};--t:${fxRand(1.4, 2.6)}s;--d:-${fxRand(0, 2.6)}s"></i>`);
+const fxStars = (n, cs = ['#fff3b0']) => fxN(n, i => `<i class="st" style="left:${fxRand(4, 96)}%;top:${fxRand(5, 68)}%;--w:${fxRand(7, 14)}px;--c:${cs[i % cs.length]};--t:${fxRand(1.4, 2.6)}s;--d:-${fxRand(0, 2.6)}s"></i>`);
 const fxBokeh = (n, cs) => fxN(n, i => `<i class="bk" style="left:${fxRand(2, 98)}%;top:${fxRand(5, 80)}%;--w:${fxRand(26, 60)}px;--c:${cs[i % cs.length]};--t:${fxRand(3, 6)}s;--d:-${fxRand(0, 6)}s"></i>`);
 const fxBeams = (n, cs) => fxN(n, i => `<i class="bm" style="left:${(100 / (n + 1) * (i + 1)).toFixed(1)}%;--w:${fxRand(70, 110)}px;--a:${((i - (n - 1) / 2) * 10).toFixed(0)}deg;--c:${cs[i % cs.length]};--t:${fxRand(2.5, 4)}s;--d:-${fxRand(0, 4)}s"></i>`);
 const fxWorks = (n, cs) => fxN(n, i => `<i class="fw" style="left:${fxRand(12, 88)}%;top:${fxRand(10, 42)}%;--c:${cs[i % cs.length]};--t:${fxRand(1.6, 2.4)}s;--d:-${fxRand(0, 2.4)}s;--r:${fxRand(35, 60)}px">${fxN(14, k => `<b style="--a:${(k * 360 / 14).toFixed(0)}deg"></b>`)}</i>`);
@@ -1187,15 +1197,15 @@ function eventFx(kind) {
 }
 function endFx(id) {
   return {
-    legend: () => fxLayers(fxBeams(4, GOLD) + fxWorks(3, GOLD) + fxStars(10, GOLD) + fxGlitter(18, GOLD, true), fxGlitter(40, GOLD)),
-    daesang: () => fxLayers(fxBeams(3, GOLD) + fxBokeh(6, GOLD) + fxStars(12, GOLD), fxStreamers(16, ['#ffd24a', '#f2b632', '#e0384f', '#fff4cc'])),
-    world: () => fxLayers(fxWorks(5, CONF) + fxStars(8, ['#fff3b0', '#c9e6ff'])),
-    chart: () => fxLayers(fxBeams(3, ['#ff9fd8', '#ffd24a', '#ff9fd8']) + fxStars(6), fxStarFall(18, ['#ffd24a', '#ff9fd8', '#fff1a8'])),
-    actor: () => fxLayers(fxStars(8, GOLD), '', true),
-    variety: () => fxLayers(fxBokeh(8, CONF), fxBalloons(6) + fxStreamers(12, CONF)),
+    legend: () => fxLayers(fxBeams(4, GOLD) + fxWorks(2, GOLD) + fxStars(8, GOLD), fxGlitter(34, GOLD, true)),
+    daesang: () => fxLayers(fxBeams(3, GOLD) + fxStars(6, GOLD) + fxFlash(9), fxGlitter(36, GOLD)),
+    world: () => fxLayers(fxWorks(4, ['#ffe3a0', '#a9d4ff', '#ffc4e6']) + fxStars(6, ['#ffffff', '#dceeff'])),
+    chart: () => fxLayers(fxSheen() + fxBeams(3, ['#ffc4e6', '#fff1c4', '#ffc4e6']) + fxStars(6, ['#fff6e8']) + fxFlash(6)),
+    actor: () => fxLayers(fxStars(6, ['#fff6e0']), '', true),
+    variety: () => fxLayers(fxBokeh(10, ['#ffd6ea', '#d6ecff', '#fff1c4', '#e2d8ff']) + fxStars(7, ['#ffffff'])),
     cf: () => fxLayers(fxBokeh(8, ['#c9e6ff', '#ffd1ec', '#fff1c4']), '', true),
     stage: () => fxLayers(fxBeams(4, NEON) + fxWorks(4, NEON) + fxBokeh(8, NEON)),
-    steady: () => fxLayers(fxFlies(12, ['#ffd98a', '#ffb870', '#fff1c4']), fxBalloons(5)),
+    steady: () => fxLayers(fxBokeh(4, ['#ffd0a0']) + fxFlies(14, ['#ffd98a', '#ffb870', '#fff1c4'])),
     fade: () => fxLayers(fxBokeh(4, ['#ffd0a0']), fxLeaves(16)),
     bankrupt: () => fxLayers(fxBills(14)),
     disband: () => fxLayers('', fxRain(40)),
@@ -2427,8 +2437,23 @@ ${on ? `<button class="btn sub small" data-term="${kind}">해지</button>` : `<b
     }).join('')}`;
   }).join('') + `<p class="muted">💡 최소 계약 기간은 ${MIN_CONTRACT}주예요. 그 전에 해지하면 남은 주만큼 위약금을 내요.</p>`;
 }
+// 소식: 종류별로 거르기, 30개씩 더 보기. 위에는 그룹 기록(통계)
+let NEWSF = 'all', NEWSN = 30, RECOPEN = false;
+const NEWS_KINDS = [['all', '전체'], ['win', '🏆 좋은 일'], ['promo', '🎤 활동'], ['offer', '💌 제의'], ['scandal', '🚨 사건'], ['info', '✨ 기타']];
+function recordHTML() {
+  const best = S.albums.filter(a => a.best < 99).reduce((b, a) => Math.min(b, a.best), 99), d = S.debutYear;
+  const aw = ['대상', '본상', '신인상'].map(a => [a, S.awards.filter(x => x.award === a).length]).filter(x => x[1]);
+  const rows = [['📅 데뷔', d ? `${d}년차` : '아직 데뷔 전'], ['💿 앨범', `${S.albums.length}장${best < 99 ? ` · 최고 ${best}위` : ''}`], ['🏆 음악 방송 1위', `${S.trophies}번`],
+    ['🏅 연말 시상식', aw.length ? aw.map(([a, n]) => `${a} ${n}번`).join(' · ') : '아직 없어요'], ['💗 최고 팬 수', `${num(Math.max(S.maxFans || 0, S.fans))}명`],
+    ['🎆 단독 콘서트', `${cnt('concert')}번`], ['✍️ 팬싸인회', `${cnt('fansign')}번`], ['📢 광고', `${cnt('ad')}건`], ['🎬 드라마', `${cnt('drama')}편`], ['🎥 영화', `${cnt('movie')}편${cnt('tenM') ? ` (천만 ${cnt('tenM')})` : ''}`],
+    ['📺 예능', `${cnt('variety') + cnt('varietyReg')}번`], ['📋 매니저 미션 성공', `${cnt('missionOk')}번`], ['🚨 논란', `${cnt('scandal')}번`]];
+  return `<div class="card"><button class="rechead" data-act="rec-toggle"><b>📊 그룹 기록</b><span>${RECOPEN ? '접기 ▲' : '펼치기 ▼'}</span></button>${RECOPEN ? `<div class="money-list" style="margin-top:8px">${rows.map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>` : ''}</div>`;
+}
 function newsHTML() {
-  return `<h2>소식</h2><div class="card">${S.news.map(n => `<div class="news ${n.type}"><span class="ni">${NEWSICON[n.type] || '✨'}</span><div><small>${dateStr(n.w)}</small>${esc(n.text)}</div></div>`).join('') || '<p class="muted">아직 없어요.</p>'}</div>`;
+  const list = S.news.filter(n => NEWSF === 'all' || n.type === NEWSF || (NEWSF === 'info' && !NEWSICON[n.type])), shown = list.slice(0, NEWSN);
+  return `${recordHTML()}<h2>소식</h2><div class="chips" style="margin-bottom:8px">${NEWS_KINDS.map(([k, l]) => `<button class="chip${NEWSF === k ? ' on' : ''}" data-newsf="${k}">${l}</button>`).join('')}</div>
+<div class="card">${shown.map(n => `<div class="news ${n.type}"><span class="ni">${NEWSICON[n.type] || '✨'}</span><div><small>${dateStr(n.w)}</small>${esc(n.text)}</div></div>`).join('') || '<p class="muted">아직 없어요.</p>'}</div>
+${list.length > NEWSN ? `<button class="btn sub" data-act="news-more" style="width:100%">더 보기 (${list.length - NEWSN}개 남음)</button>` : ''}`;
 }
 function setupHTML() {
   return `<div class="setup"><div class="logo"><h1>아이돌 메이커</h1><p class="muted">나만의 아이돌 그룹을 키워 보세요 ✨</p></div><div id="suScene"></div>
@@ -2607,11 +2632,37 @@ ${sc.kind === '열애' ? `<button class="choice" data-sc="admit"><b>💑 열애 
   }
   closeDlg(); render();
 }
+const lowFx = () => { try { return localStorage.getItem('idol-maker-lowfx') === '1'; } catch (e) { return false; } };
 function settings() {
-  openDlg(`<h2>설정</h2><p class="muted">게임은 이 브라우저에 자동으로 저장돼요.</p>
+  openDlg(`<h2>설정</h2><p class="muted center">게임은 이 브라우저에 자동으로 저장돼요.</p>
 <a class="btn" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
+<button class="btn sub" data-act="lowfx" style="width:100%;margin-bottom:8px">✨ 장면 효과: ${lowFx() ? '끔 (켜기)' : '켬 (끄기)'}</button>
+<button class="btn sub" data-act="save-out" style="width:100%;margin-bottom:8px">💾 저장 데이터 내보내기 (백업)</button>
+<button class="btn sub" data-act="save-in" style="width:100%;margin-bottom:8px">📂 저장 데이터 불러오기</button>
+<button class="btn sub" data-act="res-again" style="width:100%;margin-bottom:8px">🖼 게임 그림 다시 받기</button>
 <button class="btn sub" data-act="reset" style="width:100%">처음부터 새 게임</button>
 <button class="btn" data-act="close" style="width:100%;margin-top:8px">닫기</button>`);
+}
+// 저장 데이터 백업: 글자 코드로 바꿔 복사해 두면, 브라우저 저장이 지워지거나 다른 기기에서도 이어 할 수 있음 (업적·엔딩 도감도 같이)
+function saveOut() {
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify({ app: 'idol-maker', at: Date.now(), S, META }))));
+  openDlg(`<h2>💾 저장 데이터 내보내기</h2><p class="muted">아래 글자를 통째로 복사해서 메모장·카톡 나에게 보내기 등에 보관하세요.<br>나중에 '불러오기'에 붙여 넣으면 지금 상태로 돌아와요.</p>
+<textarea id="saveCode" readonly>${code}</textarea>
+<button class="btn" data-act="save-copy" style="width:100%;margin-top:8px">📋 복사하기</button>
+<button class="btn sub" data-act="settings" style="width:100%;margin-top:8px">◀ 설정으로</button>`);
+}
+function saveIn() {
+  openDlg(`<h2>📂 저장 데이터 불러오기</h2><p class="muted">내보내기로 받아 둔 글자를 붙여 넣으세요.<br><b class="neg">지금 하던 게임은 덮어써져요.</b></p>
+<textarea id="loadCode" placeholder="여기에 붙여 넣기"></textarea>
+<button class="btn" data-act="save-load" style="width:100%;margin-top:8px">불러오기</button>
+<button class="btn sub" data-act="settings" style="width:100%;margin-top:8px">◀ 설정으로</button>`);
+}
+function saveLoad() {
+  let d; try { d = JSON.parse(decodeURIComponent(escape(atob($('#loadCode').value.trim())))); } catch (e) { d = null; }
+  if (!d || d.app !== 'idol-maker' || !d.S || !Array.isArray(d.S.members)) return toast('저장 코드가 아니에요. 다시 확인해 주세요.');
+  if (!confirm('지금 게임을 덮어쓰고 불러올까요?')) return;
+  S = d.S; if (d.META) { META = Object.assign({ endings: {}, ach: {} }, d.META); META.endings = Object.assign({}, META.endings, d.META.endings); saveMeta(); }
+  save(); closeDlg(); TAB = 'plan'; render(); toast('불러왔어요!');
 }
 
 // ===== 스케줄 선택 창 (아래에서 올라옴) =====
@@ -2651,6 +2702,7 @@ document.addEventListener('click', e => {
   if (d.cbunit) { const id = d.cbunit, nm = $('#cbUname') ? $('#cbUname').value : ''; CB.unit.has(id) ? CB.unit.delete(id) : CB.unit.add(id); $('#cbWho').innerHTML = cbWhoHTML(); if ($('#cbUname')) $('#cbUname').value = nm; $('#cbPreview').innerHTML = outfitPreview($('#cbOutfit').value); return; }
   if (d.ga) { S.ga = d.ga; save(); render(); return; }
   if (d.gtab) return goalsDlg(d.gtab);
+  if (d.newsf) { NEWSF = d.newsf; NEWSN = 30; return render(); }
   if (d.accept) return acceptOffer(d.accept);
   if (d.decline) return declineOffer(d.decline);
   if (d.sign) { const [k, id] = d.sign.split(':'); return signVendor(k, id); }
@@ -2669,6 +2721,14 @@ document.addEventListener('click', e => {
     case 'week-go': closeDlg(); return endWeek();
     case 'next-popup': return nextPopup();
     case 'settings': return settings();
+    case 'lowfx': { try { localStorage.setItem('idol-maker-lowfx', lowFx() ? '0' : '1'); } catch (e) { } document.body.classList.toggle('lowfx', lowFx()); return settings(); }
+    case 'save-out': return saveOut();
+    case 'save-in': return saveIn();
+    case 'save-load': return saveLoad();
+    case 'save-copy': { const t = $('#saveCode'); t.select(); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => toast('복사했어요!'), () => { try { document.execCommand('copy'); toast('복사했어요!'); } catch (e) { toast('글자를 길게 눌러 직접 복사해 주세요'); } }); return; }
+    case 'res-again': { try { localStorage.removeItem('idol-maker-res'); } catch (e) { } closeDlg(); return ensureRes(true); }
+    case 'rec-toggle': RECOPEN = !RECOPEN; return render();
+    case 'news-more': NEWSN += 30; return render();
     case 'goals': return goalsDlg();
     case 'goals-ending': return goalsDlg('ending');
     case 'keep-going': S.over = null; S.ended = true; save(); render(); return;
@@ -2803,22 +2863,6 @@ function pvBig(i) {
 <button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
 }
 document.addEventListener('change', e => { if (!window.PV || !e.target.dataset.pvsel) return; PV[e.target.dataset.pvsel] = e.target.value; pvRender(); });
-const IS_PV = new URLSearchParams(location.search).has('preview');
-if (IS_PV) pvStart(); else {
-load();
-if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); catOf(m); }); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
-if (S && !S.log) { S.log = {}; S.goal = 0; checkGoals(true); newMission(); save(); }   // 목표 기능 전 저장 파일: 이미 이룬 목표는 보상 없이 넘김
-// 쉬는 틈에 미리 받아 두기: 멤버 고양이 그림, 평소 옷, 논란·열애설·사생팬 배경 → 창이 뜨자마자 바로 보이게
-let WARMED = '';
-function warmUp() {
-  if (!S || window.NO3D || window.PV) return; const key = S.members.map(catOf).join(','); if (WARMED === key) return; WARMED = key;
-  const go = () => { ['scandal', 'dating', 'stalker', 'stage', dormBg()].forEach(k => { const im = new Image(); im.src = `art/bg/${k}.webp${CATV}`; });
-    loadPixi().then(() => CAT2 || import('./cat2d.js' + CATV)).then(mod => { CAT2 = mod; S.members.forEach(m => { const k = catOf(m); CATDATA[k] = CATDATA[k] || CAT2.loadCat(PIXI, k); });
-      return CAT2.loadItems(PIXI, [...new Set(S.members.flatMap(m => [...wearFor(m, 'dorm'), ...wearFor(m, 'scandal'), ...wearFor(m, 'stage')]))]); }).catch(() => {}); };
-  (window.requestIdleCallback || (f => setTimeout(f, 1200)))(go);
-}
-if (S && S.promo && S.promo.kind === 'unit' && S.promo.mids && S.promo.uname) { S.units = S.units || {}; S.units[unitKey(S.promo.mids)] = S.units[unitKey(S.promo.mids)] || S.promo.uname; }   // 지금 활동 중인 유닛 이름 기억
-if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
 // ===== 처음 1회 그림 받기: 게임 그림(art/files.json 목록)을 휴대폰 보관함에 한꺼번에 저장 → 장면이 바로 뜸 =====
 // 그림을 바꾸면 CATV 번호를 올리고 도구/make_files.py로 목록을 다시 만들 것 (그러면 다음 실행 때 새 그림만 다시 받음)
 const RES_KEY = 'idol-maker-res', ART_CACHE = 'idol-art';
@@ -2848,6 +2892,23 @@ async function ensureRes(force) {
   el.querySelector('#resre').onclick = () => { el.remove(); ensureRes(true); };
   el.querySelector('#resgo').onclick = () => el.remove();
 }
+const IS_PV = new URLSearchParams(location.search).has('preview');
+if (IS_PV) { pvStart(); ensureRes(); } else {
+load();
+if (S) { S.members.forEach(m => { if (!m.age) m.age = ri(17, 21); catOf(m); }); if (!S.dorm) S.dorm = { id: 'd2', since: S.week }; }
+if (S && !S.log) { S.log = {}; S.goal = 0; checkGoals(true); newMission(); save(); }   // 목표 기능 전 저장 파일: 이미 이룬 목표는 보상 없이 넘김
+// 쉬는 틈에 미리 받아 두기: 멤버 고양이 그림, 평소 옷, 논란·열애설·사생팬 배경 → 창이 뜨자마자 바로 보이게
+let WARMED = '';
+function warmUp() {
+  if (!S || window.NO3D || window.PV) return; const key = S.members.map(catOf).join(','); if (WARMED === key) return; WARMED = key;
+  const go = () => { ['scandal', 'dating', 'stalker', 'stage', dormBg()].forEach(k => { const im = new Image(); im.src = `art/bg/${k}.webp${CATV}`; });
+    loadPixi().then(() => CAT2 || import('./cat2d.js' + CATV)).then(mod => { CAT2 = mod; S.members.forEach(m => { const k = catOf(m); CATDATA[k] = CATDATA[k] || CAT2.loadCat(PIXI, k); });
+      return CAT2.loadItems(PIXI, [...new Set(S.members.flatMap(m => [...wearFor(m, 'dorm'), ...wearFor(m, 'scandal'), ...wearFor(m, 'stage')]))]); }).catch(() => {}); };
+  (window.requestIdleCallback || (f => setTimeout(f, 1200)))(go);
+}
+if (S && S.promo && S.promo.kind === 'unit' && S.promo.mids && S.promo.uname) { S.units = S.units || {}; S.units[unitKey(S.promo.mids)] = S.units[unitKey(S.promo.mids)] || S.promo.uname; }   // 지금 활동 중인 유닛 이름 기억
+if (S && !S.artV2) { S.members.forEach((m, i) => { const L = lookOf(m); L.ch = (i % 7) + 1; delete L.art; }); S.artV2 = 1; save(); }
+document.body.classList.toggle('lowfx', lowFx());
 ensureRes();
 render();
 if (!S) fillNames();
