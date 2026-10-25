@@ -992,7 +992,7 @@ function endWeek() {
     news('offer', `${S.festival.name} 출연 제의가 왔어요! 이번 달 안에 그룹 일정에서 고를 수 있어요.`);
   }
   S.ga = 'none';
-  if (S.autoSched) autoSched();   // 설정 '매주 자동 추천'
+  if (S.autoSched) { autoSched(); const go = gaOptions(); if (!go[0].fixed) S.ga = ['fansign', 'live'].find(k => go.some(o => o.id === k && o.ok !== false)) || 'none'; }   // 설정 '매주 자동 추천': 스케줄 + 돈이 적게 드는 그룹 일정(팬싸·라이브)
   { const tired = S.members.filter(m => m.fatigue >= 70 && !forcedLabel(m) && m.sched !== 'rest');
     tired.forEach(m => { m.sched = 'rest'; }); }
   for (const m of S.members) {
@@ -2947,7 +2947,7 @@ const lowFx = () => { try { return localStorage.getItem('idol-maker-lowfx') === 
 function settings() {
   const tg = (act, ic, label, on, onT, offT) => `<button class="setg${on ? ' on' : ''}" data-act="${act}"><span>${ic}</span><b>${label}</b><small>${on ? onT : offT}</small></button>`;
   openDlg(`<h2>설정</h2><p class="muted center" style="margin-top:-4px">게임은 이 브라우저에 자동으로 저장돼요.</p>
-<h3>📱 화면 · 편의</h3><div class="setgrid">${tg('bigtext', '🔠', '글자 크기', bigText(), '크게', '보통')}${tg('quickrep', '⚡', '결과 창 연출', !quickRep(), '보기', '건너뛰기')}${tg('lowfx', '✨', '장면 효과', !lowFx(), '켬', '끔')}${S ? tg('autosched', '🤖', '매주 자동 추천', !!S.autoSched, '켬', '끔') : ''}<button class="setg" data-act="howto"><span>📖</span><b>게임 방법</b><small>다시 보기</small></button></div>
+<h3>📱 화면 · 편의</h3><div class="setgrid">${tg('bigtext', '🔠', '글자 크기', bigText(), '크게', '보통')}${tg('quickrep', '⚡', '결과 창 연출', !quickRep(), '보기', '건너뛰기')}${tg('lowfx', '✨', '장면 효과', !lowFx(), '켬', '끔')}${S ? tg('autosched', '🤖', '매주 자동 추천', !!S.autoSched, '켬 (스케줄·팬싸/라이브)', '끔') : ''}<button class="setg" data-act="howto"><span>📖</span><b>게임 방법</b><small>다시 보기</small></button></div>
 <h3>💗 우리 그룹</h3><button class="btn sub" data-rename="GROUP" style="width:100%;margin-bottom:8px">✏️ 그룹 이름 바꾸기 (지금: ${esc(S ? S.name : '')})</button><button class="btn sub" data-act="fandom" style="width:100%">${S && S.fandom ? `팬클럽 '${esc(S.fandom)}' · 응원봉 바꾸기` : '팬클럽 이름 · 응원봉 정하기'}</button>
 <h3>💾 저장</h3><div class="setgrid"><button class="setg" data-act="save-out"><span>💾</span><b>내보내기</b><small>백업 코드 복사</small></button><button class="setg" data-act="save-in"><span>📂</span><b>불러오기</b><small>백업 코드 붙여 넣기</small></button><button class="setg" data-act="autobak" style="grid-column:1/-1"><span>⏪</span><b>자동 백업</b><small>새해마다 저장 · 최근 ${autoBaks().length}개</small></button></div>
 <h3>🧰 기타</h3><a class="btn sub" href="?preview" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px">🔍 미리보기 (장면·옷 바로 보기)</a>
