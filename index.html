@@ -1383,6 +1383,7 @@ const predEnding = () => ENDINGS.find(x => !x.over && x.ok());   // 지금 기�
 function endGame(id, text) {
   S.over = text; S.endingId = id; S.pending = [];
   if (!META.endings[id]) META.endings[id] = { g: S.name, w: S.week };
+  (META.hall = META.hall || []).unshift({ g: S.name, e: id, w: S.week, wins: S.trophies, fans: Math.max(S.maxFans || 0, S.fans), aw: S.awards.filter(a => a.award === '대상').length, at: Date.now() }); META.hall.length = Math.min(META.hall.length, 20);   // 명예의 전당
   saveMeta(); checkAch();
 }
 function finishContract() {
@@ -1433,7 +1434,7 @@ function goalsDlg(tab) {
   else { const n = ENDINGS.filter(e => META.endings[e.id]).length;
     const pe = S && !S.ended && !S.over ? predEnding() : null;
     h = `${pe ? `<p class="schint center">🔮 지금 기록이면 예상 엔딩: <b>${META.endings[pe.id] ? `${pe.icon} ${esc(pe.title)}` : '처음 보는 엔딩!'}</b></p>` : ''}<p class="muted center">${CONTRACT_YEARS}년 계약이 끝나면 기록에 따라 엔딩이 정해져요. 위에 있는 엔딩일수록 먼저 골라져요. (${n} / ${ENDINGS.length})</p><div class="glist">${ENDINGS.map(e => { const seen = META.endings[e.id];
-      return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small>${S && END_PROG[e.id] && !S.over ? `<small class="eprog">지금 ${END_PROG[e.id]()}</small>` : ''}</div>${seen && S && S.members.length ? `<button class="btn sub small" data-endview="${e.id}" style="margin-left:auto;flex:none">보기</button>` : ''}</div>`; }).join('')}</div>`; }
+      return `<div class="gi${seen ? '' : ' off'}"><span>${seen ? e.icon : '❓'}</span><div><b>${seen ? esc(e.title) : '???'}</b><small>조건: ${esc(e.hint)}${seen ? ` · ${esc(seen.g)}` : ''}</small>${S && END_PROG[e.id] && !S.over ? `<small class="eprog">지금 ${END_PROG[e.id]()}</small>` : ''}</div>${seen && S && S.members.length ? `<button class="btn sub small" data-endview="${e.id}" style="margin-left:auto;flex:none">보기</button>` : ''}</div>`; }).join('')}</div>${(META.hall || []).length ? `<h3>🏛 명예의 전당 (지난 그룹)</h3><div class="glist">${META.hall.map(h => { const e = ENDINGS.find(x => x.id === h.e) || {}; return `<div class="gi"><span>${e.icon || '🎤'}</span><div><b>${esc(h.g)} · ${esc(e.title || '')}</b><small>${dateStr(h.w)} · 1위 ${h.wins}번${h.aw ? ` · 대상 ${h.aw}번` : ''} · 최고 팬 ${num(h.fans)}</small></div></div>`; }).join('')}</div>` : ''}`; }
   openDlg(`<h2>목표</h2><div class="chips gtabs">${tabs.map(([k, l]) => `<button class="chip${GTAB === k ? ' on' : ''}" data-gtab="${k}">${l}</button>`).join('')}</div>${h}<button class="btn" data-act="close" style="width:100%;margin-top:10px">닫기</button>`);
 }
 
