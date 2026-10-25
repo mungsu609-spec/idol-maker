@@ -2689,11 +2689,11 @@ const FAC_COST = [10000, 30000, 100000];
 const facLv = k => (S && S.fac && S.fac[k]) || 0;
 function facHTML() {
   return `<h2>🏢 회사 시설</h2><p class="muted center" style="margin-top:-4px">한 번 지으면 계속 효과가 있어요. 단계마다 효과가 더해져요.</p><div class="facgrid">${FAC.map(([k, ic, l, fx]) => { const lv = facLv(k), cost = FAC_COST[lv];
-    return `<div class="card fac"><div class="facic">${ic}</div><b>${l}</b><div class="facst">${'★'.repeat(lv)}${'☆'.repeat(3 - lv)}</div><small>${fx}${lv ? ` (지금 ×${lv})` : ''}</small>${lv < 3 ? `<button class="btn small${S.money < cost ? ' sub' : ''}" data-fac="${k}">${lv ? '업그레이드' : '짓기'} ${moneyShort(cost)}</button>` : '<span class="tag">최고 단계</span>'}</div>`; }).join('')}</div>`;
+    return `<div class="card fac"><div class="facic">${ic}</div><b>${l}</b><div class="facst">${'★'.repeat(lv)}${'☆'.repeat(3 - lv)}</div><small>${fx}${lv ? ` (지금 ×${lv})` : ''}</small>${lv < 3 ? (S.money < cost ? `<button class="btn small sub" disabled>${moneyShort(cost)} · 자금 부족</button>` : `<button class="btn small" data-fac="${k}">${lv ? '업그레이드' : '짓기'} ${moneyShort(cost)}</button>`) : '<span class="tag">최고 단계</span>'}</div>`; }).join('')}</div>`;
 }
 function buildFac(k) {
   const lv = facLv(k), cost = FAC_COST[lv], f = FAC.find(x => x[0] === k); if (!f || lv >= 3) return;
-  if (S.money - cost < 0 && !confirm(`자금이 모자라요. 그래도 ${f[2]}에 ${money(cost)}를 쓸까요?`)) return;
+  if (S.money < cost) return toast('자금이 모자라요. 시설은 가진 돈으로만 지을 수 있어요.');
   if (!confirm(`${f[2]} ${lv + 1}단계 (${f[3]})\n비용 ${money(cost)} — 지을까요?`)) return;
   S.money -= cost; S.fac = S.fac || {}; S.fac[k] = lv + 1; tally('facility');
   news('info', `🏢 ${f[2]} ${lv + 1}단계 완성! (${f[3]})`); save(); render(); toast(`${f[1]} ${f[2]} ${lv + 1}단계 완성!`);
