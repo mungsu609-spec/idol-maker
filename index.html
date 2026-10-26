@@ -163,7 +163,7 @@ dialog::backdrop{background:rgba(70,30,70,.5)}
 .dlg h2{margin-top:4px}
 .scene{display:block;width:100%;height:auto;border-radius:14px;border:3px solid var(--gold);box-shadow:0 3px 0 var(--goldd);margin-bottom:12px;background:#fff}
 .ctable{width:100%;border-collapse:collapse;font-size:14px}
-.ctable td{padding:5px 6px;border-top:2px dashed var(--line)}
+.ctable td{padding:5px 6px;border-top:2px dashed var(--line)}.ctable td:first-child,.ctable td:last-child{white-space:nowrap}
 .ctable tr.me td{color:var(--pinkd);font-family:"Jua",sans-serif;font-size:15.5px;background:#fff0f6}
 .money-list{font-size:14.5px}
 .dlist{display:grid;gap:6px}.rep-body .dlist{grid-template-columns:1fr 1fr}.rep-body .dl{gap:6px;padding:5px 7px;min-width:0}.rep-body .dl>div{min-width:0}.rep-body .dl small{font-size:12px;line-height:1.3}.dl{display:flex;align-items:center;gap:9px;background:#fffdf8;border:1.5px solid #f0dcc0;border-radius:12px;padding:5px 9px}
@@ -568,6 +568,14 @@ const NPC_NEW = ['ZENITH', '루나틱', 'VIVID', '밀키웨이', 'ORBIT', '코�
 // 경쟁 그룹 실력(p)은 그룹마다 다른 속도(g)로 해마다 오름
 const npcGrow = n => n.g || (n.g = rand(RIVAL.grow[0], RIVAL.grow[1]));
 const RIVAL = { grow: [2, 6], comeback: 0.12, boost: [15, 25] };
+// 경쟁 그룹 노래 제목 (순위표에 '그룹 - 노래'로 나옴). 그룹마다 지금 활동곡(n.song)이 있고 가끔·라이벌 컴백·새해에 바뀜
+const NPC_SONGS = ['밤양갱', '사건의 지평선', 'Hype Boy', 'Next Level', 'Love Dive', '파도', '첫사랑', '봄날의 고양이', 'Glitter', '꽃가루', '비밀번호', '하이파이브', 'Crown', 'Moonwalk', 'Paradise', '오렌지빛 노을', 'Blink', 'Love Letter', '사탕가게', 'Rewind',
+  'Shooting Star', '숨바꼭질', 'Chase', '오늘 밤', 'Ice Cream', 'Lightning', '우주정거장', '불꽃놀이', 'Siren', 'Kitty Kitty', '냥아치', '꾹꾹이', '골골송', '햇살 낮잠', '캣닢 파티', 'Midnight Cat', '고양이 걸음', '수염', 'Pawprint', '츄르 한 입',
+  'Neon City', 'Daybreak', 'Echo', 'Gold Rush', 'Ribbon', '첫 비행', '여름밤', '푸른 새벽', '눈의 꽃', 'Waterfall', 'Bad Boy', 'Feel Good', 'Sweet Dream', '나비효과', 'Cherry', 'Pinky Promise', 'Comet', 'Dynamite Heart', 'Spotlight', '마지막 춤',
+  '얼음 궁전', '별자리', '시간여행', 'Tic Tac', 'Wonderland', '하루 끝', '보랏빛 밤', 'Hello Stranger', 'Overdrive', '심장 소리', 'Lollipop', 'Kaleidoscope', 'Runaway', '분홍 신', '거울', 'Seven Days', 'Zero Gravity', 'Wild Flower', '안녕 여름', 'Mirror Mirror',
+  'Hold Me Tight', '방울방울', '달려라', 'Glass Heart', '구름 위에서', 'Satellite', 'Riddle', 'Big Wave', '라일락', 'Diamond', '이불 밖은 위험해', '창가의 고양이', '털뭉치', 'Catwalk', '야옹 야옹', 'Snack Time', '밤산책', 'Hot Summer', '빛의 속도', 'Daisy'];
+function npcNewSong(n) { const used = new Set([...S.npc.map(x => x.song), ...(S.albums || []).map(a => a.title), S.promo && S.promo.title]), l = NPC_SONGS.filter(t => !used.has(t)); return n.song = pick(l.length ? l : NPC_SONGS); }
+const npcSong = n => n.song || npcNewSong(n);
 // 콘셉트별 곡 제목 후보 10개씩 (🎲 버튼·빈칸일 때 이 중에서 골라요)
 const CONCEPT_TITLES = {
   fresh: ['Summer Splash', '레모네이드', '파란 하늘 아래', 'Blue Wave', 'Fresh Start', '소나기', 'Cider', '여름 끝에서', 'Sunshine Run', '바람이 분다'],
@@ -676,8 +684,9 @@ function chartList(stage, wk, who = S.name) {
   const me = stage + Math.log10(S.fans + 1) * 6 + S.fame * 0.3 + mom;
   const growth = Math.min(S.week * 0.06, 20);
   const rv = S.rival && S.rival.until >= S.week ? S.npc.find(n => n.name === S.rival.name) : null;
-  const rivals = [...(rv ? [rv] : []), ...shuffle(S.npc.filter(n => n !== rv)).slice(0, rv ? 5 : 6)].map(n => ({ name: n.name, score: n.p + growth + rand(-8, 8) + (n === rv ? S.rival.boost : 0), hot: n === rv }));
-  return [...rivals, { name: who, score: me, me: true }].sort((a, b) => b.score - a.score);
+  const rivals = [...(rv ? [rv] : []), ...shuffle(S.npc.filter(n => n !== rv)).slice(0, rv ? 5 : 6)].map(n => { if (n !== rv && Math.random() < 0.08) npcNewSong(n);
+    return { name: n.name, song: npcSong(n), score: n.p + growth + rand(-8, 8) + (n === rv ? S.rival.boost : 0), hot: n === rv }; });
+  return [...rivals, { name: who, song: S.promo ? S.promo.title : '', score: me, me: true }].sort((a, b) => b.score - a.score);
 }
 
 // ===== 이번 주 그룹 일정 =====
@@ -836,14 +845,14 @@ function endWeek() {
     if (m.slump) { m.slump -= m.sched === 'rest' || m.sched === 'person' ? 2 : 1; if (m.slump <= 0) { m.slump = 0; news('info', `🌤 ${m.name} 멤버가 슬럼프에서 벗어났어요!`); REP.lines.push(`🌤 ${m.name} 슬럼프 회복`); } }
     else if (!m.busy && Math.random() < (m.fatigue >= 60 ? 0.025 : 0.006)) { m.slump = ri(3, 6); news('scandal', `🌧 ${m.name} 멤버가 슬럼프에 빠졌어요.`); REP.lines.push(`🌧 ${m.name} 슬럼프 · 몇 주 동안 연습 효과가 크게 줄어요 (휴식·인성 교육을 하면 빨리 나아요)`); }
   }
+  { const down = [];   // 과로로 쓰러진 멤버는 한 문장으로 묶어서
   for (const m of S.members) {
     if (m.fatigue > 80) m.stats.health = clamp(m.stats.health - 3, 0, 100);
-    if (!m.busy && (m.stats.health < 20 || m.fatigue >= 95) && Math.random() < 0.3) {
-      m.busy = { type: 'sick', left: 3 };
-      news('scandal', `${m.name}, 과로로 쓰러져 3주간 건강 회복에 들어가요.`);
-      REP.lines.push(`🚑 ${m.name} 과로로 쓰러짐 → 3주 쉬어요`);
-    }
+    if (!m.busy && (m.stats.health < 20 || m.fatigue >= 95) && Math.random() < 0.3) { m.busy = { type: 'sick', left: 3 }; down.push(m.name); }
   }
+  if (down.length) { news('scandal', `${down.join(', ')} 멤버가 과로로 쓰러져 3주간 건강 회복에 들어가요.`); REP.lines.push(`🚑 ${down.join(', ')} 과로로 쓰러짐 → 3주 쉬어요`); }
+  const diet = REP.dietDown || [];
+  if (diet.length) { news('scandal', `${diet.join(', ')} 멤버가 무리한 다이어트로 쓰러져 2주 쉬어요.`); REP.lines.push(`🚑 ${diet.join(', ')} 무리한 다이어트로 쓰러짐 → 2주 쉬어요`); } }
 
   // 음악 방송
   if (P) {
@@ -859,8 +868,8 @@ function endWeek() {
       const concept = CONCEPTS.find(c => c.id === P.concept);
       if (!(S.rival && S.rival.until >= w) && Math.random() < RIVAL.comeback) {   // 라이벌 컴백: 2주 동안 그 그룹 점수 크게↑
         const top = S.npc.slice().sort((a, b) => b.p - a.p).slice(0, 4), n = pick(top);
-        S.rival = { name: n.name, until: w + 1, boost: ri(RIVAL.boost[0], RIVAL.boost[1]) };
-        news('scandal', `🔥 라이벌 ${n.name} 컴백! 2주 동안 1위 경쟁이 치열해요.`); REP.lines.push(`🔥 라이벌 ${n.name} 컴백 · 2주 동안 1위 경쟁이 치열해요`);
+        S.rival = { name: n.name, until: w + 1, boost: ri(RIVAL.boost[0], RIVAL.boost[1]) }; npcNewSong(n);
+        news('scandal', `🔥 라이벌 ${n.name} 「${n.song}」 컴백! 2주 동안 1위 경쟁이 치열해요.`); REP.lines.push(`🔥 라이벌 ${n.name} 「${n.song}」 컴백 · 2주 동안 1위 경쟁이 치열해요`);
       }
       const st = stageScore(availP, concept, TIERS[P.tier].bonus, promoMembers().length);
       const first = P.wk === 0;   // 첫 주는 순위 집계 전 (순위·1위 없음)
@@ -980,7 +989,7 @@ function endWeek() {
   S.week++;
   const nd = dateOf(S.week);
   if (S.week % 48 === 0) { S.recap = S.ys ? yearRecap() : null; S.ys = yearSnap(); S.yearTrophies = 0; S.members.forEach(m => { m.age = (m.age || 18) + 1; }); news('info', `🎂 새해가 밝았어요! 멤버들이 한 살씩 나이를 먹었어요.`);
-    S.npc.forEach(n => { n.p += npcGrow(n) * rand(0.6, 1.3); });
+    S.npc.forEach(n => { n.p += npcGrow(n) * rand(0.6, 1.3); n.song = null; });
     const left = NPC_NEW.filter(x => !S.npc.some(n => n.name === x));
     if (left.length) { const ps = S.npc.map(n => n.p).sort((a, b) => b - a), nn = { name: pick(left), p: ps[4] + rand(-5, 8) };
       S.npc.sort((a, b) => a.p - b.p).shift(); S.npc.push(nn); news('info', `🌟 대형 신인 ${nn.name} 데뷔! 경쟁 그룹들도 해마다 실력이 늘고 있어요.`); }
@@ -1081,12 +1090,11 @@ function doSched(m, s) {
     }
     return;
   }
-  addFat(m, s.fat < 0 ? s.fat * dormComfort() * (1 + facLv('care') * 0.15) : s.fat);
+  addFat(m, s.fat < 0 ? s.fat * dormComfort() * (1 + facLv('care') * 0.15) * ((S.shop || {}).tower ? 1.1 : 1) : s.fat);
   for (const k in s.gain) gain(m, k, k === 'health' && s.gain[k] > 0 ? s.gain[k] * (1 + facLv('care') * 0.15) : s.gain[k]);
   if (s === SCHED.diet && m.stats.health < 30 && Math.random() < 0.4) {
     m.busy = { type: 'sick', left: 2 };
-    news('scandal', `${m.name}, 무리한 다이어트로 쓰러져 2주 쉬어요.`);
-    REP.lines.push(`🚑 ${m.name} 무리한 다이어트로 쓰러짐 → 2주 쉬어요`);
+    (REP.dietDown = REP.dietDown || []).push(m.name);   // 소식·결과는 과로 쓰러짐 자리에서 한 문장으로
   }
 }
 function tickBusy(m) {
@@ -1161,8 +1169,10 @@ function yearEnd(avail) {
   earn(1500, '연말 무대 출연료'); tally('yearend'); setScene('yearend'); REP.crew.yearend = avail.filter(m => !m.busy).map(m => m.id);
   avail.forEach(m => addFat(m, 15));
   // 시상식 점수: 우리 = 인지도·그해 1위 횟수·팬 / 경쟁 그룹 = 실력. 대상은 1위 그룹 하나만
-  const me = { name: S.name, me: true, score: S.fame * AWARD.fame + S.yearTrophies * AWARD.win + Math.log10(S.fans + 1) * AWARD.fans + rand(-4, 4) };
-  const all = [...S.npc.map(n => ({ name: n.name, score: n.p * AWARD.npc + rand(-8, 8) })), me].sort((a, b) => b.score - a.score);
+  // 우리 대표곡 = 올해 낸 곡 중 1위 많이·순위 높은 곡 (없으면 가장 최근 곡)
+  const yAlb = S.albums.filter(a => dateOf(a.w).y === y).sort((a, b) => (b.wins || 0) - (a.wins || 0) || a.best - b.best), hit = yAlb[0] || S.albums[S.albums.length - 1];
+  const me = { name: S.name, song: hit ? hit.title : (S.promo ? S.promo.title : ''), me: true, score: S.fame * AWARD.fame + S.yearTrophies * AWARD.win + Math.log10(S.fans + 1) * AWARD.fans + rand(-4, 4) };
+  const all = [...S.npc.map(n => ({ name: n.name, song: npcSong(n), score: n.p * AWARD.npc + rand(-8, 8) })), me].sort((a, b) => b.score - a.score);
   const rank = all.indexOf(me) + 1;
   REP.award = rank <= 6 ? all.slice(0, 6) : [...all.slice(0, 5), me];
   let award = null;
@@ -2483,6 +2493,15 @@ const ICON = {
 };
 // 탭 아이콘 (제미나이 그림, art/ui)
 const TABICON = Object.fromEntries([['plan', 'plan'], ['members', 'members'], ['act', 'activity'], ['contract', 'contract'], ['news', 'news']].map(([k, f]) => [k, `<img src="art/ui/tab-${f}.png${CATV}" alt="" aria-hidden="true">`]));
+// 상점 탭 아이콘: 다른 탭 그림처럼 분홍 동그라미 안에 고양이 귀 달린 쇼핑백 (코드로 그림)
+TABICON.shop = `<svg viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="tsBg" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#fff6f9"/><stop offset="1" stop-color="#ffd3e2"/></radialGradient><linearGradient id="tsBag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9cbf"/><stop offset="1" stop-color="#f06d9d"/></linearGradient></defs>
+<circle cx="50" cy="50" r="47" fill="url(#tsBg)" stroke="#f3b4c8" stroke-width="3"/>
+<path d="M38 36 Q38 20 50 20 Q62 20 62 36" fill="none" stroke="#b5835a" stroke-width="5" stroke-linecap="round"/>
+<path d="M24 38 L30 22 L40 36 Z M76 38 L70 22 L60 36 Z" fill="#f06d9d" stroke="#8a4a5e" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M29 33 L31 27 L35 33 Z M71 33 L69 27 L65 33 Z" fill="#ffd3e2"/>
+<rect x="22" y="34" width="56" height="48" rx="9" fill="url(#tsBag)" stroke="#8a4a5e" stroke-width="3"/>
+<g fill="#fff"><ellipse cx="50" cy="64" rx="9" ry="7.5"/><circle cx="39" cy="54" r="4"/><circle cx="46" cy="49" r="4"/><circle cx="54" cy="49" r="4"/><circle cx="61" cy="54" r="4"/></g>
+<path d="M28 42 h44" stroke="#ffc2d6" stroke-width="3" stroke-linecap="round" opacity=".7"/></svg>`;
 const CREST = `<svg class="crest" viewBox="0 0 160 44" aria-hidden="true"><g fill="#fff" stroke="#e3ad4a" stroke-width="2" stroke-linejoin="round"><path d="M70 26C56 8 30 4 6 12C24 14 32 18 38 24C24 22 16 26 10 32C30 26 46 30 58 34C48 34 40 38 36 42C52 36 62 34 70 30Z"/><path d="M90 26C104 8 130 4 154 12C136 14 128 18 122 24C136 22 144 26 150 32C130 26 114 30 102 34C112 34 120 38 124 42C108 36 98 34 90 30Z"/></g><path d="M80 6l5 11 12 1.3-9 8 2.6 11.7L80 32l-10.6 6 2.6-11.7-9-8 12-1.3z" fill="#ffd84a" stroke="#c9902a" stroke-width="2.2" stroke-linejoin="round"/></svg>`;
 const STATC = { vocal: '#ff6fa3', dance: '#ff9a4a', visual: '#b07cf0', camera: '#f2c230', act: '#3fbfae', lang: '#5a9cf0', person: '#5cc06a', health: '#f06060' };
 const EYENAME = { round: '동그란 눈', droopy: '순한 눈', cat: '고양이 눈', smile: '웃는 눈' };
@@ -2523,8 +2542,8 @@ function render() {
   const app = $('#app');
   if (!S) { app.innerHTML = setupHTML(); return; }
   if (S.over) { app.innerHTML = overHTML(); if (S.endingId) mountEnd(S.endingId); return; }
-  const tabs = [['plan', '일정'], ['members', '멤버'], ['act', '활동'], ['contract', '계약'], ['news', '소식']];
-  const body = { plan: planHTML, members: membersHTML, act: actHTML, contract: contractHTML, news: newsHTML }[TAB]();
+  const tabs = [['plan', '일정'], ['members', '멤버'], ['act', '활동'], ['shop', '상점'], ['contract', '계약'], ['news', '소식']];
+  const body = { plan: planHTML, members: membersHTML, act: actHTML, shop: shopHTML, contract: contractHTML, news: newsHTML }[TAB]();
   const d = dateOf(S.week);
   const kpi = [[ICON.coin, '자금', moneyShort(S.money), S.money < 0], [ICON.heart, '팬', num(S.fans)], [ICON.star, '인지도', Math.round(S.fame)], [ICON.trophy, '음방 1위', S.trophies + '번']];
   app.innerHTML = `<header>
@@ -2698,6 +2717,54 @@ function buildFac(k) {
   if (!confirm(`${f[2]} ${lv + 1}단계 (${f[3]})\n비용 ${money(cost)} — 지을까요?`)) return;
   S.money -= cost; S.fac = S.fac || {}; S.fac[k] = lv + 1; tally('facility');
   news('info', `🏢 ${f[2]} ${lv + 1}단계 완성! (${f[3]})`); save(); render(); toast(`${f[1]} ${f[2]} ${lv + 1}단계 완성!`);
+}
+// ===== 상점: 고양이 용품 (사면 바로 써요). 한 멤버용은 멤버를 골라요. 같은 물건은 같은 대상에게 한 주에 한 번 =====
+const SHOP = [
+  { id: 'boost', ic: '💉', name: '부스트샷', desc: '피로 -40 · 지친 멤버를 바로 회복', cost: 500, one: true, use: m => addFat(m, -40), fx: '피로 -40' },
+  { id: 'churu', ic: '🍡', name: '츄르 파티', desc: '멤버 전원 피로 -12', cost: 400, use: () => S.members.forEach(m => addFat(m, -12)), fx: '전원 피로 -12' },
+  { id: 'salmon', ic: '🐟', name: '연어 보양식', desc: '건강 +12', cost: 300, one: true, stat: 'health', v: 12 },
+  { id: 'catnip', ic: '🌿', name: '캣닢 쿠션', desc: '슬럼프에서 바로 벗어나요', cost: 800, one: true, ok: m => m.slump, why: '슬럼프인 멤버가 없어요', use: m => { m.slump = 0; }, fx: '슬럼프 회복' },
+  { id: 'candy', ic: '🍬', name: '마따따비 목캔디', desc: '보컬 +3', cost: 1500, one: true, stat: 'vocal', v: 3 },
+  { id: 'teaser', ic: '🎣', name: '깃털 낚싯대', desc: '춤 +3 (사냥 놀이로 순발력↑)', cost: 1500, one: true, stat: 'dance', v: 3 },
+  { id: 'brush', ic: '🪮', name: '윤기 그루밍 세트', desc: '외모 +3 (털이 반짝반짝)', cost: 1500, one: true, stat: 'visual', v: 3 },
+  { id: 'mirror', ic: '🪞', name: '냥스타그램 거울', desc: '표현력 +3', cost: 1500, one: true, stat: 'camera', v: 3 },
+  { id: 'goods', ic: '🐾', name: '젤리 포토카드 굿즈', desc: '팬 +3% (데뷔 후)', cost: 2000, gate: () => debuted() ? '' : '데뷔 후 팔 수 있어요', use: () => { const f = Math.max(200, Math.round(S.fans * 0.03)); S.fans += f; return `팬 +${num(f)}`; } },
+  { id: 'tower', ic: '🏰', name: '숙소 캣타워', desc: '한 번 사면 계속 · 휴식 회복 +10%', cost: 3000, perm: true },
+];
+const SHOP_STAT = Object.fromEntries(STATS);
+function shopUsed(k) { if (S.shopW !== S.week) { S.shopW = S.week; S.shopUsed = {}; } return !!S.shopUsed[k]; }
+function shopWhy(it) {   // 지금 살 수 없는 이유 (살 수 있으면 '')
+  if (it.perm && (S.shop || {})[it.id]) return '이미 있어요';
+  if (it.gate && it.gate()) return it.gate();
+  if (S.money < it.cost) return '자금 부족';
+  if (it.one) { const l = S.members.filter(m => !shopUsed(it.id + ':' + m.id) && (!it.ok || it.ok(m))); if (!l.length) return it.ok && !S.members.some(it.ok) ? it.why : '이번 주엔 다 썼어요'; }
+  else if (!it.perm && shopUsed(it.id)) return '이번 주엔 샀어요';
+  return '';
+}
+function shopHTML() {
+  return `<h2>🛍 냥냥 상점</h2><p class="muted center" style="margin-top:-4px">사면 바로 써요.<br>같은 물건은 한 주에 한 번씩 (멤버용은 멤버마다)</p><div class="facgrid">${SHOP.map(it => { const why = shopWhy(it), own = it.perm && (S.shop || {})[it.id];
+    return `<div class="card fac"><div class="facic">${it.ic}</div><b>${it.name}</b><small>${it.desc}</small>${own ? '<span class="tag">✔ 숙소에 있어요</span>' : why ? `<button class="btn small sub" disabled>${moneyShort(it.cost)} · ${why}</button>` : `<button class="btn small" data-shop="${it.id}">${it.one ? '멤버 고르기' : '사기'} ${moneyShort(it.cost)}</button>`}</div>`; }).join('')}</div>
+<p class="muted" style="display:flex;gap:4px"><span>💡</span><span>남는 돈이 많으면 계약 탭 맨 아래<br>🏢 회사 시설도 지어 보세요.</span></p>`;
+}
+function shopPick(id) {   // 한 멤버용 물건: 누구에게 줄지 고르기
+  const it = SHOP.find(x => x.id === id); if (!it) return;
+  const info = m => it.stat ? `${SHOP_STAT[it.stat]} ${Math.round(m.stats[it.stat])}` : it.id === 'catnip' ? (m.slump ? '🌧 슬럼프' : '슬럼프 아님') : `피로 ${Math.round(m.fatigue)} · 건강 ${Math.round(m.stats.health)}`;
+  openDlg(`<h2>${it.ic} ${it.name}</h2><p class="muted center">${it.desc} · ${money(it.cost)}<br>누구에게 줄까요?</p><div class="dlist">${S.members.map(m => { const used = shopUsed(it.id + ':' + m.id), no = used ? '이번 주에 줬어요' : it.ok && !it.ok(m) ? it.why.replace('인 멤버가 없어요', '가 아니에요') : '';
+    return `<div class="dl">${avatar(m, 36)}<div style="flex:1"><b>${esc(m.name)}</b><small>${info(m)}</small></div>${no ? `<span class="muted" style="font-size:12px">${no}</span>` : `<button class="btn small" data-shopuse="${it.id}:${m.id}">주기</button>`}</div>`; }).join('')}</div>
+<button class="btn sub" data-act="close" style="width:100%;margin-top:12px">닫기</button>`);
+}
+function shopBuy(id, mid) {
+  const it = SHOP.find(x => x.id === id), m = mid && S.members.find(x => x.id === mid); if (!it || (it.one && !m)) return;
+  if (S.money < it.cost) return toast('자금이 모자라요. 상점 물건은 가진 돈으로만 살 수 있어요.');
+  if (it.one ? shopUsed(id + ':' + mid) : !it.perm && shopUsed(id)) return toast('이번 주엔 이미 샀어요.');
+  if (!it.one && !confirm(`${it.ic} ${it.name} (${it.desc})\n${money(it.cost)} — 살까요?`)) return;
+  shopUsed(''); S.money -= it.cost; S.shopUsed[it.one ? id + ':' + mid : id] = 1;
+  let fx = it.fx || '';
+  if (it.perm) { (S.shop = S.shop || {})[id] = 1; fx = it.desc.split(' · ').pop(); }
+  else if (it.stat) { const b = m.stats[it.stat]; m.stats[it.stat] = clamp(b + it.v, 0, 100); fx = `${SHOP_STAT[it.stat]} +${Math.round(m.stats[it.stat] - b)}`; }
+  else { const r = it.use(m); if (r) fx = r; }
+  news('info', `🛍 ${it.name}${m ? ` → ${m.name}` : ''} (${fx})`); save(); render();
+  if (it.one) { closeDlg(); } toast(`${it.ic} ${m ? m.name + ' ' : ''}${fx}!`);
 }
 function contractHTML() {
   return dormHTML() + Object.entries(VENDORS).map(([kind, V]) => {
@@ -2876,8 +2943,8 @@ function showReport(r) {
 <div class="sum">${[['💗 팬', r.dFans, n => (n >= 0 ? '+' : '') + num(n)], ['💰 자금', inc - exp, n => (n >= 0 ? '+' : '') + money(n)], ['⭐ 인지도', r.dFame, n => (n >= 0 ? '+' : '') + n]].map(([l, v, f]) => `<span class="${v < 0 ? 'neg' : ''}">${l} <b data-count="${Math.round(v)}" data-fmt="${l}">${f(0)}</b></span>`).join('')}</div>`;
   let h = `<h2>${r.title}</h2>`;
   if (r.lines.length) h += r.lines.map(t => `<div>${esc(t)}</div>`).join('');
-  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위${x.me && r.chart.prev ? (r.chart.prev > i + 1 ? `<em class="up"> ▲${r.chart.prev - i - 1}</em>` : r.chart.prev < i + 1 ? `<em class="dn"> ▼${i + 1 - r.chart.prev}</em>` : ' -') : ''}</td><td>${esc(x.name)}${x.hot ? ' 🔥' : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
-  if (r.award) h += `<h3>연말 시상식 점수</h3><table class="ctable">${r.award.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table><p class="muted" style="font-size:12px">대상은 1위 그룹 (인지도 60 이상), 본상은 3위 안 (인지도 40 이상)</p>`;
+  if (r.chart) h += `<h3>이번 주 음악 방송 순위</h3><table class="ctable">${r.chart.list.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위${x.me && r.chart.prev ? (r.chart.prev > i + 1 ? `<em class="up"> ▲${r.chart.prev - i - 1}</em>` : r.chart.prev < i + 1 ? `<em class="dn"> ▼${i + 1 - r.chart.prev}</em>` : ' -') : ''}</td><td>${esc(x.name)}${x.song ? ` - ${esc(x.song)}` : ''}${x.hot ? ' 🔥' : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table>`;
+  if (r.award) h += `<h3>연말 시상식 점수</h3><table class="ctable">${r.award.map((x, i) => `<tr class="${x.me ? 'me' : ''}"><td>${i + 1}위</td><td>${esc(x.name)}${x.song ? ` - ${esc(x.song)}` : ''}</td><td style="text-align:right">${Math.round(x.score)}점</td></tr>`).join('')}</table><p class="muted" style="font-size:12px">대상은 1위 그룹 (인지도 60 이상), 본상은 3위 안 (인지도 40 이상)</p>`;
   if (r.deltas.length) h += `<h3>멤버 변화</h3><div class="dlist">${r.deltas.map(([m, t]) => `<div class="dl">${avatar(m, 36)}<div><b>${esc(m.name)}</b><small>${esc(t).replace(/([가-힣]+) ([+-])(\d+)/g, (_, k, sg, v) => `${k} <em class="${(sg === '+') !== (k === '피로') ? 'up' : 'dn'}">${sg}${v}</em>`)}</small></div></div>`).join('')}</div>`;
   h += `<details class="moneyfold"><summary><b>💰 돈</b><span class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)} <i>자세히 ▼</i></span></summary><div class="money-list">${r.inc.map(([l, n]) => `<div><span>${esc(l)}</span><span>+${money(n)}</span></div>`).join('')}${r.exp.map(([l, n]) => `<div><span>${esc(l)}</span><span class="neg">-${money(n)}</span></div>`).join('')}
 <div style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>합계</b><b class="${inc - exp < 0 ? 'neg' : ''}">${inc - exp >= 0 ? '+' : ''}${money(inc - exp)}</b></div></div></details>`;
@@ -2947,6 +3014,7 @@ function howTo() {
   const rows = [['📅', '한 주씩 진행해요', '멤버마다 스케줄을 고르고 아래 <b>한 주 진행</b>을 눌러요. 모르겠으면 <b>✨ 추천 스케줄</b>을 눌러 보세요. <b>⏩ 4주</b> 버튼으로 한꺼번에 진행할 수도 있어요. 설정의 <b>🤖 매주 자동 추천</b>을 켜면 스케줄도 알아서 맞춰져요.'],
     ['😴', '피로를 조심해요', '피로가 70을 넘으면 연습 효과가 반으로 줄고, 너무 지치면 쓰러져요. 쉬게 하면 피로가 풀려요.'],
     ['🎤', '데뷔하고 컴백해요', '<b>활동</b> 탭에서 곡과 콘셉트를 정해 데뷔·컴백해요. 음악 방송에서 1위를 노려 보세요.'],
+    ['🛍', '상점', '<b>상점</b> 탭에서 부스트샷(피로 회복)·츄르·고양이 용품을 사서 멤버에게 바로 쓸 수 있어요.'],
     ['💌', '제의를 골라 받아요', '광고·드라마·영화·예능 제의가 와요. 카드의 <b>위험</b> 표시를 보고 받을지 정해요.'],
     ['📋', '목표와 미션', '일정 탭 목표 카드에서 다음 목표와 이번 달 매니저 미션을 확인해요. 이루면 보상이 있어요.'],
     ['📜', '7년 계약', '7년차 연말 무대가 끝나면 그동안의 기록으로 <b>엔딩</b>이 정해져요. 엔딩 12가지를 모아 보세요!']];
@@ -3057,6 +3125,8 @@ document.addEventListener('click', e => {
   if (d.abload) { const b = autoBaks()[+d.abload]; if (!b || !confirm(`${dateStr(b.w)} 상태로 되돌릴까요?
 지금 진행한 내용은 사라져요.`)) return; S = JSON.parse(b.S); save(); closeDlg(); TAB = 'plan'; render(); return toast('되돌렸어요!'); }
   if (d.fac) return buildFac(d.fac);
+  if (d.shop) { const it = SHOP.find(x => x.id === d.shop); return it && it.one ? shopPick(d.shop) : shopBuy(d.shop); }
+  if (d.shopuse) { const [id, mid] = d.shopuse.split(':'); return shopBuy(id, mid); }
   if (d.light) { if (S && !document.getElementById('suName')) { const nm = $('#fdName') ? $('#fdName').value : ''; S.light = d.light; save(); fandomDlg(); if ($('#fdName')) $('#fdName').value = nm; return; } SU.light = d.light; document.querySelectorAll('[data-light]').forEach(b => b.classList.toggle('on', b === t)); return; }
   if (d.mini) return miniPick(d.mini);
   if (d.endview) { const e = ENDINGS.find(x => x.id === d.endview); if (!e) return; openDlg(`${endScene(e.id)}${endingCard(e, e.text || (e.id === 'bankrupt' ? '자금이 -1억 아래로 떨어져 회사가 파산했어요.' : '멤버가 모두 떠나 그룹이 해체됐어요.'))}<button class="btn sub" data-gtab="ending" style="width:100%">◀ 엔딩 도감으로</button>`); if (e.id !== 'disband') mountEnd(e.id); return; }
