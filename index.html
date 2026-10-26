@@ -2743,7 +2743,7 @@ function shopWhy(it) {   // 지금 살 수 없는 이유 (살 수 있으면 '')
 }
 function shopHTML() {
   return `<h2>🛍 냥냥 상점</h2><p class="muted center" style="margin-top:-4px">사면 바로 써요.<br>같은 물건은 한 주에 한 번씩 (멤버용은 멤버마다)</p><div class="facgrid">${SHOP.map(it => { const why = shopWhy(it), own = it.perm && (S.shop || {})[it.id];
-    return `<div class="card fac"><div class="facic">${it.ic}</div><b>${it.name}</b><small>${it.desc}</small>${own ? '<span class="tag">✔ 숙소에 있어요</span>' : why ? `<button class="btn small sub" disabled>${moneyShort(it.cost)} · ${why}</button>` : `<button class="btn small" data-shop="${it.id}">${it.one ? '멤버 고르기' : '사기'} ${moneyShort(it.cost)}</button>`}</div>`; }).join('')}</div>
+    return `<div class="card fac"><div class="facic">${it.ic}</div><b>${it.name}</b><small>${it.desc}</small>${own ? '<span class="tag">✔ 숙소에 있어요</span>' : why ? `<button class="btn small sub" disabled>-${moneyShort(it.cost)}<br>${why}</button>` : `<button class="btn small" data-shop="${it.id}">${it.one ? '멤버 고르기 ' : ''}-${moneyShort(it.cost)}</button>`}</div>`; }).join('')}</div>
 <p class="muted" style="display:flex;gap:4px"><span>💡</span><span>남는 돈이 많으면 계약 탭 맨 아래<br>🏢 회사 시설도 지어 보세요.</span></p>`;
 }
 function shopPick(id) {   // 한 멤버용 물건: 누구에게 줄지 고르기
